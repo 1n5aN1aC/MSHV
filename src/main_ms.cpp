@@ -1943,7 +1943,19 @@ void Main_Ms::SetMacros(int contest_id,QString trmN_stdC)//2.15
             Multi_answer_mod_std->setEnabled(true);
         }
     }
-    else//for future if(contest_id == 2 || contest_id == 3 || contest_id == 4 || contest_id == 5)
+    else if (contest_id == 4)//ARRL Field Day: allow MASTD only (no MADX)
+    {
+        if (!g_ub_m_k)
+        {
+            g_block_mam = false;
+            MA_man_adding->setEnabled(false);
+            Multi_answer_mod->setEnabled(false);
+            Multi_answer_mod->setChecked(false);
+            if (allq65 || s_mode==11 || s_mode==13 || s_mode==18)
+                Multi_answer_mod_std->setEnabled(true);
+        }
+    }
+    else//for future if(contest_id == 2 || contest_id == 3 || contest_id == 5)
     {
         if (!g_ub_m_k)
         {
