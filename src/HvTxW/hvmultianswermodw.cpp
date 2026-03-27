@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QDateTime>
+#include <QRandomGenerator>
 #include "../config_str_color.h"
 //#include <QtGui>
 
@@ -438,6 +439,8 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     }
     backup_db_pos_write = 0;
     current_msg = "";
+    s_idle_once_msg = "";
+    s_idle_once_active = false;
     s_man_adding = false;
 
     s_qrg = "237";
@@ -569,15 +572,15 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     CbcqtypeSF->setFixedHeight(fHeight);
     CbcqtypeSF->setHidden(true);
 
-    cb_tx_cq_on_free_slot = new QCheckBox(tr("CQ on free slot"));
-    cb_tx_cq_on_free_slot->setToolTip(tr("TX CQ on free slot"));//2.13 special msg
-    cb_tx_cq_on_free_slot->setChecked(false);
+    cb_respond_when_idle = new QCheckBox(tr("Respond when idle"));
+    cb_respond_when_idle->setToolTip(tr("When all TX periods for Max Periods have been CQ,\ncall a random station heard sending CQ FD"));
+    cb_respond_when_idle->setChecked(false);
     QHBoxLayout *H_l4 = new QHBoxLayout();
     H_l4->setContentsMargins(1, 0, 1, 0);
     H_l4->setSpacing(2);
     H_l4->addWidget(Cbcqtype);
     H_l4->addWidget(CbcqtypeSF);
-    H_l4->addWidget(cb_tx_cq_on_free_slot);
+    H_l4->addWidget(cb_respond_when_idle);
 
     //cb_no_dupes = new QCheckBox(tr("No Dupe"));
     Cb_dupes = new QComboBox();
@@ -738,7 +741,7 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     connect(LeFreeCQ, SIGNAL(textChanged(QString)), this, SLOT(LeFreeCQtextChanged(QString)));
     connect(pb_use_free_cq, SIGNAL(clicked(bool)), this, SLOT(UseFreeCq()));
     connect(Cb_sort, SIGNAL(currentIndexChanged(int)), LsQueue, SLOT(SetAutoSort(int)));
-    connect(cb_tx_cq_on_free_slot, SIGNAL(toggled(bool)), this, SLOT(CbTxCqOnFreeSlotChanged(bool)));
+    connect(cb_respond_when_idle, SIGNAL(toggled(bool)), this, SLOT(CbRespondWhenIdleChanged(bool)));
 
     //SetDefaultMacros();
 }
@@ -766,7 +769,7 @@ void MultiAnswerModW::SetFont(QFont f)
     cb_otp_mamd_key->setFont(f);
     cb_cont_ns->setFont(f);
     Cb_sort->setFont(f);
-    cb_tx_cq_on_free_slot->setFont(f);
+    cb_respond_when_idle->setFont(f);
     LeFreeCQ->setFont(f);
     pb_use_free_cq->setFont(f);
     pb_clr_queue->setFont(f);
@@ -793,8 +796,8 @@ void MultiAnswerModW::SetSettings(QString s)
     if (ls.at(9) =="0") LsQueue->s_order_1 = Qt::AscendingOrder;
     if (ls.at(10)=="0") LsQueue->s_order_3 = Qt::AscendingOrder;
     Cb_sort->setCurrentIndex(ls.at(5).toInt());
-    if (ls.at(6)=="1") cb_tx_cq_on_free_slot->setChecked(true);
-    else cb_tx_cq_on_free_slot->setChecked(false);
+    if (ls.at(6)=="1") cb_respond_when_idle->setChecked(true);
+    else cb_respond_when_idle->setChecked(false);
     if (ls.at(7)=="1") cb_cont_ns->setChecked(true);
     else cb_cont_ns->setChecked(false);
     if (ls.at(8)=="1") SBmaxTP->SetDoubleClick();
@@ -1625,9 +1628,15 @@ void MultiAnswerModW::gen_msg()
 
     if (rwc<=0)//start cq
     {
-        if (!g_block_stop_auto && f_multi_answer_mod_std && (!cb_cont_ns->isChecked() || id_mshf==1))//2.52 ->!g_block_stop_auto eventual->!f_tx_rx &&
+        if (!g_block_stop_auto && f_multi_answer_mod_std && s_co_type!=4 && (!cb_cont_ns->isChecked() || id_mshf==1))//2.52 ->!g_block_stop_auto eventual->!f_tx_rx &&
             emit EmitStopAuto(); // from set_macros stop auto and clar lists
-        if (f_block_free_cq)
+        if (!s_idle_once_msg.isEmpty())
+        {
+            current_msg = s_idle_once_msg;
+            s_idle_once_msg = "";
+            s_idle_once_active = true;
+        }
+        else if (f_block_free_cq)
         {
             QString Myloc4 = list_macros.at(1).mid(0,4);
             current_msg = "CQ "+list_macros.at(0)+" "+Myloc4;
@@ -1654,16 +1663,6 @@ void MultiAnswerModW::gen_msg()
             if (i<rwc-1) current_msg.append("#");
             if (i==0) emit EmitDxParm(LsNow->model.item(i,0)->text(),LsNow->model.item(i,1)->text(),LsNow->model.item(i,4)->text());
         } //qDebug()<<"gen_msg() end-"<<"c_rpt="<<c_sf_rpt<<"c_r73="<<c_sf_r73;
-        if (cb_tx_cq_on_free_slot->isChecked() && rwc < 2 && rwc < SBslots->valueS() && id_mshf!=2)//2.76(&& !s_msf) add cq if have place and only one candidat in LsNow
-        {
-            current_msg.append("#"); //QString Myloc4 = list_macros.at(1).mid(0,4);
-            if (f_block_free_cq)
-            {
-                QString Myloc4 = list_macros.at(1).mid(0,4);
-                current_msg.append("CQ "+list_macros.at(0)+" "+Myloc4);
-            }
-            else current_msg.append(LeFreeCQ->text());
-        }
         int identif = LsNow->model.item(0,7)->text().toInt();//2.51
         emit EmitQSOProgressMAM(identif,true);//2.51
     }
@@ -1680,6 +1679,155 @@ void MultiAnswerModW::gen_msg()
         else emit MamEmitMessage(current_msg,false,false,true); //qDebug()<<"Msg="<<current_msg.count();
     }
 }
+void MultiAnswerModW::TrackTxMsgForIdleResponse(const QString &msg)
+{
+    if (msg.isEmpty()) return;
+    if (!IsTxMsgAllCqFd(msg))
+    {
+        s_last_tx_msgs.clear();
+        return;
+    }
+    s_last_tx_msgs << msg;
+    while (s_last_tx_msgs.count()>256) s_last_tx_msgs.removeFirst();
+}
+bool MultiAnswerModW::IsTxMsgAllCqFd(const QString &msg) const
+{
+    if (msg.isEmpty()) return false;
+    QStringList parts = msg.split("#");
+    for (int i = 0; i < parts.count(); ++i)
+    {
+        QString s = parts.at(i).trimmed().toUpper();
+        if (s.isEmpty() || !s.startsWith("CQ FD ")) return false;
+    }
+    return true;
+}
+quint32 MultiAnswerModW::GetDecodePeriodIndex() const
+{
+    double p = period_time_sec*2.0;
+    if (p < 1.0) p = 30.0;
+    quint32 sec = (quint32)QDateTime::currentDateTimeUtc().toTime_t();
+    return (quint32)((double)sec / p);
+}
+int MultiAnswerModW::GetIdleRespWindowPeriods() const
+{
+    double p = period_time_sec*2.0;
+    if (p < 1.0) p = 30.0;
+    int v = SBmaxTP->value();
+    if (v < 1) v = 1;
+    if (SBmaxTP->GetMTP()) return v;
+    int periods = (int)(((double)v * 60.0) / p + 0.5);
+    if (periods < 1) periods = 1;
+    return periods;
+}
+int MultiAnswerModW::GetRecentCqWindowPeriods() const
+{
+    double p = period_time_sec*2.0;
+    if (p < 1.0) p = 30.0;
+    int periods = (int)(60.0 / p + 0.5);
+    if (periods < 1) periods = 1;
+    return periods;
+}
+QString MultiAnswerModW::ExtractFdCqCall(const QString &msg)
+{
+    QStringList ls = msg.toUpper().split(" ");
+    ls.removeAll("");
+    if (ls.count()<3) return "";
+    if (ls.at(0)!="CQ" || ls.at(1)!="FD") return "";
+    QString call = ls.at(2).trimmed();
+    if (!THvQthLoc.isValidCallsign(call)) return "";
+    return call;
+}
+void MultiAnswerModW::CollectFdCqCandidate(const QString &msg, const QString &tx_rpt, const QString &freq)
+{
+    if (s_co_type!=4 || !f_multi_answer_mod_std) return;
+    QString call = ExtractFdCqCall(msg);
+    if (call.isEmpty()) return;
+    QString base = FindBaseFullCallRemAllSlash(call);
+    if (LsQueue->FindCallOrBaseCallRow(base)>-1 || LsNow->FindCallOrBaseCallRow(base)>-1) return;
+    QStringList keep;
+    quint32 now_p = GetDecodePeriodIndex();
+    int winp = GetRecentCqWindowPeriods();
+    quint32 max_age = (winp>0) ? (quint32)(winp-1) : 0;
+    for (int i = 0; i < s_fd_idle_cq_candidates.count(); ++i)
+    {
+        QStringList pr = s_fd_idle_cq_candidates.at(i).split("\t");
+        if (pr.count()<4) continue;
+        quint32 p = pr.at(0).toUInt();
+        if (now_p>=p && (now_p-p)<=max_age) keep << s_fd_idle_cq_candidates.at(i);
+    }
+    s_fd_idle_cq_candidates = keep;
+    for (int i = 0; i < s_fd_idle_cq_candidates.count(); ++i)
+    {
+        QStringList pr = s_fd_idle_cq_candidates.at(i).split("\t");
+        if (pr.count()<4) continue;
+        if (FindBaseFullCallRemAllSlash(pr.at(1))==base) return;
+    }
+    QString item = QString("%1\t%2\t%3\t%4").arg(GetDecodePeriodIndex()).arg(call).arg(tx_rpt).arg(freq+"\t"+msg);
+    s_fd_idle_cq_candidates << item;
+    while (s_fd_idle_cq_candidates.count()>200) s_fd_idle_cq_candidates.removeFirst();
+}
+void MultiAnswerModW::TryRespondWhenIdle()
+{
+    if (!cb_respond_when_idle->isChecked()) return;
+    if (!f_multi_answer_mod_std || s_co_type!=4) return;
+    if (LsNow->GetRowCount()>0 || LsQueue->GetRowCount()>0) return;
+    int waitp = GetIdleRespWindowPeriods();
+    if (s_last_tx_msgs.count()<waitp) return;
+    int starti = s_last_tx_msgs.count()-waitp;
+    for (int i = starti; i < s_last_tx_msgs.count(); ++i)
+    {
+        if (!IsTxMsgAllCqFd(s_last_tx_msgs.at(i))) return;
+    }
+    QStringList eligible;
+    quint32 now_p = GetDecodePeriodIndex();
+    int winp = GetRecentCqWindowPeriods();
+    quint32 max_age = (winp>0) ? (quint32)(winp-1) : 0;
+    for (int i = 0; i < s_fd_idle_cq_candidates.count(); ++i)
+    {
+        QStringList pr = s_fd_idle_cq_candidates.at(i).split("\t");
+        if (pr.count()<5) continue;
+        quint32 p = pr.at(0).toUInt();
+        if (!(now_p>=p && (now_p-p)<=max_age)) continue;
+        QString call = pr.at(1);
+        QString base = FindBaseFullCallRemAllSlash(call);
+        if (LsQueue->FindCallOrBaseCallRow(base)>-1 || LsNow->FindCallOrBaseCallRow(base)>-1) continue;
+        bool is_dupe = false;
+        emit IsCallDupeInLog(call,1,is_dupe);
+        if (is_dupe) continue;
+        eligible << s_fd_idle_cq_candidates.at(i);
+    }
+    if (eligible.isEmpty()) return;
+    int idx = QRandomGenerator::global()->bounded(eligible.count());
+    QStringList pr = eligible.at(idx).split("\t");
+    if (pr.count()<5) return;
+    QString call = pr.at(1);
+    QString tx_rpt = pr.at(2);
+    s_idle_once_msg = BuildIdleCallMsg(call,tx_rpt);
+    s_last_tx_msgs.clear();
+    gen_msg();
+}
+QString MultiAnswerModW::BuildIdleCallMsg(const QString &call, const QString &tx_rpt)
+{
+    QString str_out = str_macros_mam_[1];
+    QString my_call = list_macros.at(0);
+    QString his_call = call;
+    bool my_call_is_std,his_call_is_std,noQSO;
+    isStandardCalls(my_call,his_call,my_call_is_std,his_call_is_std,noQSO);
+    if (!his_call_is_std && !my_call_is_std)
+    {
+        his_call = "<"+his_call+">";
+        if (!noQSO) my_call = s_my_base_call;
+    }
+    else if (!his_call_is_std && my_call_is_std) his_call = "<"+his_call+">";
+    else if (his_call_is_std && !my_call_is_std) my_call  = "<"+my_call+">";
+    str_out.replace(QString("%T"), his_call);
+    str_out.replace(QString("%M"), my_call);
+    str_out.replace(QString("%R"), tx_rpt);
+    str_out.replace(QString("%G4"), list_macros.at(1).mid(0,4));
+    str_out.replace(QString("%G6"), list_macros.at(1));
+    str_out.replace(QString("%N"), QString("%1").arg(s_txsn_v2,4,10,QChar('0')));
+    return str_out;
+}
 void MultiAnswerModW::SetSFMATxAll()//2.76sf
 {
     static QString s0 = "-";
@@ -1695,7 +1843,7 @@ void MultiAnswerModW::SetSFMATxAll()//2.76sf
         s.append("#0");
         s_msf_ftmsg = false;
     } //qDebug()<<"s_msf_ftmsg="<<s_msf_ftmsg;
-    if (cb_tx_cq_on_free_slot->isChecked()) s.append("#1");//s.append("#"+QString("%1").arg(cb_tx_cq_on_free_slot->isChecked()));
+    if (cb_respond_when_idle->isChecked()) s.append("#1");
     else s.append("#0");
 
     QString call6 = s_my_base_call;
@@ -1719,10 +1867,10 @@ void MultiAnswerModW::cb_otp_mamd_key_toggled()
 {
     SetSFMATxAll();//2.76sf
 }
-void MultiAnswerModW::CbTxCqOnFreeSlotChanged(bool)
+void MultiAnswerModW::CbRespondWhenIdleChanged(bool)
 {
-    SetSFMATxAll();//2.76sf, if SF no need refresh->!s_msf, otherwise it makes a bad message
-    if (SBslots->valueS()>1 && id_mshf!=2) gen_msg();//need to upd CQ on free slot`1
+    SetSFMATxAll();//2.76sf
+    if (SBslots->valueS()>1 && id_mshf!=2) gen_msg();
 }
 void MultiAnswerModW::GetCurrentMsg()
 {
@@ -2297,6 +2445,8 @@ void MultiAnswerModW::SetTxRxMsg(bool f)
     f_tx_rx = f;
     if (f)
     {
+        TrackTxMsgForIdleResponse(current_msg);
+        TryRespondWhenIdle();
         gen_in_tx_time = "1";//1 tx 0 rx
         bool is_change = false;
         unsigned int ttry_now = QDateTime::currentDateTimeUtc().toTime_t();
@@ -2332,6 +2482,11 @@ void MultiAnswerModW::SetTxRxMsg(bool f)
     {
         gen_in_tx_time = "0";
         SetTxMsgEnd();
+        if (s_idle_once_active && LsNow->GetRowCount()<=0 && LsQueue->GetRowCount()<=0)
+        {
+            s_idle_once_active = false;
+            gen_msg();
+        }
     }
 }
 void MultiAnswerModW::SetLastBcCallToLog(QString call)
@@ -2900,6 +3055,7 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
         QString text_msg = list_in.at(4);
         QString tx_rpt = list_in.at(1);
         QString freq = list_in.at(9);//2.73 Dist Country
+        CollectFdCqCandidate(text_msg,tx_rpt,freq);
         QString hcap;//fictive
         QString hloc;//fictive
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);//false f_double_click

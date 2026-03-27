@@ -12,6 +12,7 @@
 #include <QStandardItemModel>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QDateTime>
 #include "hvstditmmod.h"
 
 class ListA : public QTreeView
@@ -170,7 +171,7 @@ public:
         out.append("#");        
         out.append(QString("%1").arg(Cb_sort->currentIndex()));
         out.append("#");        
-        out.append(QString("%1").arg(cb_tx_cq_on_free_slot->isChecked()));
+        out.append(QString("%1").arg(cb_respond_when_idle->isChecked()));
         out.append("#");
         out.append(QString("%1").arg(cb_cont_ns->isChecked()));
         out.append("#");
@@ -243,7 +244,7 @@ private slots:
     void SBslotsValueChanged(int);
     void LeFreeCQtextChanged(QString);
     void UseFreeCq();
-    void CbTxCqOnFreeSlotChanged(bool);
+    void CbRespondWhenIdleChanged(bool);
     void cb_otp_mamd_key_toggled();//2.76sf  
 
 private:
@@ -297,8 +298,12 @@ private:
     //QCheckBox *cb_tx_sm_std;//2.71
     //QCheckBox *cb_a_sort;//2.13 sort
     QComboBox *Cb_sort;
-    QCheckBox *cb_tx_cq_on_free_slot;//2.13
+    QCheckBox *cb_respond_when_idle;
     QCheckBox *cb_cont_ns;
+    QStringList s_fd_idle_cq_candidates;
+    QString s_idle_once_msg;
+    bool s_idle_once_active;
+    QStringList s_last_tx_msgs;
     QString format_rpt_ma(QString s);
     //QString CalcDistance(QString,bool);
     bool is_pfx(QString s);
@@ -309,6 +314,15 @@ private:
 
     bool f_auto_on;
     void gen_msg();
+    void TrackTxMsgForIdleResponse(const QString &msg);
+    bool IsTxMsgAllCqFd(const QString &msg) const;
+    quint32 GetDecodePeriodIndex() const;
+    int GetIdleRespWindowPeriods() const;
+    int GetRecentCqWindowPeriods() const;
+    QString ExtractFdCqCall(const QString &msg);
+    void CollectFdCqCandidate(const QString &msg, const QString &tx_rpt, const QString &freq);
+    void TryRespondWhenIdle();
+    QString BuildIdleCallMsg(const QString &call, const QString &tx_rpt);
     void RefreshLists(int);//2.13
     QPushButton *pb_clr_queue;
     QPushButton *pb_clr_now;
