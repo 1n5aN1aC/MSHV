@@ -142,12 +142,12 @@ private:
 	void RefreshFiltHeadColor(bool,bool,bool,bool,bool,bool,bool,bool,bool);
 	bool AllisDigitOrAllisLetter(QString);
 	HvQthLoc THvQthLoc;
-	QString FindHisCall(QString);
+    QString FindHisCall(QString);
 	bool ShowDecode(QString);
 	bool ShowCDecode(QString);
 	bool ShowCSDecode(QString);
 	bool ShowCENDDecode(QString);
-	bool HideB4Qso(QString);
+    bool HideB4Qso(QString);
 	QString FindCountry(QString,QString,QString);	
 	QString CalcDistance(QString,QString);
 	bool isNotTxnQsyCq(QString);
@@ -183,6 +183,7 @@ private:
     bool s_flag_two;
     bool f_mark_tx;
     bool f_mark_qsy;
+    bool s_gray_dup_contacts;
     bool f_mark_txqsy;//2.46
     uint8_t id_mark_otp_verif;//2.76
     QColor c_mark_txt[11];

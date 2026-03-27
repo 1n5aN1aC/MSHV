@@ -1473,6 +1473,7 @@ void HvTxW::Sh_Rpt_Changet(bool f)
 }
 void HvTxW::SetMarkTextAll()
 {
+    const QString gray_dup_token = "__GREY_DUP_CONTACTS__";
     /*QStringList ls;
     ls = s_list_mark_txt;
     int pos_qso_b4 = ls.count();
@@ -1486,6 +1487,7 @@ void HvTxW::SetMarkTextAll()
     int pos_loc = pos_qso_b4 + s_list_log_mark_txt_p1;
     int mark_myc_pos = ls.count();
     ls.append(s_list_mark_myc);
+    if (s_txt_mark[29]) ls.append(gray_dup_token);
     emit EmitDListMarkText(ls,s_mark_r12_pos,s_mark_hisc_pos,pos_qso_b4,pos_loc,mark_myc_pos);
     //qDebug()<<"LS="<<ls<<s_mark_myc_pos<<pos_qso_b4<<pos_loc<<ls.count();
 }

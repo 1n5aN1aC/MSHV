@@ -14,7 +14,7 @@
 #include <QGroupBox>
 #define C_COLORS 7
 #define C_SHEM 2
-#define C_CB 29
+#define C_CB 30
 #define C_BT 7
 
 #include "../HvTxW/hvinle.h"
