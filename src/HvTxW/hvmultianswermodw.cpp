@@ -2062,10 +2062,10 @@ void MultiAnswerModW::ConfigRestrictW()
 {
     if (f_multi_answer_mod_std)//(s_mode==11 || s_mode==13 || s_mode==18) &&
     {
-        if ((gg_frest && s_co_type!=4) || allq65) SBslots->setRange(1,1);// || s_mode==18
+        if (gg_frest || allq65) SBslots->setRange(1,1);// || s_mode==18
         else
         {
-            if (s_co_type==0 || s_co_type==4) SBslots->setRange(1,2);//s_co_type==4 ARRL Field Day, no serial number conflict
+            if (s_co_type==0) SBslots->setRange(1,2);
             else SBslots->setRange(1,1);//<- importent eu vhf only 1 slot needed
         }
         cb_tx_sm->setHidden(true);
