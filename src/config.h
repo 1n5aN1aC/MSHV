@@ -5,12 +5,12 @@
 #define VERSION_MAJOR 1337  //version when you make incompatible API changes
 #define VERSION_MINOR 76 //version when you add functionality in a backward compatible manner
 #define VERSION_PATCH 5  //version when you make backward compatible bug fixes
-//#define VERSION_REVISION 1
+#define VERSION_REVISION 4
 //--------------------END--Semantic Versioning 2.0.0--END----------------------------------//
 
 #define STR0(x) #x
 #define TOSTR0(x) STR0(x)
-#define VER_MS TOSTR0(VERSION_MAJOR) "." TOSTR0(VERSION_MINOR) "." TOSTR0(VERSION_PATCH)
+#define VER_MS TOSTR0(VERSION_MAJOR) "." TOSTR0(VERSION_MINOR) "." TOSTR0(VERSION_PATCH) "." TOSTR0(VERSION_REVISION)
 //#define VER_MS "2.65"
 
 #if defined _WIN64_

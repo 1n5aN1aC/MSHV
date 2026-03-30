@@ -1697,7 +1697,14 @@ bool MultiAnswerModW::IsTxMsgAllCqFd(const QString &msg) const
     for (int i = 0; i < parts.count(); ++i)
     {
         QString s = parts.at(i).trimmed().toUpper();
-        if (s.isEmpty() || !s.startsWith("CQ FD ")) return false;
+        if (s_co_type == 4)
+        {
+            if (s.isEmpty() || !s.startsWith("CQ FD ")) return false;
+        }
+        else
+        {
+            if (s.isEmpty() || !s.startsWith("CQ ")) return false;
+        }
     }
     return true;
 }
@@ -1731,15 +1738,25 @@ QString MultiAnswerModW::ExtractFdCqCall(const QString &msg)
 {
     QStringList ls = msg.toUpper().split(" ");
     ls.removeAll("");
-    if (ls.count()<3) return "";
-    if (ls.at(0)!="CQ" || ls.at(1)!="FD") return "";
-    QString call = ls.at(2).trimmed();
-    if (!THvQthLoc.isValidCallsign(call)) return "";
-    return call;
+    if (ls.count() < 2) return "";
+    if (ls.at(0) != "CQ") return "";
+    if (s_co_type == 4)
+    {
+        if (ls.count() < 3 || ls.at(1) != "FD") return "";
+        QString call = ls.at(2).trimmed();
+        if (!THvQthLoc.isValidCallsign(call)) return "";
+        return call;
+    }
+    for (int i = 1; i < ls.count(); ++i)
+    {
+        QString tok = ls.at(i).trimmed();
+        if (THvQthLoc.isValidCallsign(tok)) return tok;
+    }
+    return "";
 }
 void MultiAnswerModW::CollectFdCqCandidate(const QString &msg, const QString &tx_rpt, const QString &freq)
 {
-    if (s_co_type!=4 || !f_multi_answer_mod_std) return;
+    if ((s_co_type!=4 && s_co_type!=0) || !f_multi_answer_mod_std) return;
     QString call = ExtractFdCqCall(msg);
     if (call.isEmpty()) return;
     QString base = FindBaseFullCallRemAllSlash(call);
@@ -1769,7 +1786,7 @@ void MultiAnswerModW::CollectFdCqCandidate(const QString &msg, const QString &tx
 void MultiAnswerModW::TryRespondWhenIdle()
 {
     if (!cb_respond_when_idle->isChecked()) return;
-    if (!f_multi_answer_mod_std || s_co_type!=4) return;
+    if (!f_multi_answer_mod_std || (s_co_type!=4 && s_co_type!=0)) return;
     if (LsNow->GetRowCount()>0 || LsQueue->GetRowCount()>0) return;
     int waitp = GetIdleRespWindowPeriods();
     if (s_last_tx_msgs.count()<waitp) return;
@@ -1808,18 +1825,31 @@ void MultiAnswerModW::TryRespondWhenIdle()
 }
 QString MultiAnswerModW::BuildIdleCallMsg(const QString &call, const QString &tx_rpt)
 {
-    QString str_out = str_macros_mam_[1];
     QString my_call = list_macros.at(0);
     QString his_call = call;
-    bool my_call_is_std,his_call_is_std,noQSO;
-    isStandardCalls(my_call,his_call,my_call_is_std,his_call_is_std,noQSO);
-    if (!his_call_is_std && !my_call_is_std)
+    bool my_call_is_std, his_call_is_std, noQSO;
+    isStandardCalls(my_call, his_call, my_call_is_std, his_call_is_std, noQSO);
+    QString str_out;
+    if (s_co_type == 4)
     {
-        his_call = "<"+his_call+">";
-        if (!noQSO) my_call = s_my_base_call;
+        // Field Day: report/exchange message (%T %M %R), same as tx_id=1
+        str_out = str_macros_mam_[1];
+        if (!his_call_is_std && !my_call_is_std)
+        {
+            his_call = "<"+his_call+">";
+            if (!noQSO) my_call = s_my_base_call;
+        }
+        else if (!his_call_is_std && my_call_is_std) his_call = "<"+his_call+">";
+        else if (his_call_is_std && !my_call_is_std) my_call  = "<"+my_call+">";
     }
-    else if (!his_call_is_std && my_call_is_std) his_call = "<"+his_call+">";
-    else if (his_call_is_std && !my_call_is_std) my_call  = "<"+my_call+">";
+    else
+    {
+        // Normal mode: gridsquare opening message (%T %M %G4), same as double-clicking a CQ (tx_id=0)
+        str_out = str_macros_mam_[0];
+        if (!his_call_is_std && !my_call_is_std && !noQSO) str_out = "<"+his_call+"> "+my_call;
+        else if (!his_call_is_std) his_call = "<"+his_call+">";
+        else if (!my_call_is_std) str_out = "<"+his_call+"> "+my_call;
+    }
     str_out.replace(QString("%T"), his_call);
     str_out.replace(QString("%M"), my_call);
     str_out.replace(QString("%R"), tx_rpt);
