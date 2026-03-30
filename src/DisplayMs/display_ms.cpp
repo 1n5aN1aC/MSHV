@@ -22,6 +22,7 @@ DisplayMs::DisplayMs(int dispident,bool f,QWidget * parent )
     frq00_limit = 20;
     frq01_limit = 4980;
     allq65 = false;
+    s_dftol_all = false;
     //ft_df1500 = true;
     f_is_decodet3int = false;
 
@@ -1379,6 +1380,11 @@ void DisplayMs::SetVDdf(int df, int in_mode)
     //else qDebug()<<"ERROR MODE CHANGED"<<in_mode<<s_mode;
     //SaveFT8RxTxFreq(); //2.41 no needed
 }
+void DisplayMs::SetDfTolAllMode(bool f)
+{
+    s_dftol_all = f;
+    if (f_disp_v_h) SetVDRxFreqF0F1();
+}
 void DisplayMs::SetZeroDfVScale(bool f)
 {
     f_zero_freq_scale = f;
@@ -1467,6 +1473,14 @@ void DisplayMs::SetVDRxFreqF0F1()//2.24 ft8/4 df
 
     double f00 = frq00;
     double f01 = frq01;
+
+    if (s_dftol_all && (s_mode == 7 || s_mode == 8 || s_mode == 9 || s_mode == 10 ||
+                        s_mode == 11 || s_mode == 13 || s_mode == 18 || allq65))
+    {
+        f00 = 100.0;
+        f01 = 3500.0;
+    }
+
     if (frq00<40) f00=40;
     if (frq01>4960) f01=4960;
     //if (disp_ident==0) qDebug()<<frq00_limit<<frq01_limit<<"START="<<(int)f00<<"RX="<<(int)vd_rx_freq<<"STOP="<<(int)f01;

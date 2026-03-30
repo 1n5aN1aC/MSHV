@@ -601,9 +601,14 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
 
     SB_DfTolerance1 = new HvSpinBoxDf(dsty);
     SB_DfTolerance1->SetMode(s_mode);
+    cb_dftol_all = new QCheckBox(tr("All"));
+    cb_dftol_all->setToolTip(tr("Decode 100-3500 Hz"));
+    cb_dftol_all->setChecked(false);
+    cb_dftol_all->setEnabled(false);
 
     connect(SB_MinSigdB, SIGNAL(valueChanged(int)), this, SLOT(DfSdbChanged(int)));
     connect(SB_DfTolerance1, SIGNAL(EmitValueChanged(int)), this, SLOT(DfSdbChanged(int)));
+    connect(cb_dftol_all, SIGNAL(toggled(bool)), this, SLOT(DfTolAllChanged(bool)));
 
     //2.45
     le_qrg = new HvQrg(dsty);
@@ -809,7 +814,12 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     V_tx_b->setSpacing(3);
     //V_tx_b->addWidget(SB_MinSigdB);
     V_tx_b->addLayout(H_lsz);
-    V_tx_b->addWidget(SB_DfTolerance1);
+    QHBoxLayout *H_dftol = new QHBoxLayout();
+    H_dftol->setContentsMargins(0,0,0,0);
+    H_dftol->setSpacing(2);
+    H_dftol->addWidget(SB_DfTolerance1);
+    H_dftol->addWidget(cb_dftol_all);
+    V_tx_b->addLayout(H_dftol);
     //V_tx_b->addLayout(H_dfsh);
     //V_tx_b->setAlignment(H_lle,Qt::AlignRight);
 
@@ -1235,6 +1245,7 @@ void HvTxW::SetFont(QFont f)
     b_add_to_log->setFont(f);//2.75
     cb_msh->setFont(f);//2.76
     cb_msf->setFont(f);
+    cb_dftol_all->setFont(f_t);
 }
 void HvTxW::SetUdpDecClr()
 {
@@ -2592,6 +2603,11 @@ void HvTxW::SetRxDf(int dft)
 {
     SB_DfTolerance1->setValue(dft);
 }
+void HvTxW::DfTolAllChanged(bool f)
+{
+    SB_DfTolerance1->setEnabled(!f);
+    emit EmitDfTolAllChanged(f);
+}
 void HvTxW::DfSdbChanged(int)
 {
     emit EmitDfSdbChanged(SB_MinSigdB->value(),SB_DfTolerance1->value());
@@ -2643,6 +2659,10 @@ void HvTxW::SetMinsigndb(QString s)
 void HvTxW::SetDftolerance(QString s)
 {
     SB_DfTolerance1->SetDfAllModes(s);
+}
+void HvTxW::SetDfTolAllMode(QString s)
+{
+    cb_dftol_all->setChecked(s.toInt()==1);
 }
 void HvTxW::SetRptRsqSettings()
 {    
@@ -3193,6 +3213,10 @@ void HvTxW::ModeChanget(int mode,bool f)
 	sb_dt->SetMode(s_mode);
     TRadioAndNetW->SetModeForFreqFromMode(s_mode);
     SB_DfTolerance1->SetMode(mode);
+
+    bool use_dftol_all = (alljt65 || s_mode==10 || s_mode==11 || s_mode==13 || s_mode==18 || allq65);
+    cb_dftol_all->setEnabled(use_dftol_all);
+    DfTolAllChanged(cb_dftol_all->isChecked());
 
     SetLockTxrxMode(s_mode);
 

@@ -166,6 +166,7 @@ public:
     void SetZap(QString);
     void SetMinsigndb(QString);
     void SetDftolerance(QString);
+    void SetDfTolAllMode(QString);
     void SetDataTime(QDateTime);
     void SetGUbMK(bool);
     void GetCurrentMsg();
@@ -211,6 +212,10 @@ public:
     QString getdftol()
     {
         return SB_DfTolerance1->def_df_all_modes();
+    };
+    QString getdftolallmode()
+    {
+        return QString("%1").arg((int)cb_dftol_all->isChecked());
     };
     QString getzap()
     {
@@ -367,6 +372,7 @@ signals:
     void EmitFileNameChenged();
     void EmitDfSdbChanged(int,int);
     void EmitDfChanged(int,int);
+    void EmitDfTolAllChanged(bool);
     void EmitWords(QStringList,int,int);
     void EmitZap(bool);
     void StndInLevel(int);
@@ -411,6 +417,7 @@ private slots:
     void BReleased(int,QString);
     void SetTxSnV2(int);
     void DfSdbChanged(int);
+    void DfTolAllChanged(bool);
     void Check(QString);
     void CheckBD();
     void AddDb();
@@ -592,6 +599,7 @@ private:
     bool f_makros_ready;
     int s_b_identif;
     HvQrg *le_qrg;
+    QCheckBox *cb_dftol_all;
     QCheckBox *cb_zap;
     QCheckBox *cb_sh_rpt;
     QCheckBox *cb_swl;
