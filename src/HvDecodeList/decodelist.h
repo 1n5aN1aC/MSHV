@@ -183,6 +183,7 @@ private:
     bool s_flag_two;
     bool f_mark_tx;
     bool f_mark_qsy;
+    bool s_gray_dup_contacts;
     bool f_mark_txqsy;//2.46
     uint8_t id_mark_otp_verif;//2.76
     QColor c_mark_txt[11];

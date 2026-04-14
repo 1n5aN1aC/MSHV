@@ -170,6 +170,7 @@ DecodeList::DecodeList(int ident,bool f,QWidget *parent)
     c_mark_txt[6] = QColor(100,210,255);//2.63 his call
     f_mark_tx = true;
     f_mark_qsy = true;
+    s_gray_dup_contacts = false;
     f_mark_txqsy = false;//tx=0 qsy=1;
     id_mark_otp_verif = 0;
     s_list_ident = ident;
@@ -1812,9 +1813,19 @@ void DecodeList::SetTextMarkColors(QColor *c,int c_c,bool f_c3,bool f_c4)
 }
 void DecodeList::SetDListMarkText(QStringList l,int r12,int ih,int j,int k,int im)
 {
-    if (s_mark_txt!=l)
+    const QString gray_dup_token = "__GREY_DUP_CONTACTS__";
+    QStringList l0 = l;
+    s_gray_dup_contacts = false;
+    int gray_tok_pos = l0.indexOf(gray_dup_token);
+    if (gray_tok_pos>-1)
     {
-        s_mark_txt = l;//2.65 first this
+        s_gray_dup_contacts = true;
+        l0.removeAt(gray_tok_pos);
+    }
+
+    if (s_mark_txt!=l0)
+    {
+        s_mark_txt = l0;//2.65 first this
         s_mark_r12_pos = r12;
         s_mark_hisc_pos = ih;
         s_mark_b4q_pos = j;
@@ -1824,7 +1835,7 @@ void DecodeList::SetDListMarkText(QStringList l,int r12,int ih,int j,int k,int i
         list_b4qso.clear();
         int end = k;
         if (end > im) end = im;
-        for (int i = j; i < end; ++i) list_b4qso.append(l.at(i));
+        for (int i = j; i < end; ++i) list_b4qso.append(l0.at(i));
 
         viewport()->update();
         //qDebug()<<l;
@@ -1857,6 +1868,29 @@ void DecodeList::drawRow(QPainter *painter, const QStyleOptionViewItem & option,
 {
     QStyleOptionViewItem opt = option;
 
+    bool is_b4qso_row = false;
+    if (s_gray_dup_contacts && !list_b4qso.isEmpty())
+    {
+        QString row_msg = " "+model.item(index.row(),msg_column)->text().toUpper()+" ";
+        for (int i = 0; i < list_b4qso.count(); ++i)
+        {
+            QString call = list_b4qso.at(i).trimmed().toUpper();
+            if (call.isEmpty()) continue;
+            if (row_msg.contains(" "+call+" ") || row_msg.contains("<"+call+">"))
+            {
+                is_b4qso_row = true;
+                break;
+            }
+        }
+    }
+
+    if (is_b4qso_row)
+    {
+        QColor fg_b4 = QColor(120,120,120);
+        if (dsty) fg_b4 = QColor(170,170,170);
+        opt.palette.setColor(QPalette::Text, fg_b4);
+    }
+
     if (selectionModel()->isSelected(index)) //(index == selectedIndexes()[0])//selectedIndexes()[0]
     {
         opt.font.setBold(true);
@@ -1864,6 +1898,11 @@ void DecodeList::drawRow(QPainter *painter, const QStyleOptionViewItem & option,
 
         QColor cc = QColor(0,0,0);
         if (dsty) cc = QColor(255,255,255);
+        if (is_b4qso_row)
+        {
+            cc = QColor(120,120,120);
+            if (dsty) cc = QColor(170,170,170);
+        }
         opt.palette.setColor(QPalette::HighlightedText,cc);
 
         //8QString ss = model.data(model.index(index.row(),msg_column,QModelIndex()),Qt::DisplayRole).toString();
