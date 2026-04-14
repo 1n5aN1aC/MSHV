@@ -434,6 +434,7 @@ private slots:
     // Idle autorespond slots
     void IdleArEnableChanged(bool);
     void IdleArTimeoutChanged(int);
+    void IdleArCandidatePeriodsChanged(int);
     void IdleArCatChanged(bool);
     void IdleArContestCallChanged(QString);
 
@@ -481,6 +482,7 @@ private:
     QFrame *Box_idle_ar;
     QCheckBox *cb_idle_ar_enable;
     QSpinBox *sb_idle_ar_timeout;
+    QSpinBox *sb_idle_ar_candidate_periods;
     QCheckBox *cb_idle_cat[4]; // CQ, CQ Other, RR73, 73
     QLineEdit *le_idle_contest_call;
     void RefreshIdleArPane();

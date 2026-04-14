@@ -206,6 +206,8 @@ public:
         }
         out.append(s_idle_contest_call);
         out.append("#"); // trailing
+        out.append(QString("%1").arg(s_idle_candidate_periods));
+        out.append("#"); // trailing
         return out;
     }
     void SetFont(QFont f);
@@ -238,10 +240,12 @@ public:
 	// Idle autorespond
 	void SetIdleAutoRespondEnabled(bool);
 	void SetIdleAutoRespondTimeout(int cycles);
+    void SetIdleCandidatePeriods(int periods);
 	void SetIdleCategoryEnabled(int cat, bool f);
     void SetIdleContestCall(QString c);
 	bool GetIdleAutoRespondEnabled();
 	int  GetIdleAutoRespondTimeout();
+    int  GetIdleCandidatePeriods();
 	bool GetIdleCategoryEnabled(int cat);
     QString GetIdleContestCall();
 	void TryRespondWhenIdle();
@@ -368,8 +372,10 @@ private:
     // Idle autorespond state
     bool f_idle_ar_enabled;
     int  s_idle_ar_timeout_cycles;
+    int  s_idle_candidate_periods;
     bool f_idle_cat[IDLE_CAT_COUNT];
     bool s_idle_once_active;
+    bool s_idle_revert_to_cq;
     QString s_idle_once_msg;
     QString s_idle_contest_call;
     int s_idle_cq_count;

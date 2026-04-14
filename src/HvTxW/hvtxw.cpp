@@ -526,6 +526,22 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     H_idle_top->addWidget(cb_idle_ar_enable);
     H_idle_top->addWidget(sb_idle_ar_timeout);
     V_idle->addLayout(H_idle_top);
+
+    QHBoxLayout *H_idle_win = new QHBoxLayout();
+    H_idle_win->setContentsMargins(0, 0, 0, 0);
+    H_idle_win->setSpacing(4);
+    QLabel *l_idle_win = new QLabel(tr("Candidate periods"));
+    sb_idle_ar_candidate_periods = new QSpinBox();
+    sb_idle_ar_candidate_periods->setRange(1, 60);
+    sb_idle_ar_candidate_periods->setValue(6);
+    sb_idle_ar_candidate_periods->setFixedHeight(19);
+    sb_idle_ar_candidate_periods->findChild<QLineEdit*>()->setReadOnly(true);
+    sb_idle_ar_candidate_periods->setContextMenuPolicy(Qt::NoContextMenu);
+    sb_idle_ar_candidate_periods->setStyleSheet("QSpinBox{selection-color:black;selection-background-color:white;}");
+    H_idle_win->addWidget(l_idle_win);
+    H_idle_win->addWidget(sb_idle_ar_candidate_periods);
+    V_idle->addLayout(H_idle_win);
+
     QString catNames[4] = { tr("CQ"), tr("CQ"), tr("RR73/RRR"), tr("73") };
     QVBoxLayout *H_idle_cats = new QVBoxLayout();
     H_idle_cats->setContentsMargins(0, 0, 0, 0);
@@ -561,6 +577,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     Box_idle_ar->setHidden(true);
     connect(cb_idle_ar_enable, SIGNAL(toggled(bool)), this, SLOT(IdleArEnableChanged(bool)));
     connect(sb_idle_ar_timeout, SIGNAL(valueChanged(int)), this, SLOT(IdleArTimeoutChanged(int)));
+    connect(sb_idle_ar_candidate_periods, SIGNAL(valueChanged(int)), this, SLOT(IdleArCandidatePeriodsChanged(int)));
 
     QHBoxLayout *H_tx = new QHBoxLayout();
     H_tx->setContentsMargins ( 0, 0, 0, 0);
@@ -3656,6 +3673,7 @@ void HvTxW::SaveSettings()
     // Keep backend and UI in sync before serializing MAM settings.
     MultiAnswerMod->SetIdleAutoRespondEnabled(cb_idle_ar_enable->isChecked());
     MultiAnswerMod->SetIdleAutoRespondTimeout(sb_idle_ar_timeout->value());
+    MultiAnswerMod->SetIdleCandidatePeriods(sb_idle_ar_candidate_periods->value());
     for (int ic = 0; ic < 4; ++ic)
         MultiAnswerMod->SetIdleCategoryEnabled(ic, cb_idle_cat[ic]->isChecked());
     MultiAnswerMod->SetIdleContestCall(le_idle_contest_call->text());
@@ -3736,28 +3754,33 @@ void HvTxW::ReadSettings()
     // Sync idle autorespond UI with loaded settings without triggering write-back side effects.
     bool idleEnabled = MultiAnswerMod->GetIdleAutoRespondEnabled();
     int idleTimeout = MultiAnswerMod->GetIdleAutoRespondTimeout();
+    int idleCandidatePeriods = MultiAnswerMod->GetIdleCandidatePeriods();
     bool idleCats[4];
     for (int ic = 0; ic < 4; ++ic) idleCats[ic] = MultiAnswerMod->GetIdleCategoryEnabled(ic);
     QString idleContestCall = MultiAnswerMod->GetIdleContestCall();
 
     cb_idle_ar_enable->blockSignals(true);
     sb_idle_ar_timeout->blockSignals(true);
+    sb_idle_ar_candidate_periods->blockSignals(true);
     le_idle_contest_call->blockSignals(true);
     for (int ic = 0; ic < 4; ++ic) cb_idle_cat[ic]->blockSignals(true);
 
     cb_idle_ar_enable->setChecked(idleEnabled);
     sb_idle_ar_timeout->setValue(idleTimeout);
+    sb_idle_ar_candidate_periods->setValue(idleCandidatePeriods);
     for (int ic = 0; ic < 4; ++ic) cb_idle_cat[ic]->setChecked(idleCats[ic]);
     le_idle_contest_call->setText(idleContestCall);
 
     cb_idle_ar_enable->blockSignals(false);
     sb_idle_ar_timeout->blockSignals(false);
+    sb_idle_ar_candidate_periods->blockSignals(false);
     le_idle_contest_call->blockSignals(false);
     for (int ic = 0; ic < 4; ++ic) cb_idle_cat[ic]->blockSignals(false);
 
     // One-shot backend sync after UI restore.
     MultiAnswerMod->SetIdleAutoRespondEnabled(cb_idle_ar_enable->isChecked());
     MultiAnswerMod->SetIdleAutoRespondTimeout(sb_idle_ar_timeout->value());
+    MultiAnswerMod->SetIdleCandidatePeriods(sb_idle_ar_candidate_periods->value());
     for (int ic = 0; ic < 4; ++ic)
         MultiAnswerMod->SetIdleCategoryEnabled(ic, cb_idle_cat[ic]->isChecked());
     MultiAnswerMod->SetIdleContestCall(le_idle_contest_call->text());
@@ -3820,6 +3843,7 @@ void HvTxW::RefreshIdleArPane()
     Box_idle_ar->setHidden(!show);
     cb_idle_ar_enable->setEnabled(show);
     sb_idle_ar_timeout->setEnabled(show && cb_idle_ar_enable->isChecked());
+    sb_idle_ar_candidate_periods->setEnabled(show && cb_idle_ar_enable->isChecked());
     for (int i = 0; i < 4; ++i)
         cb_idle_cat[i]->setEnabled(show && cb_idle_ar_enable->isChecked());
     le_idle_contest_call->setEnabled(show && cb_idle_ar_enable->isChecked() && cb_idle_cat[0]->isChecked());
@@ -3832,6 +3856,10 @@ void HvTxW::IdleArEnableChanged(bool f)
 void HvTxW::IdleArTimeoutChanged(int val)
 {
     MultiAnswerMod->SetIdleAutoRespondTimeout(val);
+}
+void HvTxW::IdleArCandidatePeriodsChanged(int val)
+{
+    MultiAnswerMod->SetIdleCandidatePeriods(val);
 }
 void HvTxW::IdleArCatChanged(bool)
 {
