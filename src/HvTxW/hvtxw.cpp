@@ -498,6 +498,70 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(MultiAnswerMod,SIGNAL(EmitMAFirstTX(bool)),this,SLOT(SetMAFirstTX(bool)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitSFMATxAll(QString)),this,SIGNAL(EmitSFMATxAll(QString)));//2.76sf
 
+    // Idle Autorespond pane
+    Box_idle_ar = new QFrame();
+    Box_idle_ar->setFrameShape(QFrame::StyledPanel);
+    Box_idle_ar->setFrameShadow(QFrame::Plain);
+    Box_idle_ar->setFixedWidth(275);
+    QVBoxLayout *V_idle = new QVBoxLayout();
+    V_idle->setContentsMargins(2, 0, 2, 1);
+    V_idle->setSpacing(0);
+    V_idle->setAlignment(Qt::AlignTop);
+    Box_idle_ar->setContentsMargins(0, 0, 0, 0);
+    cb_idle_ar_enable = new QCheckBox(tr("Idle Autorespond"));
+    cb_idle_ar_enable->setChecked(false);
+    cb_idle_ar_enable->setToolTip(tr("When CQing without answers,\nautomatically call a decoded station"));
+    sb_idle_ar_timeout = new QSpinBox();
+    sb_idle_ar_timeout->setRange(1, 30);
+    sb_idle_ar_timeout->setValue(3);
+    sb_idle_ar_timeout->setPrefix(tr("Every")+": ");
+    sb_idle_ar_timeout->setSuffix(" "+tr("TX"));
+    sb_idle_ar_timeout->setFixedHeight(19);
+    sb_idle_ar_timeout->findChild<QLineEdit*>()->setReadOnly(true);
+    sb_idle_ar_timeout->setContextMenuPolicy(Qt::NoContextMenu);
+    sb_idle_ar_timeout->setStyleSheet("QSpinBox{selection-color:black;selection-background-color:white;}");
+    QHBoxLayout *H_idle_top = new QHBoxLayout();
+    H_idle_top->setContentsMargins(0, 0, 0, 0);
+    H_idle_top->setSpacing(4);
+    H_idle_top->addWidget(cb_idle_ar_enable);
+    H_idle_top->addWidget(sb_idle_ar_timeout);
+    V_idle->addLayout(H_idle_top);
+    QString catNames[4] = { tr("CQ"), tr("CQ"), tr("RR73/RRR"), tr("73") };
+    QVBoxLayout *H_idle_cats = new QVBoxLayout();
+    H_idle_cats->setContentsMargins(0, 0, 0, 0);
+    H_idle_cats->setSpacing(1);
+    // CQ Contest row with contest-call override
+    QHBoxLayout *H_idle_contest = new QHBoxLayout();
+    H_idle_contest->setContentsMargins(0, 0, 0, 0);
+    H_idle_contest->setSpacing(3);
+    cb_idle_cat[0] = new QCheckBox(catNames[0]);
+    cb_idle_cat[0]->setStyleSheet("QCheckBox{spacing:2px;}");
+    cb_idle_cat[0]->setChecked(false);
+    le_idle_contest_call = new QLineEdit();
+    le_idle_contest_call->setMaxLength(13);
+    le_idle_contest_call->setPlaceholderText(tr("Text"));
+    le_idle_contest_call->setFixedWidth(80);
+    H_idle_contest->addWidget(cb_idle_cat[0]);
+    H_idle_contest->addWidget(le_idle_contest_call);
+    H_idle_contest->addStretch(1);
+    H_idle_cats->addLayout(H_idle_contest);
+    connect(cb_idle_cat[0], SIGNAL(toggled(bool)), this, SLOT(IdleArCatChanged(bool)));
+    connect(le_idle_contest_call, SIGNAL(textChanged(QString)), this, SLOT(IdleArContestCallChanged(QString)));
+
+    for (int ci = 1; ci < 4; ++ci)
+    {
+        cb_idle_cat[ci] = new QCheckBox(catNames[ci]);
+        cb_idle_cat[ci]->setStyleSheet("QCheckBox{spacing:2px;}");
+        cb_idle_cat[ci]->setChecked(false);
+        H_idle_cats->addWidget(cb_idle_cat[ci]);
+        connect(cb_idle_cat[ci], SIGNAL(toggled(bool)), this, SLOT(IdleArCatChanged(bool)));
+    }
+    V_idle->addLayout(H_idle_cats);
+    Box_idle_ar->setLayout(V_idle);
+    Box_idle_ar->setHidden(true);
+    connect(cb_idle_ar_enable, SIGNAL(toggled(bool)), this, SLOT(IdleArEnableChanged(bool)));
+    connect(sb_idle_ar_timeout, SIGNAL(valueChanged(int)), this, SLOT(IdleArTimeoutChanged(int)));
+
     QHBoxLayout *H_tx = new QHBoxLayout();
     H_tx->setContentsMargins ( 0, 0, 0, 0);
     H_tx->setSpacing(0);
@@ -524,6 +588,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     sb_txsn_v2->SetHidden(true);
 
     f_nosave = false;
+    f_block_settings_save = true;
     s_mode = 2;               //HV important set to default mode fsk441
     /*s_minsigndb[0] = 1;//msk144 not used
     s_minsigndb[1] = 1;//jtms
@@ -827,8 +892,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
 
     //V_tx_b->setAlignment(Qt::AlignRight);
     QFrame *Box_in_tx_b = new QFrame();
-    Box_in_tx_b->setMaximumWidth(295);//1.81 for font 14pt
-    //Box_in_tx_b->setFixedWidth(210);
+    Box_in_tx_b->setFixedWidth(285);
     Box_in_tx_b->setFrameShape(Box_in_tx->frameShape());
     Box_in_tx_b->setFrameShadow(Box_in_tx->frameShadow());
     Box_in_tx_b->setLayout(V_tx_b);
@@ -1059,6 +1123,8 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     //H_l->addWidget(status_frame);
     H_l->addWidget(Box_dt);
     //H_l->setAlignment(Box_dt,Qt::AlignRight);
+    H_l->addWidget(Box_idle_ar);
+    H_l->setAlignment(Box_idle_ar, Qt::AlignTop);
     H_l->addWidget(Box_in_tx_b);
     //H_l->setAlignment(Box_in_tx_b,Qt::AlignRight);
     H_l->addWidget(Box_in_tx);
@@ -1076,6 +1142,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     s_band = "70 MHz";
     //end 1.61= CAT
     ReadSettings();
+    f_block_settings_save = false;
 }
 HvTxW::~HvTxW()
 {
@@ -3581,9 +3648,17 @@ void HvTxW::auto_on()
 }
 void HvTxW::SaveSettings()
 {
+    if (f_block_settings_save) return;
     QFile file(sr_path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return;
     QTextStream out(&file);
+
+    // Keep backend and UI in sync before serializing MAM settings.
+    MultiAnswerMod->SetIdleAutoRespondEnabled(cb_idle_ar_enable->isChecked());
+    MultiAnswerMod->SetIdleAutoRespondTimeout(sb_idle_ar_timeout->value());
+    for (int ic = 0; ic < 4; ++ic)
+        MultiAnswerMod->SetIdleCategoryEnabled(ic, cb_idle_cat[ic]->isChecked());
+    MultiAnswerMod->SetIdleContestCall(le_idle_contest_call->text());
 
     out << "his_call_tx=" << le_his_call->getText() << "\n";
     out << "my_qrg_tx=" << le_qrg->text() << "\n";
@@ -3623,7 +3698,7 @@ void HvTxW::ReadSettings()
     const QString st_id[c_st_id]=
         {
             "his_call_tx","my_qrg_tx","tx_fi","mon_call1","mon_call2","def_radec","def_multi_answer",
-            "cont_v1_txsn","cont_v2_txsn","def_cabrillo_log_set","def_use_adif_save",
+            "def_cont_v1_txsn","def_cont_v2_txsn","def_cabrillo_log_set","def_use_adif_save",
             "log_qsos_limit_gt9999_lt500001","add_to_log_prop_all","mam_shf"
         };
     QString st_res[c_st_id];
@@ -3658,6 +3733,34 @@ void HvTxW::ReadSettings()
     file.close();
     //qDebug()<<"2Time="<<ttt.elapsed();
     if (!st_res[6].isEmpty()) MultiAnswerMod->SetSettings(st_res[6]);
+    // Sync idle autorespond UI with loaded settings without triggering write-back side effects.
+    bool idleEnabled = MultiAnswerMod->GetIdleAutoRespondEnabled();
+    int idleTimeout = MultiAnswerMod->GetIdleAutoRespondTimeout();
+    bool idleCats[4];
+    for (int ic = 0; ic < 4; ++ic) idleCats[ic] = MultiAnswerMod->GetIdleCategoryEnabled(ic);
+    QString idleContestCall = MultiAnswerMod->GetIdleContestCall();
+
+    cb_idle_ar_enable->blockSignals(true);
+    sb_idle_ar_timeout->blockSignals(true);
+    le_idle_contest_call->blockSignals(true);
+    for (int ic = 0; ic < 4; ++ic) cb_idle_cat[ic]->blockSignals(true);
+
+    cb_idle_ar_enable->setChecked(idleEnabled);
+    sb_idle_ar_timeout->setValue(idleTimeout);
+    for (int ic = 0; ic < 4; ++ic) cb_idle_cat[ic]->setChecked(idleCats[ic]);
+    le_idle_contest_call->setText(idleContestCall);
+
+    cb_idle_ar_enable->blockSignals(false);
+    sb_idle_ar_timeout->blockSignals(false);
+    le_idle_contest_call->blockSignals(false);
+    for (int ic = 0; ic < 4; ++ic) cb_idle_cat[ic]->blockSignals(false);
+
+    // One-shot backend sync after UI restore.
+    MultiAnswerMod->SetIdleAutoRespondEnabled(cb_idle_ar_enable->isChecked());
+    MultiAnswerMod->SetIdleAutoRespondTimeout(sb_idle_ar_timeout->value());
+    for (int ic = 0; ic < 4; ++ic)
+        MultiAnswerMod->SetIdleCategoryEnabled(ic, cb_idle_cat[ic]->isChecked());
+    MultiAnswerMod->SetIdleContestCall(le_idle_contest_call->text());
     if (!st_res[0].isEmpty()) le_his_call->SetText(st_res[0]);
     if (!st_res[1].isEmpty()) le_qrg->setText(st_res[1]);
     if (!st_res[2].isEmpty())
@@ -3708,7 +3811,37 @@ void HvTxW::RefreshMultiAnswerModAndASeq()
         SetTxTextsHiden(false);//false
         GetCurrentMsg();
     }
+    RefreshIdleArPane();
     RfreshDxParm();//2.66  from mode and MAM flag=f_multi_answer_mod
+}
+void HvTxW::RefreshIdleArPane()
+{
+    bool show = (s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_multi_answer_mod_std;
+    Box_idle_ar->setHidden(!show);
+    cb_idle_ar_enable->setEnabled(show);
+    sb_idle_ar_timeout->setEnabled(show && cb_idle_ar_enable->isChecked());
+    for (int i = 0; i < 4; ++i)
+        cb_idle_cat[i]->setEnabled(show && cb_idle_ar_enable->isChecked());
+    le_idle_contest_call->setEnabled(show && cb_idle_ar_enable->isChecked() && cb_idle_cat[0]->isChecked());
+}
+void HvTxW::IdleArEnableChanged(bool f)
+{
+    MultiAnswerMod->SetIdleAutoRespondEnabled(f);
+    RefreshIdleArPane();
+}
+void HvTxW::IdleArTimeoutChanged(int val)
+{
+    MultiAnswerMod->SetIdleAutoRespondTimeout(val);
+}
+void HvTxW::IdleArCatChanged(bool)
+{
+    for (int i = 0; i < 4; ++i)
+        MultiAnswerMod->SetIdleCategoryEnabled(i, cb_idle_cat[i]->isChecked());
+    RefreshIdleArPane();
+}
+void HvTxW::IdleArContestCallChanged(QString s)
+{
+    MultiAnswerMod->SetIdleContestCall(s);
 }
 void HvTxW::MshfChanget(bool)//2.76
 {    	

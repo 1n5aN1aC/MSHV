@@ -439,6 +439,14 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     backup_db_pos_write = 0;
     current_msg = "";
     s_man_adding = false;
+    // Idle autorespond init
+    f_idle_ar_enabled = false;
+    s_idle_ar_timeout_cycles = 3;
+    for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic) f_idle_cat[ic] = false;
+    s_idle_once_active = false;
+    s_idle_once_msg = "";
+    s_idle_contest_call = "";
+    s_idle_cq_count = 0;
 
     s_qrg = "237";
     s_last_bccall_tolog_excp = "NONE_";
@@ -799,6 +807,25 @@ void MultiAnswerModW::SetSettings(QString s)
     else cb_cont_ns->setChecked(false);
     if (ls.at(8)=="1") SBmaxTP->SetDoubleClick();
     if (ls.at(11)=="1") cb_otp_mamd_key->setChecked(true);
+    // Idle autorespond settings (backward-compatible).
+    // Current layout starts at index 12: enable, timeout, 4 category flags, contest call.
+    // Older layouts may have had an empty reserved field at 12, so start at 13 in that case.
+    int idleBase = 12;
+    if (ls.count() > 12 && ls.at(12).isEmpty()) idleBase = 13;
+
+    if (ls.count() > idleBase) f_idle_ar_enabled = (ls.at(idleBase) == "1");
+    if (ls.count() > idleBase + 1)
+    {
+        int tcy = ls.at(idleBase + 1).toInt();
+        if (tcy < 1) tcy = 1;
+        if (tcy > 30) tcy = 30;
+        s_idle_ar_timeout_cycles = tcy;
+    }
+    for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic)
+    {
+        if (ls.count() > idleBase + 2 + ic) f_idle_cat[ic] = (ls.at(idleBase + 2 + ic) == "1");
+    }
+    if (ls.count() > idleBase + 6) s_idle_contest_call = ls.at(idleBase + 6).trimmed().toUpper();
 }
 void MultiAnswerModW::LQueueCountChange(int n)
 {
@@ -1609,6 +1636,13 @@ QString MultiAnswerModW::DecodeMacros(int row, QString id)//row from listNow id 
 void MultiAnswerModW::SetAuto(bool f) //2.35
 {
     f_auto_on = f;
+    if (!f)
+    {
+        s_idle_cq_count = 0;
+        s_idle_once_active = false;
+        s_idle_once_msg = "";
+        s_idle_candidates.clear();
+    }
 }
 void MultiAnswerModW::gen_msg()
 {
@@ -1622,9 +1656,21 @@ void MultiAnswerModW::gen_msg()
     QString prev_current_msg = current_msg; //qDebug()<<SBslots->valueS();
     current_msg = "";
     s_pos_nw_i3b = 0;
+    bool used_idle_once = false;
 
     if (rwc<=0)//start cq
     {
+        // Idle autorespond: if one-shot is pending, use it instead of CQ
+        if (s_idle_once_active && !s_idle_once_msg.isEmpty())
+        {
+            current_msg = s_idle_once_msg;
+            s_idle_once_active = false;
+            s_idle_once_msg = "";
+            used_idle_once = true;
+            // Don't stop auto or emit CQ progress - this is a direct call
+        }
+        else
+        {
         if (!g_block_stop_auto && f_multi_answer_mod_std && (!cb_cont_ns->isChecked() || id_mshf==1))//2.52 ->!g_block_stop_auto eventual->!f_tx_rx &&
             emit EmitStopAuto(); // from set_macros stop auto and clar lists
         if (f_block_free_cq)
@@ -1642,6 +1688,7 @@ void MultiAnswerModW::gen_msg()
             }
         } //qDebug()<<"s_msf_ftmsg="<<s_msf_ftmsg<<current_msg;
         emit EmitQSOProgressMAM(5,true);//2.51
+        }
     }
     else
     {
@@ -1676,7 +1723,7 @@ void MultiAnswerModW::gen_msg()
     if (prev_current_msg != current_msg)//2.35
     {
         //qDebug()<<"Msg="<<current_msg<<"Count="<<current_msg.count("#")+1;//2.59 +ft4 f_tx_rx &&
-        if ((s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_auto_on && SBslots->valueS()==1) emit MamEmitMessage(current_msg,false,true,true);
+        if ((s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_auto_on && (SBslots->valueS()==1 || used_idle_once)) emit MamEmitMessage(current_msg,false,true,true);
         else emit MamEmitMessage(current_msg,false,false,true); //qDebug()<<"Msg="<<current_msg.count();
     }
 }
@@ -2327,6 +2374,7 @@ void MultiAnswerModW::SetTxRxMsg(bool f)
             c_sf_rpt=0; //qDebug()<<"SetTxRxMsg RefreshLists0";
             RefreshLists(0);
         }
+        TryRespondWhenIdle(); // idle autorespond: evaluate at RX->TX transition
     }
     else
     {
@@ -2486,6 +2534,9 @@ void MultiAnswerModW::RefreshLists(int c_plus)
         emit EmitMAMCalls(lout);
     }
     if (c_plus == 0) gen_msg();
+
+    // Reset idle CQ tracking when we have active QSOs
+    if (LsNow->GetRowCount() > 0) s_idle_cq_count = 0;
 
     prevnowc = LsNow->GetRowCount(); //qDebug()<<"MA= "<<is_need_rfresh_lists<<is_need_rfresh_hiscalls;
     if (is_need_rfresh_hiscalls)//2.71
@@ -2903,6 +2954,7 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
         QString hcap;//fictive
         QString hloc;//fictive
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);//false f_double_click
+        CollectIdleCandidate(text_msg, freq); // idle autorespond candidate tracking
     }
 #else
     static int uuu = 0;
@@ -2964,6 +3016,261 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
     if (uuu<4) uuu++;
     else uuu=0;
 #endif
+}
+// ============ Idle Autorespond Implementation ============
+void MultiAnswerModW::SetIdleAutoRespondEnabled(bool f)
+{
+    f_idle_ar_enabled = f;
+    if (!f)
+    {
+        s_idle_cq_count = 0;
+        s_idle_once_active = false;
+        s_idle_once_msg = "";
+        s_idle_candidates.clear();
+    }
+}
+void MultiAnswerModW::SetIdleAutoRespondTimeout(int cycles)
+{
+    if (cycles < 1) cycles = 1;
+    if (cycles > 30) cycles = 30;
+    s_idle_ar_timeout_cycles = cycles;
+}
+void MultiAnswerModW::SetIdleCategoryEnabled(int cat, bool f)
+{
+    if (cat >= 0 && cat < IDLE_CAT_COUNT) f_idle_cat[cat] = f;
+}
+void MultiAnswerModW::SetIdleContestCall(QString c)
+{
+    s_idle_contest_call = c.trimmed().toUpper();
+}
+bool MultiAnswerModW::GetIdleAutoRespondEnabled()
+{
+    return f_idle_ar_enabled;
+}
+int MultiAnswerModW::GetIdleAutoRespondTimeout()
+{
+    return s_idle_ar_timeout_cycles;
+}
+bool MultiAnswerModW::GetIdleCategoryEnabled(int cat)
+{
+    if (cat >= 0 && cat < IDLE_CAT_COUNT) return f_idle_cat[cat];
+    return false;
+}
+QString MultiAnswerModW::GetIdleContestCall()
+{
+    return s_idle_contest_call;
+}
+int MultiAnswerModW::GetIdleRespWindowPeriods()
+{
+    // Use a window proportional to the cycle threshold
+    // Each cycle is roughly 2 * period_time_sec (TX + RX)
+    int periods = s_idle_ar_timeout_cycles * 2;
+    if (periods < 4) periods = 4;
+    return periods;
+}
+IdleCandCategory MultiAnswerModW::ClassifyIdleCandidate(QString text_msg)
+{
+    // Parse the message text to determine category
+    QStringList words = text_msg.trimmed().split(" ", QString::SkipEmptyParts);
+    if (words.isEmpty()) return IDLE_CAT_COUNT; // invalid
+
+    // Check for CQ messages
+    if (words.at(0) == "CQ")
+    {
+        // cat[0] = CQ with a tag/modifier (DX/TEST/POTA/numbered, etc.)
+        // cat[1] = plain CQ without tag
+        bool hasTag = false;
+        if (words.count() >= 3)
+        {
+            QString w1 = words.at(1);
+            bool isTag = (w1.length() <= 4 && w1 == w1.toUpper() && !w1.contains(QRegExp("[0-9]")));
+            if (!isTag)
+            {
+                bool alldig = true;
+                for (int j = 0; j < w1.count(); ++j)
+                {
+                    if (w1.at(j).isLetter())
+                    {
+                        alldig = false;
+                        break;
+                    }
+                }
+                if (alldig && w1.count() <= 4) isTag = true;
+            }
+            hasTag = isTag;
+        }
+        return hasTag ? IDLE_CAT_CQ_CONTEST : IDLE_CAT_OTHER_CQ;
+    }
+
+    // Check for RR73 pattern
+    for (int i = 0; i < words.count(); ++i)
+    {
+        if (words.at(i) == "RR73" || words.at(i) == "RRR") return IDLE_CAT_RR73;
+    }
+
+    // Check for 73 pattern (but not RR73, already caught above)
+    for (int i = 0; i < words.count(); ++i)
+    {
+        if (words.at(i) == "73") return IDLE_CAT_73;
+    }
+
+    return IDLE_CAT_COUNT; // not a category we track
+}
+void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq)
+{
+    if (!f_idle_ar_enabled || !f_multi_answer_mod_std || !f_auto_on) return;
+
+    IdleCandCategory cat = ClassifyIdleCandidate(text_msg);
+    if (cat >= IDLE_CAT_COUNT) return;
+    if (!f_idle_cat[cat]) return; // category not enabled by user
+
+    // Extract the call sign from decoded message
+    QStringList words = text_msg.trimmed().split(" ", QString::SkipEmptyParts);
+    QString call;
+    QString loc;
+    QString cqTag;
+    if (words.at(0) == "CQ")
+    {
+        // CQ [TAG] CALL [LOC]  or  CQ CALL LOC
+        if (words.count() >= 3)
+        {
+            // Check if second word is a modifier/tag (short, all letters, < 4 chars or known directional)
+            QString w1 = words.at(1);
+            bool isTag = (w1.length() <= 4 && w1 == w1.toUpper() && !w1.contains(QRegExp("[0-9]")));
+            // But also allow numeric freq tags like "237"
+            if (!isTag)
+            {
+                bool alldig = true;
+                for (int j = 0; j < w1.count(); ++j)
+                    if (w1.at(j).isLetter()) { alldig = false; break; }
+                if (alldig && w1.count() <= 4) isTag = true;
+            }
+            if (isTag && words.count() >= 3) { cqTag = words.at(1).toUpper(); call = words.at(2); if (words.count() >= 4) loc = words.at(3); }
+            else { call = words.at(1); if (words.count() >= 3) loc = words.at(2); }
+        }
+        else if (words.count() == 2) call = words.at(1);
+
+        // If textbox is set, category-0 candidates must match that exact CQ tag.
+        if (cat == IDLE_CAT_CQ_CONTEST && !s_idle_contest_call.isEmpty() && cqTag != s_idle_contest_call)
+            return;
+    }
+    else
+    {
+        // Non-CQ message (RR73/73): use the second callsign as sender.
+        // This aligns with the operator workflow for harvesting follow-up calls.
+        if (words.count() >= 2)
+        {
+            call = words.at(1);
+        }
+    }
+
+    if (call.isEmpty() || call == list_macros.at(0) || call == s_my_base_call) return;
+    if (!isStandardCall(call)) return;
+
+    // Check if call is already in Queue or Now lists (active QSO)
+    if (LsQueue->FindCallOrBaseCallRow(call) >= 0) return;
+    if (LsNow->FindCallOrBaseCallRow(call) >= 0) return;
+
+    // Check for duplicate in candidate list - update if exists
+    unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
+    for (int i = 0; i < s_idle_candidates.count(); ++i)
+    {
+        if (s_idle_candidates[i].call == call)
+        {
+            s_idle_candidates[i].rx_time = now_t;
+            s_idle_candidates[i].freq = freq;
+            s_idle_candidates[i].cat = cat;
+            if (!loc.isEmpty()) s_idle_candidates[i].loc = loc;
+            return;
+        }
+    }
+
+    IdleCandidate cand;
+    cand.call = call;
+    cand.freq = freq;
+    cand.loc = loc;
+    cand.rx_time = now_t;
+    cand.cat = cat;
+    s_idle_candidates.append(cand);
+}
+QString MultiAnswerModW::BuildIdleCallMsg(QString call, IdleCandCategory cat)
+{
+    Q_UNUSED(cat);
+    // Build a direct call message: THEIRCALL MYCALL GRID
+    QString myCall = list_macros.at(0);
+    QString myLoc4 = list_macros.at(1).mid(0, 4);
+    QString msg = call + " " + myCall + " " + myLoc4;
+    return msg;
+}
+void MultiAnswerModW::TryRespondWhenIdle()
+{
+    // Called at RX->TX transition when gen_msg would produce CQ
+    // Check all preconditions
+    if (!f_idle_ar_enabled) return;
+    if (!f_multi_answer_mod_std) return;
+    if (!f_auto_on) return;
+    if (s_idle_once_active) return; // already have a pending one-shot
+
+    // Only trigger when Now list is empty (CQ-ing)
+    if (LsNow->GetRowCount() > 0) { s_idle_cq_count = 0; return; }
+
+    // Increment CQ cycle counter and check threshold
+    s_idle_cq_count++;
+    if (s_idle_cq_count < s_idle_ar_timeout_cycles) return;
+
+    // Prune old candidates (keep only those from recent decode periods)
+    unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
+    int windowPeriods = GetIdleRespWindowPeriods();
+    unsigned int windowSec = (unsigned int)((float)windowPeriods * period_time_sec * 2.0f);
+    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    {
+        if ((now_t - s_idle_candidates[i].rx_time) > windowSec)
+            s_idle_candidates.removeAt(i);
+    }
+
+    // Also prune candidates that are now in Queue/Now
+    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    {
+        if (LsQueue->FindCallOrBaseCallRow(s_idle_candidates[i].call) >= 0 ||
+            LsNow->FindCallOrBaseCallRow(s_idle_candidates[i].call) >= 0)
+            s_idle_candidates.removeAt(i);
+    }
+
+    // Idle AR always blocks previously worked calls (strict 1-QSO dupe rule),
+    // independent of the normal MASTD dupe-limit selection.
+    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    {
+        bool is_dupe = false;
+        emit IsCallDupeInLog(s_idle_candidates[i].call, 1, is_dupe);
+        if (is_dupe) s_idle_candidates.removeAt(i);
+    }
+
+    // Search categories in priority order: first enabled category with candidates wins
+    for (int c = 0; c < IDLE_CAT_COUNT; ++c)
+    {
+        if (!f_idle_cat[c]) continue;
+        // Collect candidates in this category
+        QList<int> matches;
+        for (int i = 0; i < s_idle_candidates.count(); ++i)
+        {
+            if (s_idle_candidates[i].cat == (IdleCandCategory)c)
+                matches.append(i);
+        }
+        if (matches.isEmpty()) continue;
+
+        // Pick random candidate from this category
+        int pick = matches.at(qrand() % matches.count());
+        IdleCandidate &cand = s_idle_candidates[pick];
+        s_idle_once_msg = BuildIdleCallMsg(cand.call, cand.cat);
+        s_idle_once_active = true;
+
+        // Reset cycle counter so we don't re-trigger immediately
+        s_idle_cq_count = 0;
+        s_idle_candidates.removeAt(pick);
+        gen_msg();
+        return;
+    }
+    // No candidates found in any enabled category - keep counting
 }
 
 

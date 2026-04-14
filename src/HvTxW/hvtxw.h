@@ -431,6 +431,11 @@ private slots:
     void SetQrgActiveId(int);//2.60
     void SetHisCalls(QStringList);
     void MshfChanget(bool);//2.76
+    // Idle autorespond slots
+    void IdleArEnableChanged(bool);
+    void IdleArTimeoutChanged(int);
+    void IdleArCatChanged(bool);
+    void IdleArContestCallChanged(QString);
 
 private:
 	uint8_t id_mshf;//2.76
@@ -472,6 +477,13 @@ private:
     MultiAnswerModW *MultiAnswerMod;
     void SetTxTextsHiden(bool f);
     void RefreshMultiAnswerModAndASeq();
+    // Idle autorespond UI
+    QFrame *Box_idle_ar;
+    QCheckBox *cb_idle_ar_enable;
+    QSpinBox *sb_idle_ar_timeout;
+    QCheckBox *cb_idle_cat[4]; // CQ, CQ Other, RR73, 73
+    QLineEdit *le_idle_contest_call;
+    void RefreshIdleArPane();
     
     bool s_2click_list_autu_on;
     bool log_qso_startdt_eq_enddt;
@@ -569,6 +581,7 @@ private:
     //int s_dftolerance[COUNT_MODE];
     int s_mode; 
     bool f_nosave;
+    bool f_block_settings_save;
 
     void CalcDistance();
     HvQthLoc THvQthLoc;

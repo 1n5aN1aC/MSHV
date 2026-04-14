@@ -12,7 +12,17 @@
 #include <QStandardItemModel>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QDateTime>
 #include "hvstditmmod.h"
+
+enum IdleCandCategory { IDLE_CAT_CQ_CONTEST=0, IDLE_CAT_OTHER_CQ=1, IDLE_CAT_RR73=2, IDLE_CAT_73=3, IDLE_CAT_COUNT=4 };
+struct IdleCandidate {
+    QString call;
+    QString freq;
+    QString loc;
+    unsigned int rx_time;
+    IdleCandCategory cat;
+};
 
 class ListA : public QTreeView
 {
@@ -183,7 +193,19 @@ public:
         out.append(QString("%1").arg(i1)+"#"+QString("%1").arg(i3)); 
         out.append("#");
         out.append(QString("%1").arg(cb_otp_mamd_key->isChecked()));//2.76sf        
-        out.append("##"); //2.71 2.70 reserved            
+        out.append("#"); //2.71 2.70 reserved
+        // Idle autorespond settings: enable, timeout, 4 category flags
+        out.append(QString("%1").arg(f_idle_ar_enabled ? 1 : 0));
+        out.append("#");
+        out.append(QString("%1").arg(s_idle_ar_timeout_cycles));
+        out.append("#");
+        for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic)
+        {
+            out.append(QString("%1").arg(f_idle_cat[ic] ? 1 : 0));
+            out.append("#");
+        }
+        out.append(s_idle_contest_call);
+        out.append("#"); // trailing
         return out;
     }
     void SetFont(QFont f);
@@ -212,7 +234,18 @@ public:
 	void setHfBand(bool f);
 	QString DetectCQTypeFromMacros(QString);
 	void SetMaManAdding(bool);
-	void SetMsfS5SMsg(uint8_t);//2.76	
+	void SetMsfS5SMsg(uint8_t);//2.76
+	// Idle autorespond
+	void SetIdleAutoRespondEnabled(bool);
+	void SetIdleAutoRespondTimeout(int cycles);
+	void SetIdleCategoryEnabled(int cat, bool f);
+    void SetIdleContestCall(QString c);
+	bool GetIdleAutoRespondEnabled();
+	int  GetIdleAutoRespondTimeout();
+	bool GetIdleCategoryEnabled(int cat);
+    QString GetIdleContestCall();
+	void TryRespondWhenIdle();
+	void CollectIdleCandidate(QString text_msg, QString freq);
 
 signals:
     void MamEmitMessage(QString,bool,bool,bool);
@@ -332,6 +365,18 @@ private:
     int s_dist_points;//2.66
     bool s_man_adding;
     void SetSFMATxAll();//2.76
+    // Idle autorespond state
+    bool f_idle_ar_enabled;
+    int  s_idle_ar_timeout_cycles;
+    bool f_idle_cat[IDLE_CAT_COUNT];
+    bool s_idle_once_active;
+    QString s_idle_once_msg;
+    QString s_idle_contest_call;
+    int s_idle_cq_count;
+    QList<IdleCandidate> s_idle_candidates;
+    IdleCandCategory ClassifyIdleCandidate(QString text_msg);
+    QString BuildIdleCallMsg(QString call, IdleCandCategory cat);
+    int GetIdleRespWindowPeriods();
 
 protected:
 
