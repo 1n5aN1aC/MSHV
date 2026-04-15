@@ -312,8 +312,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     TDecodeList1 = new DecodeList(1,dsty);
     TDecodeList2 = new DecodeList(2,dsty);
     FilterDialog = new HvFilterDialog(dsty,this);//(0) and open() no modal
-    connect(FilterDialog, SIGNAL(EmitSetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)),
-            TDecodeList1, SLOT(SetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)));
+        connect(FilterDialog, SIGNAL(EmitSetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)),
+            TDecodeList1, SLOT(SetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)));
     FilterDialog->SetCountries(TDecodeList1->GetCountries());
 
     FontDialog = new HvFontDialog(App_Path,this);
@@ -731,6 +731,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(TDecodeList1, SIGNAL(EmitRxTextForAutoSeq(QStringList)), THvTxW, SLOT(SetTextForAutoSeq(QStringList)));
     connect(TDecodeList1, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
     connect(TDecodeList2, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
+    connect(TDecodeList1, SIGNAL(EmitBlacklistCall(QString)), FilterDialog, SLOT(AddBlacklistCall(QString)));
+    connect(TDecodeList2, SIGNAL(EmitBlacklistCall(QString)), FilterDialog, SLOT(AddBlacklistCall(QString)));
 
     //connect(THvTxW, SIGNAL(EmitRemoteStation(QString,QString,int,QString,int,int)),
     //TRadioAndNetW, SLOT(AddRemoteStation(QString,QString,int,QString,int,int)));
@@ -4007,7 +4009,7 @@ void Main_Ms::SetQActionCb(QString s, bool idp, QAction *ac)//idp priority of pr
 }
 void Main_Ms::Read_Settings(QString path)
 {
-    const int c_st_id = 111;//92  89
+    const int c_st_id = 112;//92  89
     //dopalva se tuk v kraia
     const QString st_id[c_st_id]=
         {
@@ -4034,7 +4036,7 @@ void Main_Ms::Read_Settings(QString path)
             "def_filter_list4","def_filter_list5","def_adle_vdsp","def_areset_qso","def_1_dec_sig_q65",
             "def_auto_clr_avg_afdec","def_dec_aft_eme_delay","def_max_drift","def_use_queue_cont","def_filter_list6",
             "use_aseq_max_dist","def_mod_bt_sw","def_show_lcols","vd_bw_lines_draw","def_band_bt_sw",
-            "def_show_hide_wf_tx","def_var_dec_parr","def_dftol_all_mode"
+            "def_show_hide_wf_tx","def_var_dec_parr","def_dftol_all_mode","def_filter_list7"
         };
 
     QString st_res[c_st_id];
@@ -4417,6 +4419,7 @@ void Main_Ms::Read_Settings(QString path)
     if (!st_res[93].isEmpty()) FilterDialog->SetSettings4(st_res[93]);//2.44
     if (!st_res[94].isEmpty()) FilterDialog->SetSettings5(st_res[94]);//2.44
     if (!st_res[102].isEmpty()) FilterDialog->SetSettings6(st_res[102]);//2.62
+    if (!st_res[111].isEmpty()) FilterDialog->SetSettings7(st_res[111]);
     if (!st_res[88].isEmpty()) FilterDialog->SetSettings(st_res[88]);//2.43
 
     if (!st_res[75].isEmpty())//static_tx_parms
@@ -4677,6 +4680,7 @@ void Main_Ms::Save_Settings(QString path)
     out << "def_max_drift=" << QString("%1").arg(cb_max_drift->isChecked()) << "\n";
     out << "def_use_queue_cont=" << QString("%1").arg(ac_use_queue_cont->isChecked()) << "\n";
     out << "def_filter_list6=" << FilterDialog->GetSettings6() << "\n";
+    out << "def_filter_list7=" << FilterDialog->GetSettings7() << "\n";
     out << "use_aseq_max_dist=" << QString("%1").arg(ac_aseq_max_dist->isChecked()) << "\n";
     out << "def_mod_bt_sw=" << W_mod_bt_sw->GetSettings() << "\n";
     dd.clear();

@@ -73,6 +73,12 @@ HvFilterDialog::HvFilterDialog(bool f,QWidget *parent)
     le_contm2 = new HvLeWithSpace();
     le_contm2->setMaxLength(limit1);
 
+    int limit_bl = 3000;
+    QGroupBox *GB_HIDCALL = new QGroupBox(tr("Hide Messages From DX Call:    (Maximum 3000 Characters)"));
+    cb_hidecalls = new QCheckBox(tr("Enable"));
+    le_hidecalls = new HvLeWithSpace();
+    le_hidecalls->setMaxLength(limit_bl);
+
     // Hide 2.62
  	QGroupBox *GB_HIDCCNT = new QGroupBox(tr("Hide Messages From Country:    (Please Use Maximum 10 Countrys)"));
     QLabel *l_hidcnt = new QLabel(tr("Add Country")+":");
@@ -254,6 +260,13 @@ HvFilterDialog::HvFilterDialog(bool f,QWidget *parent)
     vbcontm->addLayout(hbcontm2);
     GB_CTXT1->setLayout(vbcontm);
 
+    QHBoxLayout *hb_hidecalls = new QHBoxLayout();
+    hb_hidecalls->setContentsMargins(5, 5, 5, 5);
+    hb_hidecalls->setSpacing(5);
+    hb_hidecalls->addWidget(cb_hidecalls);
+    hb_hidecalls->addWidget(le_hidecalls);
+    GB_HIDCALL->setLayout(hb_hidecalls);
+
     QHBoxLayout *hb02 = new QHBoxLayout();
     hb02->setContentsMargins(7, 0, 0, 0);
     hb02->setSpacing(5);
@@ -270,6 +283,7 @@ HvFilterDialog::HvFilterDialog(bool f,QWidget *parent)
     LV->setAlignment(ltext,Qt::AlignCenter);
     LV->addWidget(GB_HIDE);
     LV->addWidget(GB_HIDCCNT);
+    LV->addWidget(GB_HIDCALL);
     LV->addLayout(hbcq);
     LV->addWidget(GB_CCQ73);
     LV->addWidget(GB_CCNT);
@@ -458,6 +472,7 @@ void HvFilterDialog::ApplyChFilter()
     le_contm0->setText(CorrectSyntax(le_contm0->text(),true));
     le_contm1->setText(CorrectSyntax(le_contm1->text(),true));
     le_contm2->setText(CorrectSyntax(le_contm2->text(),true));
+    le_hidecalls->setText(CorrectSyntax(le_hidecalls->text(),true));
     le_contm3->setText(CorrectSyntax(le_contm3->text(),true));
     le_contm4->setText(CorrectSyntax(le_contm4->text(),false));    
     le_pfx5->setText(CorrectSyntax(le_pfx5->text(),true));
@@ -522,6 +537,8 @@ void HvFilterDialog::SetDefaultFilter()
     le_contm1->setText("LZ2HV,SP9HWY");
     cb_contm2->setChecked(false);
     le_contm2->setText("OZ2M,G8JVM");
+    cb_hidecalls->setChecked(false);
+    le_hidecalls->setText("");
     cb_contm3->setChecked(false);
     le_contm3->setText("KN,FN,JN,JO");
     cb_contm4->setChecked(false);
@@ -562,6 +579,7 @@ void HvFilterDialog::SetFilter()
     QStringList lc3;
     QStringList lc4;
     QStringList lc5;
+    QStringList lc6;
     bool fh[10];
     fh[0]=false;
     fh[1]=false;
@@ -580,6 +598,7 @@ void HvFilterDialog::SetFilter()
     lc3.clear();
     lc4.clear();
     lc5.clear();
+    lc6.clear();
 
     if (cb_gonoff->isChecked())
     {        
@@ -610,8 +629,9 @@ void HvFilterDialog::SetFilter()
         if 		(cb_contm4->isChecked()) lc3 = GetLineParms((HvLeWithSpace*)le_contm4);
         if 		(cb_pfx5->isChecked()) 	 lc4 = GetLineParms(le_pfx5);
         if 		(cb_contm6->isChecked()) lc5 = GetLineParms((HvLeWithSpace*)le_contm6);
+        if 		(cb_hidecalls->isChecked()) lc6 = GetLineParms(le_hidecalls);
     }
-    emit EmitSetFilter(lc,fh,lc0,lc1,lc2,lc3,lc4,lc5);
+    emit EmitSetFilter(lc,fh,lc0,lc1,lc2,lc3,lc4,lc5,lc6);
     
     bool f = false;
     for (int i = 0; i < 7; ++i) 
@@ -622,8 +642,8 @@ void HvFilterDialog::SetFilter()
     		break;
    		}
    	}
- 	if (fh[8] || !lc.isEmpty() || !lc0.isEmpty() || !lc1.isEmpty()|| !lc2.isEmpty()|| !lc3.isEmpty() ||
- 		 !lc4.isEmpty() || !lc5.isEmpty()) f = true;
+    if (fh[8] || !lc.isEmpty() || !lc0.isEmpty() || !lc1.isEmpty()|| !lc2.isEmpty()|| !lc3.isEmpty() ||
+         !lc4.isEmpty() || !lc5.isEmpty() || !lc6.isEmpty()) f = true;
     RefreshPbSetOnOff(f);
 }
 void HvFilterDialog::closeEvent(QCloseEvent*)
@@ -700,6 +720,10 @@ void HvFilterDialog::SetSettings6(QString s)
 {
     SetSettings_p(s,cb_contm6,(HvLeWithSpace*)le_contm6,false);
 }
+void HvFilterDialog::SetSettings7(QString s)
+{
+    SetSettings_p(s,cb_hidecalls,le_hidecalls,true);
+}
 QString HvFilterDialog::GetSettings_p(QCheckBox *cb, HvLeWithSpace *le,bool d)
 {
     QString res;
@@ -754,6 +778,28 @@ QString HvFilterDialog::GetSettings5()
 QString HvFilterDialog::GetSettings6()
 {
     return GetSettings_p(cb_contm6,(HvLeWithSpace*)le_contm6,false);
+}
+QString HvFilterDialog::GetSettings7()
+{
+    return GetSettings_p(cb_hidecalls,le_hidecalls,true);
+}
+void HvFilterDialog::AddBlacklistCall(QString call)
+{
+    call = call.trimmed().toUpper();
+    if (call.isEmpty()) return;
+
+    QStringList existing = GetLineParms(le_hidecalls);
+    for (int i = 0; i < existing.count(); ++i)
+    {
+        if (existing.at(i).trimmed().toUpper()==call) return;
+    }
+
+    QString txt = CorrectSyntax(le_hidecalls->text(),true);
+    if (!txt.isEmpty()) txt.append(",");
+    txt.append(call);
+    le_hidecalls->setText(txt);
+    cb_hidecalls->setChecked(true);
+    if (cb_gonoff->isChecked()) SetFilter();
 }
 
 

@@ -78,6 +78,7 @@ signals:
     //void SendRightClick();
     void ListSelectedTextAll(QString,QString,QString,QString,QString);
     void EmitRespondNow(QString,QString,QString,QString,QString);
+    void EmitBlacklistCall(QString);
     void ListSelectedRpt(QString);
     void EmitRxAllTxt(QString);
     void EmitLstNexColor(bool);
@@ -101,7 +102,7 @@ public slots:
     void SetUdpCmdDl(QStringList l); 
     void SetStaticClickOnCallShowCty(bool);
     void SetTimeElapsed(float);//2.33
-    void SetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList);//2.43   
+    void SetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList);//2.43   
     void SetDistUnit(bool); 
     void SetHisCalls(QStringList);
     void SetOtpVerif(QString,uint8_t);//2.76sf
@@ -112,6 +113,7 @@ private slots:
     void ItemSelectedText(QString,int,int);
     void ac_spot();
     void ac_respond_now();
+    void ac_blacklist_call();
     //void SetHeaderSingleClicked();
     void SetHeaderDoubleClicked();//2.44
 
@@ -137,11 +139,13 @@ private:
 	QStringList list_pfxf;	
 	bool hide_cnyf_list;
 	QStringList list_hidcnyf;
+    bool hide_call_list;
+    QStringList list_hidecalls;
 	QStringList list_b4qso;
 	//bool f_p_hide_b4qso;
 	
 	void SetFilterParms(QStringList l,QStringList &lc,bool &f);
-	void RefreshFiltHeadColor(bool,bool,bool,bool,bool,bool,bool,bool,bool);
+    void RefreshFiltHeadColor(bool,bool,bool,bool,bool,bool,bool,bool,bool,bool);
 	bool AllisDigitOrAllisLetter(QString);
 	HvQthLoc THvQthLoc;
 	QString FindHisCall(QString);
@@ -149,6 +153,7 @@ private:
 	bool ShowCDecode(QString);
 	bool ShowCSDecode(QString);
 	bool ShowCENDDecode(QString);
+    bool HideByCall(QString);
 	bool HideB4Qso(QString);
 	QString FindCountry(QString,QString,QString);	
 	QString CalcDistance(QString,QString);
@@ -166,6 +171,7 @@ private:
     QTimer *list_rfresh_timer;    
     QMenu *m_spot; 
     QAction *m_respond_now;
+    QAction *m_blacklist_call;
     //HvHeader *THvHeader;
     QHeaderView *THvHeader;
     //int ActiveIndex;
