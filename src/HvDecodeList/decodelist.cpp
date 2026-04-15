@@ -180,7 +180,10 @@ DecodeList::DecodeList(int ident,bool f,QWidget *parent)
     m_spot = new QMenu(this);
     QAction *ac_spot = new QAction(QPixmap(":pic/spot_dx.png"),tr("Spot Receiving Text"), this);//"Spot DX Cluster" Spot Receiving Text
     m_spot->addAction(ac_spot);
+    m_respond_now = new QAction(tr("Respond to this message NOW"), this);
+    m_spot->addAction(m_respond_now);
     connect(ac_spot, SIGNAL(triggered()), this, SLOT(ac_spot()));
+    connect(m_respond_now, SIGNAL(triggered()), this, SLOT(ac_respond_now()));
 
     //f_resize_event = false;
     s_mark_txt.clear();
@@ -2094,6 +2097,54 @@ void DecodeList::ac_spot()
     // no crash ->model.item(index.row(),1)->text();//2.48    
 	//2.76sf last -> 0=normal msg, 1=$VERIFY$, 2=C0ALL.123456, 3=verified
     emit EmitRxStationInfo(list,1,false,3);//0->to psk reporter 1->to dx clusters  2.34, bool usefudpdectxt
+}
+void DecodeList::ac_respond_now()
+{
+    QModelIndex index = selectionModel()->currentIndex();
+    int row = index.row();
+    if (row < 0) return;
+
+    QString str = model.item(row, msg_column)->text();
+    QString tx_rpt = "?";
+    QString freq = "?";
+
+    if (s_mode==0 || s_mode==12)
+    {
+        tx_rpt = "+00";
+        if (s_mode==12)
+        {
+            if (!model.item(row, 4)->text().isEmpty()) tx_rpt = model.item(row, 4)->text();
+        }
+        else tx_rpt = model.item(row, 3)->text();
+        freq = model.item(row, 12)->text();
+    }
+    else if (s_mode==1 || s_mode==2 || s_mode==3)
+    {
+        tx_rpt = model.item(row, 4)->text();
+        freq = model.item(row, 7)->text();
+    }
+    else if (s_mode==4 || s_mode==5)
+    {
+        tx_rpt = model.item(row, 2)->text();
+        freq = "?";
+    }
+    else if (s_mode==6)
+    {
+        tx_rpt = "?";
+        freq = "?";
+    }
+    else if (s_mode==7 || s_mode==8 || s_mode==9 || s_mode==10)
+    {
+        tx_rpt = model.item(row, 2)->text();
+        freq = model.item(row, 9)->text();
+    }
+    else if (s_mode==11 || s_mode==13 || s_mode==18 || allq65)
+    {
+        tx_rpt = model.item(row, 1)->text();
+        freq = model.item(row, 9)->text();
+    }
+
+    emit EmitRespondNow(str,str,model.item(row, 0)->text(),tx_rpt,freq);
 }
 /*
 void DecodeList::mouseDoubleClickEvent(QMouseEvent * event)

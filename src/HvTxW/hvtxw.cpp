@@ -5350,6 +5350,13 @@ bool HvTxW::isAddToLog(QString hisBaseCall_inmsg)//2.76.1
 	if ((!f_add_to_log_started && !one_addtolog_auto_seq) || (!f_add_to_log_started && hisBaseCall_inmsg != s_last_bccall_tolog_excp)) f = true;
 	return f;
 }
+void HvTxW::RespondNowFromDecodeList(QString all_txt,QString str,QString tp,QString tx_rpt,QString freq)
+{
+    Q_UNUSED(all_txt);
+    Q_UNUSED(tp);
+    if (!(s_mode==11 || s_mode==13 || s_mode==18 || allq65) || !f_multi_answer_mod) return;
+    MultiAnswerMod->RespondNow(tx_rpt,str,freq);
+}
 void HvTxW::SetTextForAutoSeq(QStringList list_in)
 {
     if ((s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_multi_answer_mod)//ft8 only  eventual ft4

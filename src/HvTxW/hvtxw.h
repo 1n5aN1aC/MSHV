@@ -336,6 +336,7 @@ public slots:
     void SetRxDf(int);
 
     void SetTextForAutoSeq(QStringList);
+    void RespondNowFromDecodeList(QString,QString,QString,QString,QString);
     void SetInfoDupeQso(bool);
     void Macros_exec();
     void NetW_exec();

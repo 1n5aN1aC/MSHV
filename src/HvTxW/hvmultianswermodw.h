@@ -57,6 +57,7 @@ public:
     void SetFont(QFont f);
     void SetItem(int row,int col,QString str);
     void InsertItem_hv(QStringList);
+    void InsertItemFront_hv(QStringList);
     void Clear_List();
 
 signals:
@@ -270,6 +271,7 @@ public slots:
 	void SetHisCallChanged(QString); 
 	void SetQRG(QString);
 	void SetReriodTime(float);
+    void RespondNow(QString,QString,QString);
 	
 private slots:
     void LQueueCountChange(int);

@@ -241,6 +241,28 @@ void ListA::InsertItem_hv(QStringList list)
     }
     //this->setCurrentIndex(model.index(model.rowCount(), 1, QModelIndex()));
 }
+void ListA::InsertItemFront_hv(QStringList list)
+{
+    if (!list.isEmpty())
+    {
+        QList<QStandardItem *> qlsi;
+        int k = 0;
+        for (QStringList::iterator it =  list.begin(); it != list.end(); ++it)
+        {
+            QStandardItem *item = new QStandardItem(QString(*it));
+            if (k==3 || k==5 || k==1) item->setTextAlignment(Qt::AlignCenter);//freq and dist
+            item->setEditable(false);
+            qlsi.append(item);
+            k++;
+        }
+        model.insertRow(0, qlsi);
+
+        emit ListCountChange(model.rowCount());
+
+        if      (s_auto_sort==1 && THvHeader->sortIndicatorSection()==3) AutoSortDist(3);//only LsQueue and distance
+        else if (s_auto_sort==2 && THvHeader->sortIndicatorSection()==1) AutoSortDist(1);
+    }
+}
 int ListA::FindCallOrBaseCallRow(QString c)
 {
     int row = -1;
@@ -2967,6 +2989,167 @@ void MultiAnswerModW::DecListTextAll(QString tx_rpt,QString str,QString freq,boo
             emit EmitDoubleClick();
         }
     }
+}
+void MultiAnswerModW::RespondNow(QString tx_rpt,QString str,QString freq)
+{
+    if (!f_multi_answer_mod_std) return;
+    if (str.isEmpty()) return;
+
+    QString hisCall_inmsg = "";
+    QString hisLoc_inmsg  = "";
+    QString myCall_inmsg  = "";
+    QString rpt_inmsg  = "";
+    QString cont_r_inmsg  = "";
+    QString rr73_inmsg  = "";
+    int row_queue = -1;
+    int row_now = -1;
+    QString sn_inmsg = "";
+    QString arrl_exch_imsg = "";
+
+    DetectTextInMsg(str, hisCall_inmsg,hisLoc_inmsg,myCall_inmsg,rpt_inmsg,cont_r_inmsg,rr73_inmsg,
+                    row_queue,row_now,sn_inmsg,arrl_exch_imsg);
+    if (hisCall_inmsg.isEmpty()) return;
+
+    if (row_now == 0)
+    {
+        QString hcap;
+        QString hloc;
+        DecListTextAll(tx_rpt,str,freq,true,hcap,hloc);
+        return;
+    }
+
+    QString id_rpt = "0";
+    bool block_rpt_all = true;
+    if (!myCall_inmsg.isEmpty())
+    {
+        if (rpt_inmsg.isEmpty() && hisLoc_inmsg.isEmpty() && cont_r_inmsg.isEmpty() && rr73_inmsg.isEmpty() && arrl_exch_imsg.isEmpty())
+        {
+            id_rpt = "1";
+            block_rpt_all = false;
+        }
+        else if (rpt_inmsg.isEmpty() && (!hisLoc_inmsg.isEmpty() || !arrl_exch_imsg.isEmpty()))
+        {
+            if (!cont_r_inmsg.isEmpty()) id_rpt = "3";
+            else
+            {
+                if (s_co_type==2 || s_co_type==4) id_rpt = "2";
+                else id_rpt = "1";
+            }
+            block_rpt_all = false;
+        }
+        else if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)!='R' && rpt_inmsg.at(rpt_inmsg.count()-1).isDigit() && rpt_inmsg!="73")
+        {
+            if (!cont_r_inmsg.isEmpty()) id_rpt = "3";
+            else id_rpt = "2";
+            rpt_inmsg = format_rpt_ma(rpt_inmsg);
+            block_rpt_all = false;
+        }
+        else if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)=='R' && rpt_inmsg.at(rpt_inmsg.count()-1).isDigit())
+        {
+            id_rpt = "3";
+            rpt_inmsg.remove("R");
+            rpt_inmsg = format_rpt_ma(rpt_inmsg);
+            block_rpt_all = false;
+        }
+        else if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)=='R' && !rpt_inmsg.at(rpt_inmsg.count()-1).isDigit() &&
+                 rpt_inmsg.at(rpt_inmsg.count()-1)=='R')
+        {
+            id_rpt = "3";
+            block_rpt_all = true;
+        }
+        else if ((!rpt_inmsg.isEmpty() && rpt_inmsg=="73") || rr73_inmsg=="RR73")
+        {
+            id_rpt = "4";
+            block_rpt_all = true;
+        }
+    }
+    else
+    {
+        if (s_start_qso_from_tx2 && s_co_type!=3) id_rpt = "1";
+        else id_rpt = "0";
+        block_rpt_all = false;
+        if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)=='R' && rpt_inmsg.at(rpt_inmsg.count()-1).isDigit()) rpt_inmsg.remove("R");
+    }
+
+    if (id_mshf==2 && id_rpt=="2") return;
+    if (block_rpt_all && row_now<0 && row_queue<0) return;
+
+    QString tx_rpt_now = tx_rpt;
+    if (id_rpt == "0" || id_rpt == "1" || id_rpt == "2")
+    {
+        tx_rpt_now = TryFormatRPTtoRST(tx_rpt_now);
+        tx_rpt_now = format_rpt_ma(tx_rpt_now);
+    }
+    else tx_rpt_now = "";
+
+    QString dist = "?";
+    if (!hisLoc_inmsg.isEmpty()) dist = CalcDistance(hisLoc_inmsg,f_km_mi);
+    if (rpt_inmsg=="73" || rpt_inmsg=="RRR" || rpt_inmsg=="RR73") rpt_inmsg = "";
+
+    auto read_row = [&](ListA *lst, int row)->QStringList
+    {
+        QStringList out;
+        if (row < 0 || row >= lst->GetRowCount()) return out;
+        for (int j = 0; j < lst->GetColumnCount(); ++j) out << lst->model.item(row,j)->text();
+        return out;
+    };
+
+    QStringList selected_row;
+    if (row_now > -1) selected_row = read_row(LsNow,row_now);
+    else if (row_queue > -1) selected_row = read_row(LsQueue,row_queue);
+    else selected_row << hisCall_inmsg << "" << "" << "?" << "" << freq << "" << "0" << "" << "" << "" << "";
+    while (selected_row.count() < 12) selected_row << "";
+
+    if (row_queue > -1) LsQueue->RemoveRow(row_queue);
+    if (row_now > -1)
+    {
+        if (row_now > 0) LsNow->RemoveRow(row_now);
+        else return;
+    }
+
+    QStringList old_now_row;
+    if (LsNow->GetRowCount()>0)
+    {
+        old_now_row = read_row(LsNow,0);
+        LsNow->RemoveRow(0);
+    }
+
+    selected_row.replace(0,hisCall_inmsg);
+    if (!tx_rpt_now.isEmpty()) selected_row.replace(1,tx_rpt_now);
+    if (!rpt_inmsg.isEmpty()) selected_row.replace(2,rpt_inmsg);
+    if (dist!="?") selected_row.replace(3,dist);
+    if (!hisLoc_inmsg.isEmpty()) selected_row.replace(4,hisLoc_inmsg);
+    selected_row.replace(5,freq);
+    if (selected_row.at(6).isEmpty())
+    {
+        QDateTime utc_t = QDateTime::currentDateTimeUtc();
+        selected_row.replace(6,utc_t.toString("yyyyMMdd")+" "+utc_t.toString("hh:mm"));
+    }
+    selected_row.replace(7,id_rpt);
+    selected_row.replace(8,QString("%1").arg(QDateTime::currentDateTimeUtc().toTime_t()));
+    selected_row.replace(9,"0");
+    if (!sn_inmsg.isEmpty()) selected_row.replace(10,sn_inmsg);
+    if (!arrl_exch_imsg.isEmpty()) selected_row.replace(11,arrl_exch_imsg);
+
+    if (!old_now_row.isEmpty())
+    {
+        while (old_now_row.count() < 12) old_now_row << "";
+        old_now_row.replace(9,"0");
+        QString old_base = FindBaseFullCallRemAllSlash(old_now_row.at(0));
+        QString sel_base = FindBaseFullCallRemAllSlash(selected_row.at(0));
+        if (old_base != sel_base)
+        {
+            int oldq = LsQueue->FindCallOrBaseCallRow(old_base);
+            if (oldq > -1) LsQueue->RemoveRow(oldq);
+            LsQueue->InsertItemFront_hv(old_now_row);
+        }
+    }
+
+    int exists_now = LsNow->FindCallOrBaseCallRow(FindBaseFullCallRemAllSlash(selected_row.at(0)));
+    if (exists_now > -1) LsNow->RemoveRow(exists_now);
+    LsNow->InsertItemFront_hv(selected_row);
+
+    RefreshLists(0);
 }
 //#define _TEST_MASF_
 #if defined _TEST_MASF_

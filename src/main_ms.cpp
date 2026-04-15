@@ -729,6 +729,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(THvTxW, SIGNAL(EmitQrgQSY(QStringList)), this, SLOT(SetQrgQSY(QStringList)));//2.46
 
     connect(TDecodeList1, SIGNAL(EmitRxTextForAutoSeq(QStringList)), THvTxW, SLOT(SetTextForAutoSeq(QStringList)));
+    connect(TDecodeList1, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
+    connect(TDecodeList2, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
 
     //connect(THvTxW, SIGNAL(EmitRemoteStation(QString,QString,int,QString,int,int)),
     //TRadioAndNetW, SLOT(AddRemoteStation(QString,QString,int,QString,int,int)));

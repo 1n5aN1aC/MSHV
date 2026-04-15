@@ -77,6 +77,7 @@ public:
 signals:
     //void SendRightClick();
     void ListSelectedTextAll(QString,QString,QString,QString,QString);
+    void EmitRespondNow(QString,QString,QString,QString,QString);
     void ListSelectedRpt(QString);
     void EmitRxAllTxt(QString);
     void EmitLstNexColor(bool);
@@ -110,6 +111,7 @@ private slots:
     void RefreshListTimer();
     void ItemSelectedText(QString,int,int);
     void ac_spot();
+    void ac_respond_now();
     //void SetHeaderSingleClicked();
     void SetHeaderDoubleClicked();//2.44
 
@@ -163,6 +165,7 @@ private:
     //bool g_block_list_exp;
     QTimer *list_rfresh_timer;    
     QMenu *m_spot; 
+    QAction *m_respond_now;
     //HvHeader *THvHeader;
     QHeaderView *THvHeader;
     //int ActiveIndex;
