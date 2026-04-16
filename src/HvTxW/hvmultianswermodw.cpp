@@ -3257,6 +3257,11 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
     DetectTextInMsg(text_msg,hisCall_inmsg,hisLoc_inmsg,myCall_inmsg,rpt_inmsg,
                     cont_r_inmsg,rr73_inmsg,row_queue,row_now,sn_inmsg,arrl_exch_imsg);
 
+    if (rpt_inmsg == "73")
+    {
+        return;
+    }
+
     if (hisCall_inmsg.isEmpty() || myCall_inmsg.isEmpty())
     {
         return;
