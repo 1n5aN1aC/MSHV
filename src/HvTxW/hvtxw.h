@@ -195,6 +195,10 @@ public:
     {
         return MultiAnswerMod->GetCNS();
     };
+    void SetCNS(bool f)
+    {
+        MultiAnswerMod->SetCNS(f);
+    };
     bool GetTxFi()
     {
         return rb_tx_fi->isChecked();

@@ -243,6 +243,10 @@ public:
     {
         return cb_cont_ns->isChecked();
     }
+    void SetCNS(bool f)
+    {
+        cb_cont_ns->setChecked(f);
+    }
 	// Idle autorespond
 	void SetIdleAutoRespondEnabled(bool);
 	void SetIdleAutoRespondTimeout(int cycles);

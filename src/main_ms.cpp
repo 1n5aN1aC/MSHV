@@ -1985,9 +1985,7 @@ void Main_Ms::PounceButtonClicked()
         }
         if (THvTxW->GetCNS())
         {
-            QMessageBox::warning(this, "MSHV", tr("Pounce requires CNS to be disabled."), QMessageBox::Ok);
-            pb_pounce->setChecked(false);
-            return;
+            THvTxW->SetCNS(false);
         }
         if (!TPounceSettings->RespondDirectedEnabled())
         {
