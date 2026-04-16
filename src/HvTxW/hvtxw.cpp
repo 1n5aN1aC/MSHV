@@ -502,7 +502,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(MultiAnswerMod,SIGNAL(EmitDoQRG(QString,QString)),this,SLOT(SetDoQRG(QString,QString)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitMAFirstTX(bool)),this,SLOT(SetMAFirstTX(bool)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitSFMATxAll(QString)),this,SIGNAL(EmitSFMATxAll(QString)));//2.76sf
-    connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued(QString)),this,SLOT(StartPounceAuto(QString)));
+    connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued(QString,QString)),this,SLOT(StartPounceAuto(QString,QString)));
     connect(MultiAnswerMod,SIGNAL(EmitCNSChanged(bool)),this,SIGNAL(EmitPounceCNSChanged(bool)));
 
     // Idle Autorespond pane
@@ -5385,11 +5385,20 @@ void HvTxW::SetPounceResponseMode(int mode)
     if (mode != 1) mode = 0;
     s_pounce_response_mode = mode;
 }
-void HvTxW::StartPounceAuto(QString pounce_freq)
+void HvTxW::StartPounceAuto(QString pounce_freq, QString pounce_time)
 {
     if (!f_wait_and_pounce || !f_multi_answer_mod_std || MultiAnswerMod->GetCNS())
     {
         return;
+    }
+
+    // Keep pounce replies on the opposite TX half from the decoded message.
+    // Use decode timestamp when available; otherwise fall back to current UTC time.
+    if (s_mode==11 || s_mode==13 || s_mode==18 || allq65)
+    {
+        QString tp = pounce_time.trimmed();
+        if (!QTime::fromString(tp,"hhmmss").isValid()) tp = QDateTime::currentDateTimeUtc().toString("hhmmss");
+        SetTimePeriod_p(tp,1);
     }
 
     if (s_pounce_response_mode == 1)

@@ -3301,6 +3301,7 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
     QString text_msg = list_in.at(4);
     QString tx_rpt = list_in.at(1);
     QString freq = list_in.at(9);
+    QString pounce_time = list_in.at(0);
 
     QString hisCall_inmsg = "";
     QString hisLoc_inmsg = "";
@@ -3359,7 +3360,7 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
     if (directed_match)
     {
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
-        emit EmitWAPDirectedQueued(freq);
+        emit EmitWAPDirectedQueued(freq,pounce_time);
         return;
     }
 
@@ -3385,7 +3386,7 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
                 QString row_freq = LsNow->model.item(row_now,5)->text().trimmed();
                 if (!row_freq.isEmpty()) pounce_freq = row_freq;
             }
-            emit EmitWAPDirectedQueued(pounce_freq);
+            emit EmitWAPDirectedQueued(pounce_freq,pounce_time);
         }
     }
 }

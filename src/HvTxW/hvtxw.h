@@ -381,7 +381,7 @@ public slots:
     void SetMaManAdding(bool);
     void CBEnableAliChanged(bool);//2.75
     void SetAutoLogInfo();//2.75
-    void StartPounceAuto(QString pounce_freq);
+    void StartPounceAuto(QString pounce_freq, QString pounce_time);
 
 signals:
 	void EmitMacros(int,QString);
