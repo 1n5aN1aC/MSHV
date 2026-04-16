@@ -183,6 +183,18 @@ public:
     {
         return f_auto_on;
     };
+    bool GetWaitAndPounce() const
+    {
+        return f_wait_and_pounce;
+    };
+    bool GetPounceRespondDirected() const
+    {
+        return f_pounce_respond_directed;
+    };
+    bool GetCNS() const
+    {
+        return MultiAnswerMod->GetCNS();
+    };
     bool GetTxFi()
     {
         return rb_tx_fi->isChecked();
@@ -285,6 +297,8 @@ public:
     //void SetMacros(QStringList,int,QString,QString); //2.32
     void SetDPLogQso(bool,bool);
     void SetMultiAnswerMod(bool,bool);
+    void SetWaitAndPounce(bool f);
+    void SetPounceRespondDirected(bool f);
     void SetStartQsoDateTime(); //2.49
     void SetTxMessage(int); //2.49
     void ReadEDILog();//2.57
@@ -358,6 +372,7 @@ public slots:
     void SetMaManAdding(bool);
     void CBEnableAliChanged(bool);//2.75
     void SetAutoLogInfo();//2.75
+    void StartPounceAuto();
 
 signals:
 	void EmitMacros(int,QString);
@@ -405,6 +420,7 @@ signals:
     void EmitOtpRxMsg(bool);//2.76
     void EmitOtpVerif(QString,uint8_t);//2.76
     void EmitOffsetDt(int);//2.76.5
+    void EmitPounceCNSChanged(bool);
  
 private slots:
     void SetRptRsq(bool);
@@ -483,6 +499,8 @@ private:
     //bool DialogIsCallDupeInLog(QString hisCall_inmsg);
     bool f_multi_answer_mod;
     bool f_multi_answer_mod_std;
+    bool f_wait_and_pounce;
+    bool f_pounce_respond_directed;
     MultiAnswerModW *MultiAnswerMod;
     void SetTxTextsHiden(bool f);
     void RefreshMultiAnswerModAndASeq();

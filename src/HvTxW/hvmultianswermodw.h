@@ -163,6 +163,7 @@ public:
     void DecListTextAll(QString tx_rpt,QString str,QString freq,bool,QString &hcap,QString &hloc);//1.73 hisCall_inmsg_for_ap
     void SetDistUnit(bool f_);
     void SetTextForAutoSeq(QStringList list_in);
+    void SetTextForAutoSeqWAP(QStringList list_in);
     void GetCurrentMsg();
     void SetTxRxMsg(bool);
     void SetSettings(QString);
@@ -238,6 +239,10 @@ public:
 	QString DetectCQTypeFromMacros(QString);
 	void SetMaManAdding(bool);
 	void SetMsfS5SMsg(uint8_t);//2.76
+    bool GetCNS() const
+    {
+        return cb_cont_ns->isChecked();
+    }
 	// Idle autorespond
 	void SetIdleAutoRespondEnabled(bool);
 	void SetIdleAutoRespondTimeout(int cycles);
@@ -266,6 +271,8 @@ signals:
     void EmitDoQRG(QString,QString);
     void EmitMAFirstTX(bool);
     void EmitSFMATxAll(QString);//2.76
+    void EmitWAPDirectedQueued();
+    void EmitCNSChanged(bool);
     
 public slots:
 	void SetHisCallChanged(QString); 

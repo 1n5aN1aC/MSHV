@@ -634,6 +634,7 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     cb_cont_ns = new QCheckBox(tr("CNS"));
     cb_cont_ns->setStyleSheet("QCheckBox{spacing:3px;}");
     cb_cont_ns->setHidden(true);
+    connect(cb_cont_ns,SIGNAL(toggled(bool)),this,SIGNAL(EmitCNSChanged(bool)));
     /*cb_cont_ns = new QCheckBox();//cb_cont_ns->setToolTip("Continue non-stop");
     cb_cont_ns->setToolTip("CNS");   
     cb_cont_ns->setHidden(true);    
@@ -3228,6 +3229,45 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
     if (uuu<4) uuu++;
     else uuu=0;
 #endif
+}
+void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
+{
+    if (list_in.isEmpty() || !(s_mode==11 || s_mode==13 || s_mode==18 || allq65) || list_in.count()<=9)
+    {
+        return;
+    }
+    if (!f_multi_answer_mod_std || cb_cont_ns->isChecked())
+    {
+        return;
+    }
+
+    QString text_msg = list_in.at(4);
+    QString tx_rpt = list_in.at(1);
+    QString freq = list_in.at(9);
+
+    QString hisCall_inmsg = "";
+    QString hisLoc_inmsg = "";
+    QString myCall_inmsg = "";
+    QString rpt_inmsg = "";
+    QString cont_r_inmsg = "";
+    QString rr73_inmsg = "";
+    int row_queue = -2;
+    int row_now = -2;
+    QString sn_inmsg = "";
+    QString arrl_exch_imsg = "";
+
+    DetectTextInMsg(text_msg,hisCall_inmsg,hisLoc_inmsg,myCall_inmsg,rpt_inmsg,
+                    cont_r_inmsg,rr73_inmsg,row_queue,row_now,sn_inmsg,arrl_exch_imsg);
+
+    if (hisCall_inmsg.isEmpty() || myCall_inmsg.isEmpty())
+    {
+        return;
+    }
+
+    QString hcap;
+    QString hloc;
+    DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
+    emit EmitWAPDirectedQueued();
 }
 // ============ Idle Autorespond Implementation ============
 void MultiAnswerModW::SetIdleAutoRespondEnabled(bool f)

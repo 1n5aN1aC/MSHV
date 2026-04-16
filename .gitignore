@@ -6,3 +6,4 @@ bin/AllTxtMonthly/
 object_script.MSHV_WIN64.Debug
 object_script.MSHV_WIN64.Release
 MSHV.code-workspace
+.vscode/tasks.json

@@ -299,6 +299,8 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     s_start_qso_from_tx2 = false;
     f_multi_answer_mod = false;
     f_multi_answer_mod_std = false;
+    f_wait_and_pounce = false;
+    f_pounce_respond_directed = true;
     f_block_emit_freq_to_rig = true;
     log_qso_startdt_eq_enddt = false;
     f_recognize_tp1 = true;
@@ -497,6 +499,8 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(MultiAnswerMod,SIGNAL(EmitDoQRG(QString,QString)),this,SLOT(SetDoQRG(QString,QString)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitMAFirstTX(bool)),this,SLOT(SetMAFirstTX(bool)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitSFMATxAll(QString)),this,SIGNAL(EmitSFMATxAll(QString)));//2.76sf
+    connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued()),this,SLOT(StartPounceAuto()));
+    connect(MultiAnswerMod,SIGNAL(EmitCNSChanged(bool)),this,SIGNAL(EmitPounceCNSChanged(bool)));
 
     // Idle Autorespond pane
     Box_idle_ar = new QFrame();
@@ -3974,6 +3978,7 @@ void HvTxW::SetMultiAnswerMod(bool fmadx, bool fmastd)
     if (fmadx || fmastd) f_multi_answer_mod = true;
     else f_multi_answer_mod = false;
     f_multi_answer_mod_std = fmastd;//for recorgnize tp
+    if (!f_multi_answer_mod_std) f_wait_and_pounce = false;
     MultiAnswerMod->SetMAStd(fmastd);
     RefreshBackupDB();
     RefreshMultiAnswerModAndASeq();
@@ -5344,6 +5349,22 @@ void HvTxW::SetUseASeqMaxDist(bool f)
     f_aseqmaxdist = f; //qDebug()<<"SetUseASeqMaxDist="<<f;
     MultiAnswerMod->SetUseASeqMaxDist(f);
 }
+void HvTxW::SetWaitAndPounce(bool f)
+{
+    f_wait_and_pounce = f;
+}
+void HvTxW::SetPounceRespondDirected(bool f)
+{
+    f_pounce_respond_directed = f;
+}
+void HvTxW::StartPounceAuto()
+{
+    if (!f_wait_and_pounce || !f_multi_answer_mod_std || MultiAnswerMod->GetCNS() || f_auto_on)
+    {
+        return;
+    }
+    auto_on();
+}
 bool HvTxW::isAddToLog(QString hisBaseCall_inmsg)//2.76.1
 {
 	bool f = false;
@@ -5363,6 +5384,8 @@ void HvTxW::SetTextForAutoSeq(QStringList list_in)
     {
         //if (f_auto_on && AutoSeqLab->GetAutoSeq())
         if (f_auto_on) MultiAnswerMod->SetTextForAutoSeq(list_in);
+        else if (f_wait_and_pounce && f_multi_answer_mod_std && f_pounce_respond_directed)
+            MultiAnswerMod->SetTextForAutoSeqWAP(list_in);
         return;
     }
     //2.73 Dist Country
