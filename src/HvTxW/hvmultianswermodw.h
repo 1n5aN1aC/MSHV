@@ -208,7 +208,7 @@ public:
         }
         out.append(s_idle_contest_call);
         out.append("#"); // trailing
-        out.append(QString("%1").arg(s_idle_candidate_periods));
+        out.append(QString("%1").arg(s_idle_candidate_seconds));
         out.append("#"); // trailing
         return out;
     }
@@ -250,12 +250,12 @@ public:
 	// Idle autorespond
 	void SetIdleAutoRespondEnabled(bool);
 	void SetIdleAutoRespondTimeout(int cycles);
-    void SetIdleCandidatePeriods(int periods);
+    void SetIdleCandidateSeconds(int seconds);
 	void SetIdleCategoryEnabled(int cat, bool f);
     void SetIdleContestCall(QString c);
 	bool GetIdleAutoRespondEnabled();
 	int  GetIdleAutoRespondTimeout();
-    int  GetIdleCandidatePeriods();
+    int  GetIdleCandidateSeconds();
 	bool GetIdleCategoryEnabled(int cat);
     QString GetIdleContestCall();
 	void TryRespondWhenIdle();
@@ -385,7 +385,7 @@ private:
     // Idle autorespond state
     bool f_idle_ar_enabled;
     int  s_idle_ar_timeout_cycles;
-    int  s_idle_candidate_periods;
+    int  s_idle_candidate_seconds;
     bool f_idle_cat[IDLE_CAT_COUNT];
     bool s_idle_once_active;
     bool s_idle_revert_to_cq;
@@ -395,7 +395,6 @@ private:
     QList<IdleCandidate> s_idle_candidates;
     IdleCandCategory ClassifyIdleCandidate(QString text_msg);
     QString BuildIdleCallMsg(QString call, IdleCandCategory cat);
-    int GetIdleRespWindowPeriods();
 
 protected:
 

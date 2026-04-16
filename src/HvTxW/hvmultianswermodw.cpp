@@ -464,7 +464,7 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     // Idle autorespond init
     f_idle_ar_enabled = false;
     s_idle_ar_timeout_cycles = 3;
-    s_idle_candidate_periods = 6;
+    s_idle_candidate_seconds = 90;
     for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic) f_idle_cat[ic] = false;
     s_idle_once_active = false;
     s_idle_revert_to_cq = false;
@@ -853,17 +853,15 @@ void MultiAnswerModW::SetSettings(QString s)
     if (ls.count() > idleBase + 6) s_idle_contest_call = ls.at(idleBase + 6).trimmed().toUpper();
     if (ls.count() > idleBase + 7)
     {
-        int p = ls.at(idleBase + 7).toInt();
-        if (p < 1) p = 1;
-        if (p > 60) p = 60;
-        s_idle_candidate_periods = p;
+        int sec = ls.at(idleBase + 7).toInt();
+        if (sec < 1) sec = 1;
+        if (sec > 3600) sec = 3600;
+        s_idle_candidate_seconds = sec;
     }
     else
     {
-        // Backward compatibility with older settings that had no candidate-periods field.
-        int p = s_idle_ar_timeout_cycles * 2;
-        if (p < 4) p = 4;
-        s_idle_candidate_periods = p;
+        // Backward compatibility with older settings that had no candidate-seconds field.
+        s_idle_candidate_seconds = 90;
     }
 }
 void MultiAnswerModW::LQueueCountChange(int n)
@@ -3287,11 +3285,11 @@ void MultiAnswerModW::SetIdleAutoRespondTimeout(int cycles)
     if (cycles > 30) cycles = 30;
     s_idle_ar_timeout_cycles = cycles;
 }
-void MultiAnswerModW::SetIdleCandidatePeriods(int periods)
+void MultiAnswerModW::SetIdleCandidateSeconds(int seconds)
 {
-    if (periods < 1) periods = 1;
-    if (periods > 60) periods = 60;
-    s_idle_candidate_periods = periods;
+    if (seconds < 1) seconds = 1;
+    if (seconds > 3600) seconds = 3600;
+    s_idle_candidate_seconds = seconds;
 }
 void MultiAnswerModW::SetIdleCategoryEnabled(int cat, bool f)
 {
@@ -3309,9 +3307,9 @@ int MultiAnswerModW::GetIdleAutoRespondTimeout()
 {
     return s_idle_ar_timeout_cycles;
 }
-int MultiAnswerModW::GetIdleCandidatePeriods()
+int MultiAnswerModW::GetIdleCandidateSeconds()
 {
-    return s_idle_candidate_periods;
+    return s_idle_candidate_seconds;
 }
 bool MultiAnswerModW::GetIdleCategoryEnabled(int cat)
 {
@@ -3321,13 +3319,6 @@ bool MultiAnswerModW::GetIdleCategoryEnabled(int cat)
 QString MultiAnswerModW::GetIdleContestCall()
 {
     return s_idle_contest_call;
-}
-int MultiAnswerModW::GetIdleRespWindowPeriods()
-{
-    int periods = s_idle_candidate_periods;
-    if (periods < 1) periods = 1;
-    if (periods > 60) periods = 60;
-    return periods;
 }
 IdleCandCategory MultiAnswerModW::ClassifyIdleCandidate(QString text_msg)
 {
@@ -3479,10 +3470,9 @@ void MultiAnswerModW::TryRespondWhenIdle()
     s_idle_cq_count++;
     if (s_idle_cq_count < s_idle_ar_timeout_cycles) return;
 
-    // Prune old candidates (keep only those from recent decode periods)
+    // Prune old candidates (keep only those from recent seconds window)
     unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
-    int windowPeriods = GetIdleRespWindowPeriods();
-    unsigned int windowSec = (unsigned int)((float)windowPeriods * period_time_sec * 2.0f);
+    unsigned int windowSec = (unsigned int)GetIdleCandidateSeconds();
     for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
     {
         if ((now_t - s_idle_candidates[i].rx_time) > windowSec)
