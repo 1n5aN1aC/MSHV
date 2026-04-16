@@ -301,6 +301,8 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     f_multi_answer_mod_std = false;
     f_wait_and_pounce = false;
     f_pounce_respond_directed = true;
+    f_pounce_respond_cq_keyword = false;
+    f_pounce_respond_cq_grid = false;
     f_block_emit_freq_to_rig = true;
     log_qso_startdt_eq_enddt = false;
     f_recognize_tp1 = true;
@@ -5359,6 +5361,24 @@ void HvTxW::SetPounceRespondDirected(bool f)
 {
     f_pounce_respond_directed = f;
 }
+void HvTxW::SetPounceRespondCqKeyword(bool f)
+{
+    f_pounce_respond_cq_keyword = f;
+    MultiAnswerMod->SetPounceRespondCqKeyword(f);
+}
+void HvTxW::SetPounceRespondCqKeywords(QString s)
+{
+    MultiAnswerMod->SetPounceRespondCqKeywords(s);
+}
+void HvTxW::SetPounceRespondCqGrid(bool f)
+{
+    f_pounce_respond_cq_grid = f;
+    MultiAnswerMod->SetPounceRespondCqGrid(f);
+}
+void HvTxW::SetPounceRespondCqGrids(QString s)
+{
+    MultiAnswerMod->SetPounceRespondCqGrids(s);
+}
 void HvTxW::StartPounceAuto()
 {
     if (!f_wait_and_pounce || !f_multi_answer_mod_std || MultiAnswerMod->GetCNS() || f_auto_on)
@@ -5386,7 +5406,8 @@ void HvTxW::SetTextForAutoSeq(QStringList list_in)
     {
         //if (f_auto_on && AutoSeqLab->GetAutoSeq())
         if (f_auto_on) MultiAnswerMod->SetTextForAutoSeq(list_in);
-        else if (f_wait_and_pounce && f_multi_answer_mod_std && f_pounce_respond_directed)
+        else if (f_wait_and_pounce && f_multi_answer_mod_std &&
+                 (f_pounce_respond_directed || f_pounce_respond_cq_keyword || f_pounce_respond_cq_grid))
             MultiAnswerMod->SetTextForAutoSeqWAP(list_in);
         return;
     }

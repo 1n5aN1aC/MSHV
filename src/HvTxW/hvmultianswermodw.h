@@ -164,6 +164,10 @@ public:
     void SetDistUnit(bool f_);
     void SetTextForAutoSeq(QStringList list_in);
     void SetTextForAutoSeqWAP(QStringList list_in);
+    void SetPounceRespondCqKeyword(bool f);
+    void SetPounceRespondCqKeywords(QString s);
+    void SetPounceRespondCqGrid(bool f);
+    void SetPounceRespondCqGrids(QString s);
     void GetCurrentMsg();
     void SetTxRxMsg(bool);
     void SetSettings(QString);
@@ -382,6 +386,14 @@ private:
     int s_dist_points;//2.66
     bool s_man_adding;
     void SetSFMATxAll();//2.76
+    bool f_pounce_cq_keyword;
+    bool f_pounce_cq_grid;
+    QStringList s_pounce_cq_keywords;
+    QStringList s_pounce_cq_grids;
+    QStringList NormalizePounceCsv(QString csv) const;
+    bool IsCqMessage(QString text_msg) const;
+    bool PounceCqKeywordMatch(QString text_msg) const;
+    bool PounceCqGridMatch(QString hisLoc_inmsg) const;
     // Idle autorespond state
     bool f_idle_ar_enabled;
     int  s_idle_ar_timeout_cycles;

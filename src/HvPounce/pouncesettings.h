@@ -8,6 +8,7 @@
 #include <QDialog>
 
 class QCheckBox;
+class QLineEdit;
 
 class HvPounceSettings : public QDialog
 {
@@ -18,12 +19,28 @@ public:
 
     bool RespondDirectedEnabled() const;
     void SetRespondDirectedEnabled(bool enabled);
+    bool RespondCqKeywordEnabled() const;
+    void SetRespondCqKeywordEnabled(bool enabled);
+    QString RespondCqKeywords() const;
+    void SetRespondCqKeywords(const QString &keywords);
+    bool RespondCqGridEnabled() const;
+    void SetRespondCqGridEnabled(bool enabled);
+    QString RespondCqGrids() const;
+    void SetRespondCqGrids(const QString &grids);
 
 signals:
     void EmitRespondDirectedChanged(bool);
+    void EmitRespondCqKeywordChanged(bool);
+    void EmitRespondCqKeywordsChanged(QString);
+    void EmitRespondCqGridChanged(bool);
+    void EmitRespondCqGridsChanged(QString);
 
 private:
     QCheckBox *cb_respond_directed;
+    QCheckBox *cb_respond_cq_keyword;
+    QLineEdit *le_respond_cq_keywords;
+    QCheckBox *cb_respond_cq_grid;
+    QLineEdit *le_respond_cq_grids;
 };
 
 #endif

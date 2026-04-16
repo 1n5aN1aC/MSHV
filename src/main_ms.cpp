@@ -379,7 +379,15 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     THvTxW = new HvTxW(InstName,App_Path,lid,dsty,x,y);
     TPounceSettings = new HvPounceSettings(dsty,this);
     connect(TPounceSettings,SIGNAL(EmitRespondDirectedChanged(bool)),this,SLOT(PounceRespondDirectedChanged(bool)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqKeywordChanged(bool)),this,SLOT(PounceRespondCqKeywordChanged(bool)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqKeywordsChanged(QString)),this,SLOT(PounceRespondCqKeywordsChanged(QString)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqGridChanged(bool)),this,SLOT(PounceRespondCqGridChanged(bool)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqGridsChanged(QString)),this,SLOT(PounceRespondCqGridsChanged(QString)));
     THvTxW->SetPounceRespondDirected(TPounceSettings->RespondDirectedEnabled());
+    THvTxW->SetPounceRespondCqKeyword(TPounceSettings->RespondCqKeywordEnabled());
+    THvTxW->SetPounceRespondCqKeywords(TPounceSettings->RespondCqKeywords());
+    THvTxW->SetPounceRespondCqGrid(TPounceSettings->RespondCqGridEnabled());
+    THvTxW->SetPounceRespondCqGrids(TPounceSettings->RespondCqGrids());
 
     connect(THvTxW, SIGNAL(EmitDistUnit(bool)),TDecodeList1,SLOT(SetDistUnit(bool)));
     connect(THvTxW, SIGNAL(EmitDistUnit(bool)),TDecodeList2,SLOT(SetDistUnit(bool)));
@@ -1987,9 +1995,11 @@ void Main_Ms::PounceButtonClicked()
         {
             THvTxW->SetCNS(false);
         }
-        if (!TPounceSettings->RespondDirectedEnabled())
+        if (!TPounceSettings->RespondDirectedEnabled() &&
+            !TPounceSettings->RespondCqKeywordEnabled() &&
+            !TPounceSettings->RespondCqGridEnabled())
         {
-            QMessageBox::warning(this, "MSHV", tr("Enable 'Respond to calls directed to my callsign' in Pounce Settings first."), QMessageBox::Ok);
+            QMessageBox::warning(this, "MSHV", tr("Enable at least one Pounce trigger in Pounce Settings first."), QMessageBox::Ok);
             pb_pounce->setChecked(false);
             return;
         }
@@ -2019,12 +2029,40 @@ void Main_Ms::PounceCNSChanged(bool f)
 void Main_Ms::PounceRespondDirectedChanged(bool f)
 {
     THvTxW->SetPounceRespondDirected(f);
-    if (!f && THvTxW->GetWaitAndPounce())
+    if (!f && !TPounceSettings->RespondCqKeywordEnabled() && !TPounceSettings->RespondCqGridEnabled() && THvTxW->GetWaitAndPounce())
     {
         THvTxW->SetWaitAndPounce(false);
         pb_pounce->setChecked(false);
         pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
     }
+}
+void Main_Ms::PounceRespondCqKeywordChanged(bool f)
+{
+    THvTxW->SetPounceRespondCqKeyword(f);
+    if (!f && !TPounceSettings->RespondDirectedEnabled() && !TPounceSettings->RespondCqGridEnabled() && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceRespondCqKeywordsChanged(QString s)
+{
+    THvTxW->SetPounceRespondCqKeywords(s);
+}
+void Main_Ms::PounceRespondCqGridChanged(bool f)
+{
+    THvTxW->SetPounceRespondCqGrid(f);
+    if (!f && !TPounceSettings->RespondDirectedEnabled() && !TPounceSettings->RespondCqKeywordEnabled() && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceRespondCqGridsChanged(QString s)
+{
+    THvTxW->SetPounceRespondCqGrids(s);
 }
 void Main_Ms::SetMacros(int contest_id,QString trmN_stdC)//2.15
 {
@@ -4531,6 +4569,28 @@ void Main_Ms::Read_Settings(QString path)
             bool f_dir = (lp.at(0)!="0");
             TPounceSettings->SetRespondDirectedEnabled(f_dir);
             THvTxW->SetPounceRespondDirected(f_dir);
+            if (lp.count()>1)
+            {
+                bool f_cq_kw = (lp.at(1)!="0");
+                TPounceSettings->SetRespondCqKeywordEnabled(f_cq_kw);
+                THvTxW->SetPounceRespondCqKeyword(f_cq_kw);
+            }
+            if (lp.count()>2)
+            {
+                TPounceSettings->SetRespondCqKeywords(lp.at(2));
+                THvTxW->SetPounceRespondCqKeywords(lp.at(2));
+            }
+            if (lp.count()>3)
+            {
+                bool f_cq_grid = (lp.at(3)!="0");
+                TPounceSettings->SetRespondCqGridEnabled(f_cq_grid);
+                THvTxW->SetPounceRespondCqGrid(f_cq_grid);
+            }
+            if (lp.count()>4)
+            {
+                TPounceSettings->SetRespondCqGrids(lp.at(4));
+                THvTxW->SetPounceRespondCqGrids(lp.at(4));
+            }
         }
     }
     if (!st_res[90].isEmpty()) FilterDialog->SetSettings1(st_res[90]);//2.44
@@ -4840,7 +4900,12 @@ void Main_Ms::Save_Settings(QString path)
         }
     }
     out << "def_var_dec_parr=" << dd << "\n";
-    out << "def_pounce_settings=" << QString("%1").arg(TPounceSettings->RespondDirectedEnabled()) << "\n";
+    out << "def_pounce_settings="
+    << QString("%1").arg(TPounceSettings->RespondDirectedEnabled()) << "#"
+    << QString("%1").arg(TPounceSettings->RespondCqKeywordEnabled()) << "#"
+    << TPounceSettings->RespondCqKeywords() << "#"
+    << QString("%1").arg(TPounceSettings->RespondCqGridEnabled()) << "#"
+    << TPounceSettings->RespondCqGrids() << "\n";
 
     file.close();
 }

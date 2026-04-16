@@ -461,6 +461,10 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     backup_db_pos_write = 0;
     current_msg = "";
     s_man_adding = false;
+    f_pounce_cq_keyword = false;
+    f_pounce_cq_grid = false;
+    s_pounce_cq_keywords.clear();
+    s_pounce_cq_grids.clear();
     // Idle autorespond init
     f_idle_ar_enabled = false;
     s_idle_ar_timeout_cycles = 3;
@@ -3228,6 +3232,61 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
     else uuu=0;
 #endif
 }
+void MultiAnswerModW::SetPounceRespondCqKeyword(bool f)
+{
+    f_pounce_cq_keyword = f;
+}
+void MultiAnswerModW::SetPounceRespondCqKeywords(QString s)
+{
+    s_pounce_cq_keywords = NormalizePounceCsv(s);
+}
+void MultiAnswerModW::SetPounceRespondCqGrid(bool f)
+{
+    f_pounce_cq_grid = f;
+}
+void MultiAnswerModW::SetPounceRespondCqGrids(QString s)
+{
+    s_pounce_cq_grids = NormalizePounceCsv(s);
+}
+QStringList MultiAnswerModW::NormalizePounceCsv(QString csv) const
+{
+    QStringList out;
+    QStringList in = csv.toUpper().split(",", QString::SkipEmptyParts);
+    for (int i = 0; i < in.count(); ++i)
+    {
+        QString tok = in.at(i).trimmed();
+        if (!tok.isEmpty()) out << tok;
+    }
+    out.removeDuplicates();
+    return out;
+}
+bool MultiAnswerModW::IsCqMessage(QString text_msg) const
+{
+    QString s = text_msg.trimmed().toUpper();
+    return (s == "CQ" || s.startsWith("CQ "));
+}
+bool MultiAnswerModW::PounceCqKeywordMatch(QString text_msg) const
+{
+    if (s_pounce_cq_keywords.isEmpty()) return false;
+    QStringList words = text_msg.toUpper().split(" ", QString::SkipEmptyParts);
+    for (int i = 0; i < s_pounce_cq_keywords.count(); ++i)
+    {
+        if (words.contains(s_pounce_cq_keywords.at(i))) return true;
+    }
+    return false;
+}
+bool MultiAnswerModW::PounceCqGridMatch(QString hisLoc_inmsg) const
+{
+    if (s_pounce_cq_grids.isEmpty()) return false;
+    QString grid = hisLoc_inmsg.trimmed().toUpper();
+    if (grid.isEmpty()) return false;
+    for (int i = 0; i < s_pounce_cq_grids.count(); ++i)
+    {
+        QString wanted = s_pounce_cq_grids.at(i);
+        if (grid.startsWith(wanted) || wanted.startsWith(grid)) return true;
+    }
+    return false;
+}
 void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
 {
     if (list_in.isEmpty() || !(s_mode==11 || s_mode==13 || s_mode==18 || allq65) || list_in.count()<=9)
@@ -3262,15 +3321,59 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
         return;
     }
 
-    if (hisCall_inmsg.isEmpty() || myCall_inmsg.isEmpty())
+    bool directed_match = (!hisCall_inmsg.isEmpty() && !myCall_inmsg.isEmpty());
+    if (!directed_match)
     {
-        return;
+        // Keyword/grid CQ triggers should only queue when queue is empty.
+        if (LsQueue->GetRowCount() > 0)
+        {
+            return;
+        }
+        if (!IsCqMessage(text_msg))
+        {
+            return;
+        }
+
+        bool keyword_match = (f_pounce_cq_keyword && PounceCqKeywordMatch(text_msg));
+        bool grid_match = (f_pounce_cq_grid && PounceCqGridMatch(hisLoc_inmsg));
+        if (!keyword_match && !grid_match)
+        {
+            return;
+        }
+
+        // For CQ keyword/grid pounce, use strict idle-AR dupe rule:
+        // one logged QSO is enough to ignore the call, independent of MASTD dupe settings.
+        if (!hisCall_inmsg.isEmpty())
+        {
+            bool is_dupe = false;
+            emit IsCallDupeInLog(hisCall_inmsg, 1, is_dupe);
+            if (is_dupe)
+            {
+                return;
+            }
+        }
     }
 
     QString hcap;
     QString hloc;
-    DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
-    emit EmitWAPDirectedQueued();
+    if (directed_match)
+    {
+        DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
+        emit EmitWAPDirectedQueued();
+        return;
+    }
+
+    // For CQ keyword/grid pounce, use the same insertion path as user-triggered respond-now.
+    // Then start AUTO only if the decoded call is actually present in Queue/Now.
+    DecListTextAll(tx_rpt,text_msg,freq,true,hcap,hloc);
+
+    QString his_base_call = FindBaseFullCallRemAllSlash(hisCall_inmsg);
+    if (!his_base_call.isEmpty())
+    {
+        int row_queue = LsQueue->FindCallOrBaseCallRow(his_base_call);
+        int row_now = LsNow->FindCallOrBaseCallRow(his_base_call);
+        if (row_queue > -1 || row_now > -1) emit EmitWAPDirectedQueued();
+    }
 }
 // ============ Idle Autorespond Implementation ============
 void MultiAnswerModW::SetIdleAutoRespondEnabled(bool f)

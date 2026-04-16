@@ -303,6 +303,10 @@ public:
     void SetMultiAnswerMod(bool,bool);
     void SetWaitAndPounce(bool f);
     void SetPounceRespondDirected(bool f);
+    void SetPounceRespondCqKeyword(bool f);
+    void SetPounceRespondCqKeywords(QString s);
+    void SetPounceRespondCqGrid(bool f);
+    void SetPounceRespondCqGrids(QString s);
     void SetStartQsoDateTime(); //2.49
     void SetTxMessage(int); //2.49
     void ReadEDILog();//2.57
@@ -505,6 +509,8 @@ private:
     bool f_multi_answer_mod_std;
     bool f_wait_and_pounce;
     bool f_pounce_respond_directed;
+    bool f_pounce_respond_cq_keyword;
+    bool f_pounce_respond_cq_grid;
     MultiAnswerModW *MultiAnswerMod;
     void SetTxTextsHiden(bool f);
     void RefreshMultiAnswerModAndASeq();

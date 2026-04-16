@@ -8,6 +8,7 @@
 #include <QDialogButtonBox>
 #include <QFrame>
 #include <QLabel>
+#include <QLineEdit>
 #include <QVBoxLayout>
 
 HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
@@ -28,14 +29,42 @@ HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
     cb_respond_directed->setToolTip(tr("When enabled, Pounce adds directed calls to the MASTD queue and starts AUTO."));
     cb_respond_directed->setChecked(true);
 
+    cb_respond_cq_keyword = new QCheckBox(tr("Respond to CQs containing specific keywords"));
+    cb_respond_cq_keyword->setToolTip(tr("When enabled, Pounce reacts to CQ lines containing any keyword from the list."));
+    cb_respond_cq_keyword->setChecked(false);
+
+    le_respond_cq_keywords = new QLineEdit();
+    le_respond_cq_keywords->setPlaceholderText(tr("Example: POTA,SOTA,WWFF"));
+    le_respond_cq_keywords->setToolTip(tr("Comma-separated CQ keywords to match."));
+    le_respond_cq_keywords->setEnabled(false);
+
+    cb_respond_cq_grid = new QCheckBox(tr("Respond to CQs containing specific grid squares"));
+    cb_respond_cq_grid->setToolTip(tr("When enabled, Pounce reacts to CQ lines with matching grid squares."));
+    cb_respond_cq_grid->setChecked(false);
+
+    le_respond_cq_grids = new QLineEdit();
+    le_respond_cq_grids->setPlaceholderText(tr("Example: CN84,EM12,JO22"));
+    le_respond_cq_grids->setToolTip(tr("Comma-separated grid squares to match."));
+    le_respond_cq_grids->setEnabled(false);
+
     QVBoxLayout *v_box = new QVBoxLayout(box);
     v_box->setContentsMargins(8, 8, 8, 8);
     v_box->setSpacing(4);
     v_box->addWidget(cb_respond_directed);
+    v_box->addWidget(cb_respond_cq_keyword);
+    v_box->addWidget(le_respond_cq_keywords);
+    v_box->addWidget(cb_respond_cq_grid);
+    v_box->addWidget(le_respond_cq_grids);
 
     QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Close);
     connect(bb, SIGNAL(rejected()), this, SLOT(reject()));
     connect(cb_respond_directed, SIGNAL(toggled(bool)), this, SIGNAL(EmitRespondDirectedChanged(bool)));
+    connect(cb_respond_cq_keyword, SIGNAL(toggled(bool)), le_respond_cq_keywords, SLOT(setEnabled(bool)));
+    connect(cb_respond_cq_keyword, SIGNAL(toggled(bool)), this, SIGNAL(EmitRespondCqKeywordChanged(bool)));
+    connect(le_respond_cq_keywords, SIGNAL(textChanged(QString)), this, SIGNAL(EmitRespondCqKeywordsChanged(QString)));
+    connect(cb_respond_cq_grid, SIGNAL(toggled(bool)), le_respond_cq_grids, SLOT(setEnabled(bool)));
+    connect(cb_respond_cq_grid, SIGNAL(toggled(bool)), this, SIGNAL(EmitRespondCqGridChanged(bool)));
+    connect(le_respond_cq_grids, SIGNAL(textChanged(QString)), this, SIGNAL(EmitRespondCqGridsChanged(QString)));
 
     QVBoxLayout *v_main = new QVBoxLayout(this);
     v_main->setContentsMargins(8, 8, 8, 8);
@@ -62,4 +91,44 @@ bool HvPounceSettings::RespondDirectedEnabled() const
 void HvPounceSettings::SetRespondDirectedEnabled(bool enabled)
 {
     cb_respond_directed->setChecked(enabled);
+}
+
+bool HvPounceSettings::RespondCqKeywordEnabled() const
+{
+    return cb_respond_cq_keyword->isChecked();
+}
+
+void HvPounceSettings::SetRespondCqKeywordEnabled(bool enabled)
+{
+    cb_respond_cq_keyword->setChecked(enabled);
+}
+
+QString HvPounceSettings::RespondCqKeywords() const
+{
+    return le_respond_cq_keywords->text().trimmed();
+}
+
+void HvPounceSettings::SetRespondCqKeywords(const QString &keywords)
+{
+    le_respond_cq_keywords->setText(keywords.trimmed());
+}
+
+bool HvPounceSettings::RespondCqGridEnabled() const
+{
+    return cb_respond_cq_grid->isChecked();
+}
+
+void HvPounceSettings::SetRespondCqGridEnabled(bool enabled)
+{
+    cb_respond_cq_grid->setChecked(enabled);
+}
+
+QString HvPounceSettings::RespondCqGrids() const
+{
+    return le_respond_cq_grids->text().trimmed();
+}
+
+void HvPounceSettings::SetRespondCqGrids(const QString &grids)
+{
+    le_respond_cq_grids->setText(grids.trimmed());
 }

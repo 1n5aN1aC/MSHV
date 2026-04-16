@@ -145,6 +145,10 @@ private slots:
     void PounceButtonClicked();
     void PounceCNSChanged(bool);
     void PounceRespondDirectedChanged(bool);
+    void PounceRespondCqKeywordChanged(bool);
+    void PounceRespondCqKeywordsChanged(QString);
+    void PounceRespondCqGridChanged(bool);
+    void PounceRespondCqGridsChanged(QString);
     
 private:
 	int s_offset_dt;//2.76.5
