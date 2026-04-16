@@ -303,6 +303,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     f_pounce_respond_directed = true;
     f_pounce_respond_cq_keyword = false;
     f_pounce_respond_cq_grid = false;
+    s_pounce_response_mode = 0;
     f_block_emit_freq_to_rig = true;
     log_qso_startdt_eq_enddt = false;
     f_recognize_tp1 = true;
@@ -501,7 +502,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(MultiAnswerMod,SIGNAL(EmitDoQRG(QString,QString)),this,SLOT(SetDoQRG(QString,QString)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitMAFirstTX(bool)),this,SLOT(SetMAFirstTX(bool)));//2.71
     connect(MultiAnswerMod,SIGNAL(EmitSFMATxAll(QString)),this,SIGNAL(EmitSFMATxAll(QString)));//2.76sf
-    connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued()),this,SLOT(StartPounceAuto()));
+    connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued(QString)),this,SLOT(StartPounceAuto(QString)));
     connect(MultiAnswerMod,SIGNAL(EmitCNSChanged(bool)),this,SIGNAL(EmitPounceCNSChanged(bool)));
 
     // Idle Autorespond pane
@@ -5379,13 +5380,35 @@ void HvTxW::SetPounceRespondCqGrids(QString s)
 {
     MultiAnswerMod->SetPounceRespondCqGrids(s);
 }
-void HvTxW::StartPounceAuto()
+void HvTxW::SetPounceResponseMode(int mode)
 {
-    if (!f_wait_and_pounce || !f_multi_answer_mod_std || MultiAnswerMod->GetCNS() || f_auto_on)
+    if (mode != 1) mode = 0;
+    s_pounce_response_mode = mode;
+}
+void HvTxW::StartPounceAuto(QString pounce_freq)
+{
+    if (!f_wait_and_pounce || !f_multi_answer_mod_std || MultiAnswerMod->GetCNS())
     {
         return;
     }
-    auto_on();
+
+    if (s_pounce_response_mode == 1)
+    {
+        bool ok = false;
+        double his_freq = pounce_freq.trimmed().toDouble(&ok);
+        if (ok && his_freq > 0.0)
+        {
+            // Pounce normally has a queued call, and SetFreqTxW intentionally blocks
+            // changes in that state for contest queue safety. Move-to-sender must still
+            // retune, so apply the external-frequency path directly.
+            emit EmitFreqTxW(his_freq);
+            // Use the same TX<->RX direction policy as lock handling (SF mode differs).
+            if (s_mode==11 && id_mshf==2) emit EmitRxToTx(true);
+            else emit EmitTxToRx(true);
+        }
+    }
+
+    if (!f_auto_on) auto_on();
 }
 bool HvTxW::isAddToLog(QString hisBaseCall_inmsg)//2.76.1
 {

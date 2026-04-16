@@ -5,10 +5,13 @@
 #include "pouncesettings.h"
 
 #include <QCheckBox>
+#include <QButtonGroup>
 #include <QDialogButtonBox>
 #include <QFrame>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
@@ -47,6 +50,25 @@ HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
     le_respond_cq_grids->setToolTip(tr("Comma-separated grid squares to match."));
     le_respond_cq_grids->setEnabled(false);
 
+    QGroupBox *gb_response_mode = new QGroupBox(tr("Response mode"));
+    rb_response_stay_freq = new QRadioButton(tr("stay on Freq"));
+    rb_response_move_to_sender = new QRadioButton(tr("move to sender"));
+    rb_response_optimal_freq = new QRadioButton(tr("use optimal freq"));
+    rb_response_stay_freq->setChecked(true);
+    rb_response_optimal_freq->setEnabled(false);
+
+    bg_response_mode = new QButtonGroup(this);
+    bg_response_mode->addButton(rb_response_stay_freq, 0);
+    bg_response_mode->addButton(rb_response_move_to_sender, 1);
+    bg_response_mode->addButton(rb_response_optimal_freq, 2);
+
+    QVBoxLayout *v_response = new QVBoxLayout(gb_response_mode);
+    v_response->setContentsMargins(8, 4, 8, 6);
+    v_response->setSpacing(2);
+    v_response->addWidget(rb_response_stay_freq);
+    v_response->addWidget(rb_response_move_to_sender);
+    v_response->addWidget(rb_response_optimal_freq);
+
     QVBoxLayout *v_box = new QVBoxLayout(box);
     v_box->setContentsMargins(8, 8, 8, 8);
     v_box->setSpacing(4);
@@ -55,6 +77,7 @@ HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
     v_box->addWidget(le_respond_cq_keywords);
     v_box->addWidget(cb_respond_cq_grid);
     v_box->addWidget(le_respond_cq_grids);
+    v_box->addWidget(gb_response_mode);
 
     QDialogButtonBox *bb = new QDialogButtonBox(QDialogButtonBox::Close);
     connect(bb, SIGNAL(rejected()), this, SLOT(reject()));
@@ -65,6 +88,7 @@ HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
     connect(cb_respond_cq_grid, SIGNAL(toggled(bool)), le_respond_cq_grids, SLOT(setEnabled(bool)));
     connect(cb_respond_cq_grid, SIGNAL(toggled(bool)), this, SIGNAL(EmitRespondCqGridChanged(bool)));
     connect(le_respond_cq_grids, SIGNAL(textChanged(QString)), this, SIGNAL(EmitRespondCqGridsChanged(QString)));
+    connect(bg_response_mode, SIGNAL(buttonClicked(int)), this, SIGNAL(EmitResponseModeChanged(int)));
 
     QVBoxLayout *v_main = new QVBoxLayout(this);
     v_main->setContentsMargins(8, 8, 8, 8);
@@ -131,4 +155,18 @@ QString HvPounceSettings::RespondCqGrids() const
 void HvPounceSettings::SetRespondCqGrids(const QString &grids)
 {
     le_respond_cq_grids->setText(grids.trimmed());
+}
+
+int HvPounceSettings::ResponseMode() const
+{
+    int mode = bg_response_mode->checkedId();
+    if (mode < 0) return 0;
+    return mode;
+}
+
+void HvPounceSettings::SetResponseMode(int mode)
+{
+    if (mode != 1) mode = 0;
+    QAbstractButton *button = bg_response_mode->button(mode);
+    if (button) button->setChecked(true);
 }

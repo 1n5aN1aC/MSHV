@@ -383,11 +383,13 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(TPounceSettings,SIGNAL(EmitRespondCqKeywordsChanged(QString)),this,SLOT(PounceRespondCqKeywordsChanged(QString)));
     connect(TPounceSettings,SIGNAL(EmitRespondCqGridChanged(bool)),this,SLOT(PounceRespondCqGridChanged(bool)));
     connect(TPounceSettings,SIGNAL(EmitRespondCqGridsChanged(QString)),this,SLOT(PounceRespondCqGridsChanged(QString)));
+    connect(TPounceSettings,SIGNAL(EmitResponseModeChanged(int)),this,SLOT(PounceResponseModeChanged(int)));
     THvTxW->SetPounceRespondDirected(TPounceSettings->RespondDirectedEnabled());
     THvTxW->SetPounceRespondCqKeyword(TPounceSettings->RespondCqKeywordEnabled());
     THvTxW->SetPounceRespondCqKeywords(TPounceSettings->RespondCqKeywords());
     THvTxW->SetPounceRespondCqGrid(TPounceSettings->RespondCqGridEnabled());
     THvTxW->SetPounceRespondCqGrids(TPounceSettings->RespondCqGrids());
+    THvTxW->SetPounceResponseMode(TPounceSettings->ResponseMode());
 
     connect(THvTxW, SIGNAL(EmitDistUnit(bool)),TDecodeList1,SLOT(SetDistUnit(bool)));
     connect(THvTxW, SIGNAL(EmitDistUnit(bool)),TDecodeList2,SLOT(SetDistUnit(bool)));
@@ -2063,6 +2065,10 @@ void Main_Ms::PounceRespondCqGridChanged(bool f)
 void Main_Ms::PounceRespondCqGridsChanged(QString s)
 {
     THvTxW->SetPounceRespondCqGrids(s);
+}
+void Main_Ms::PounceResponseModeChanged(int mode)
+{
+    THvTxW->SetPounceResponseMode(mode);
 }
 void Main_Ms::SetMacros(int contest_id,QString trmN_stdC)//2.15
 {
@@ -4591,6 +4597,12 @@ void Main_Ms::Read_Settings(QString path)
                 TPounceSettings->SetRespondCqGrids(lp.at(4));
                 THvTxW->SetPounceRespondCqGrids(lp.at(4));
             }
+            if (lp.count()>5)
+            {
+                int pounce_mode = lp.at(5).toInt();
+                TPounceSettings->SetResponseMode(pounce_mode);
+                THvTxW->SetPounceResponseMode(TPounceSettings->ResponseMode());
+            }
         }
     }
     if (!st_res[90].isEmpty()) FilterDialog->SetSettings1(st_res[90]);//2.44
@@ -4905,7 +4917,8 @@ void Main_Ms::Save_Settings(QString path)
     << QString("%1").arg(TPounceSettings->RespondCqKeywordEnabled()) << "#"
     << TPounceSettings->RespondCqKeywords() << "#"
     << QString("%1").arg(TPounceSettings->RespondCqGridEnabled()) << "#"
-    << TPounceSettings->RespondCqGrids() << "\n";
+    << TPounceSettings->RespondCqGrids() << "#"
+    << QString("%1").arg(TPounceSettings->ResponseMode()) << "\n";
 
     file.close();
 }

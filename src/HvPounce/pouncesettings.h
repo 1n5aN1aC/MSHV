@@ -9,6 +9,8 @@
 
 class QCheckBox;
 class QLineEdit;
+class QButtonGroup;
+class QRadioButton;
 
 class HvPounceSettings : public QDialog
 {
@@ -27,6 +29,8 @@ public:
     void SetRespondCqGridEnabled(bool enabled);
     QString RespondCqGrids() const;
     void SetRespondCqGrids(const QString &grids);
+    int ResponseMode() const;
+    void SetResponseMode(int mode);
 
 signals:
     void EmitRespondDirectedChanged(bool);
@@ -34,6 +38,7 @@ signals:
     void EmitRespondCqKeywordsChanged(QString);
     void EmitRespondCqGridChanged(bool);
     void EmitRespondCqGridsChanged(QString);
+    void EmitResponseModeChanged(int);
 
 private:
     QCheckBox *cb_respond_directed;
@@ -41,6 +46,10 @@ private:
     QLineEdit *le_respond_cq_keywords;
     QCheckBox *cb_respond_cq_grid;
     QLineEdit *le_respond_cq_grids;
+    QButtonGroup *bg_response_mode;
+    QRadioButton *rb_response_stay_freq;
+    QRadioButton *rb_response_move_to_sender;
+    QRadioButton *rb_response_optimal_freq;
 };
 
 #endif

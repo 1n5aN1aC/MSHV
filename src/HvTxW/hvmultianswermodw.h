@@ -279,7 +279,7 @@ signals:
     void EmitDoQRG(QString,QString);
     void EmitMAFirstTX(bool);
     void EmitSFMATxAll(QString);//2.76
-    void EmitWAPDirectedQueued();
+    void EmitWAPDirectedQueued(QString);
     void EmitCNSChanged(bool);
     
 public slots:

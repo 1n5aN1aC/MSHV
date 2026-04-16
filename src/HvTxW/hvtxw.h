@@ -307,6 +307,7 @@ public:
     void SetPounceRespondCqKeywords(QString s);
     void SetPounceRespondCqGrid(bool f);
     void SetPounceRespondCqGrids(QString s);
+    void SetPounceResponseMode(int mode);
     void SetStartQsoDateTime(); //2.49
     void SetTxMessage(int); //2.49
     void ReadEDILog();//2.57
@@ -380,7 +381,7 @@ public slots:
     void SetMaManAdding(bool);
     void CBEnableAliChanged(bool);//2.75
     void SetAutoLogInfo();//2.75
-    void StartPounceAuto();
+    void StartPounceAuto(QString pounce_freq);
 
 signals:
 	void EmitMacros(int,QString);
@@ -511,6 +512,7 @@ private:
     bool f_pounce_respond_directed;
     bool f_pounce_respond_cq_keyword;
     bool f_pounce_respond_cq_grid;
+    int s_pounce_response_mode;
     MultiAnswerModW *MultiAnswerMod;
     void SetTxTextsHiden(bool f);
     void RefreshMultiAnswerModAndASeq();

@@ -3359,7 +3359,7 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
     if (directed_match)
     {
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
-        emit EmitWAPDirectedQueued();
+        emit EmitWAPDirectedQueued(freq);
         return;
     }
 
@@ -3372,7 +3372,21 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
     {
         int row_queue = LsQueue->FindCallOrBaseCallRow(his_base_call);
         int row_now = LsNow->FindCallOrBaseCallRow(his_base_call);
-        if (row_queue > -1 || row_now > -1) emit EmitWAPDirectedQueued();
+        if (row_queue > -1 || row_now > -1)
+        {
+            QString pounce_freq = freq;
+            if (row_queue > -1)
+            {
+                QString row_freq = LsQueue->model.item(row_queue,5)->text().trimmed();
+                if (!row_freq.isEmpty()) pounce_freq = row_freq;
+            }
+            else if (row_now > -1)
+            {
+                QString row_freq = LsNow->model.item(row_now,5)->text().trimmed();
+                if (!row_freq.isEmpty()) pounce_freq = row_freq;
+            }
+            emit EmitWAPDirectedQueued(pounce_freq);
+        }
     }
 }
 // ============ Idle Autorespond Implementation ============

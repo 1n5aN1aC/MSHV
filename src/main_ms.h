@@ -149,6 +149,7 @@ private slots:
     void PounceRespondCqKeywordsChanged(QString);
     void PounceRespondCqGridChanged(bool);
     void PounceRespondCqGridsChanged(QString);
+    void PounceResponseModeChanged(int);
     
 private:
 	int s_offset_dt;//2.76.5
