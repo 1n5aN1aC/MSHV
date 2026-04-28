@@ -59,7 +59,7 @@ def_ap_decode=MSK144=0#JTMS=0#FSK441=0#FSK315=0#ISCAT-A=0#ISCAT-B=0#JT6M=0#JT65A
 def_deep_search_decode=MSK144=0#JTMS=0#FSK441=0#FSK315=0#ISCAT-A=0#ISCAT-B=0#JT6M=0#JT65A=0#JT65B=0#JT65C=0#PI4=0#FT8=0#MSKMS=0#FT4=0#Q65A=0#Q65B=0#Q65C=0#Q65D=0#FT2=0
 def_vd_mouse_lines_draw=0
 def_desk_size_wh=1920#1080
-def_desk_pos_xy=527#212
+def_desk_pos_xy=636#266
 def_flat_vdsp=0
 def_recognize_tp1=1
 def_recognize_tp2=1
@@ -80,7 +80,7 @@ direct_log_qso=1
 click_on_call_show_cty=1
 def_desk_pos_help_xy=636#266
 def_desk_pos_astr_xy=636#266
-def_desk_pos_logw_xywh=636#266#797#480
+def_desk_pos_logw_xywh=636#266#640#480
 net_rig_srv_port=127.0.0.1;7809#127.0.0.1;12345#127.0.0.1;52002#127.0.0.1;50001;1;2048;3;48000;50#127.0.0.1;50001;1;2048;3;48000;50#127.0.0.1;4532#127.0.0.1;4532#RIG IP Addr;4992#RIG IP Addr;4992#RIG IP Addr;4992#RIG IP Addr;4992#RIG IP Addr;4992#RIG IP Addr;4992#RIG IP Addr;4992#RIG IP Addr;4992
 def_confirm73=1
 def_thr_lev=1#1#1#1#1#1#1#1#1#1#1#1#1#1#1#1#1#1#1

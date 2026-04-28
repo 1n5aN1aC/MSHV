@@ -296,8 +296,6 @@ private:
     double f0[2][2][MAXDEC+50];
     int ndec[2][2];
     int jseq;
-    bool isgrid4(QString);
-    //int ft8_even_odd(QString);
     void ft8_a7_save(QString,double,double,QString);
     void ft8_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,QString grid4,
                  double &xdt,double &f1,double xbase,int &nharderrors,double &,QString &msg37,double &xsnr);
@@ -489,7 +487,7 @@ public:
     void SetStDecoderDeep(int d);
     void SetStApDecode(bool f);// only in mshv
     void SetStQSOProgress(int i);
-    void SetStDecode(QString time,int mousebutton);
+    void SetStDecode(QString time,int mousebutton,bool);
     void SetStWords(QString,QString,int,int,QString);
     void SetStHisCall(QString);
     void SetMAMCalls(QStringList ls);
@@ -512,7 +510,7 @@ private:
     double pi;
 
     //bool f_new_p;
-    void dshift1(double *a,int cou_a,int ish);//???
+    //void dshift1(double *a,int cou_a,int ish);//???
 
     bool first_ft4_ds;
     double complex cx_ft4_ds[40000];     //(0:NMAX/2)=36288   31104                 [NMAX] (NMAX=21*3456)=72576
@@ -525,7 +523,7 @@ private:
     bool first_ft4detcad;
     double window_ft4[2314];    //2304;//NFFT1=2048;
     void getcandidates4(double *dd,double fa,double fb,double,double,double syncmin,double nfqso,
-                        int maxcand,double candidate[2][180],int &ncand);
+                        int maxcand,double candidate[2][180],int &ncand,double*);
 
     bool first_ft4_sync4d;
     double complex csynca_ft4_sync[70];//(2*NSS) 2*32=64
@@ -545,7 +543,7 @@ private:
 
     bool first_ft4bm;
     bool one_ft4_2[8][256];//(0:255,0:7)
-    void get_ft4_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync);//2*NN=206
+    void get_ft4_bitmetrics(double complex *cd,double bitmetrics_[5][220],bool &badsync,double s4_[120][4],int);//2*NN=206
 
     bool first_ft4d;
     int mrrr_ft4[19];
@@ -566,6 +564,20 @@ private:
     int apbits_ft4[174];//174
     int apmy_ru_ft4[28];
     int aphis_fd_ft4[28];
+    //////////AP7//////////////////
+    int ft4_even_odd(QString s);
+    int jseq_a7;
+    QString nutc0;
+    int c_zerop;
+	QString msg0[2][2][MAXDEC+50];
+    double dt0[2][2][MAXDEC+50];
+    double f0[2][2][MAXDEC+50];
+    int ndec[2][2];
+	void ft4_a7_save(QString,double,double,QString);
+	void ft4_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,QString grid4,
+                 double &xdt,double &f1,double xbase,int &nharderrors,double &,QString &msg37,double &xsnr);
+    //////////end AP7//////////////////
+    void PrintMsg(QString,int nsnr,double xdt,double f1,QString message,int iaptype,float,bool &have_dec,bool &f_only_one_color,bool);
 
 };
 #include "../HvMsPlayer/libsound/HvGenFt2/gen_ft2.h"
@@ -581,7 +593,7 @@ public:
     void SetStDecoderDeep(int d);
     void SetStApDecode(bool f);// only in mshv
     void SetStQSOProgress(int i);
-    void SetStDecode(QString time,int mousebutton);
+    void SetStDecode(QString time,int mousebutton,bool);
     void SetStWords(QString,QString,int,int,QString);
     void SetStHisCall(QString);
     void SetMAMCalls(QStringList ls);
@@ -604,7 +616,7 @@ private:
     double pi;
 
     //bool f_new_p;
-    void dshift1(double *a,int cou_a,int ish);//???
+    //void dshift1(double *a,int cou_a,int ish);//???
 
     bool first_ft2_ds;
     double complex cx_ft2_ds[46000];     //(0:NMAX/2)=36288   31104                 [NMAX] (NMAX=21*3456)=72576
@@ -617,7 +629,7 @@ private:
     bool first_ft2detcad;
     double window_ft2[2314];    //2304;//NFFT1=2048;
     void getcandidates2(double *dd,double fa,double fb,double,double,double syncmin,double nfqso,
-                        int maxcand,double candidate[2][250],int &ncand);
+                        int maxcand,double candidate[2][250],int &ncand,double *);
 
     bool first_ft2_sync4d;
     double complex csynca_ft2_sync[70];//(2*NSS) 2*32=64
@@ -636,7 +648,7 @@ private:
 	void ft2_channel_est(double complex *cd,double complex *cd_eq,double *ch_snr);
     bool first_ft2bm;
     bool one_ft2_2[8][256];//(0:255,0:7)
-    void get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync);//2*NN=206
+    void get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync,double s4_[120][4]);//2*NN=206
 
     bool first_ft2d;
     int mrrr_ft2[19];
@@ -656,7 +668,7 @@ private:
 	int navg_ft2;
 	double f_avg;
 	double dt_avg;*/
-	int jseq;
+	int jseq_a;
 	typedef struct
     {
         int navg_ft2;
@@ -666,11 +678,24 @@ private:
     }
     sft2avg;
     sft2avg ft2avg[2];
-    void ft2_clravg(int);
-    uint8_t isFalseDecode(QString,int,double,bool,int,int);	
-	void make_bm_ap_print(double *,double bitmetrics_[3][220],int,bool,int,int,double,double,double,bool,
+    void ft2_clravg(int);	
+    int ft2_even_odd(QString s);
+    //////////AP7//////////////////
+    int jseq_a7;
+	QString nutc0;
+    int c_zerop;
+	QString msg0[2][2][MAXDEC+50];
+    double dt0[2][2][MAXDEC+50];
+    double f0[2][2][MAXDEC+50];
+    int ndec[2][2];
+	void ft2_a7_save(QString,double,double,QString);
+	void ft2_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,QString grid4,
+                 double &xdt,double &f1,double xbase,int &nharderrors,double &,QString &msg37,double &xsnr);	
+	//////////end AP7//////////////////	
+    void PrintMsg(QString,int nsnr,double xdt,double f1,QString message,int iaptype,bool,float,bool &have_dec,bool &f_only_one_color,bool);
+    uint8_t isFalseDecode(QString,int,double,bool,int,int,int);
+	void make_bm_ap(double *,double bitmetrics_[3][220],int,bool,int,int,double,double,double,bool,
 							bool,double,int &,QString *,int,int &,bool &,bool &,bool);
-	int ft2_even_odd(QString s);
 	int count_eq_bits(bool *a,int b_a,bool *b,int c);					
 };
 

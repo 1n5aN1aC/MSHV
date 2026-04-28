@@ -929,9 +929,8 @@ QString PackUnpackMsg77::unpack77(bool *c77,bool &unpk77_success)
     c2_rx_calls = c2_rx_calls.remove(">");
     qDebug()<<msg<<c1_rx_calls<<c2_rx_calls;*/
     // LZ2HV hash msk40
-
     msg=msg.trimmed();  //qDebug()<<"unpk77 ="<<msg<<i3<<n3;
-
+    //if (msg.count()<1) unpk77_success=false;//2.76.6
     return msg;
 }
 ////////////// END Unpack //////////////////////////////////////////////////////////////

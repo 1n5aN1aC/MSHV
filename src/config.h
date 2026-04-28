@@ -4,8 +4,8 @@
 //-------------------------Semantic Versioning 2.0.0---------------------------------------//
 #define VERSION_MAJOR 1337  //version when you make incompatible API changes
 #define VERSION_MINOR 76 //version when you add functionality in a backward compatible manner
-#define VERSION_PATCH 5  //version when you make backward compatible bug fixes
-#define VERSION_REVISION 16
+#define VERSION_PATCH 6  //version when you make backward compatible bug fixes
+#define VERSION_REVISION 1
 //--------------------END--Semantic Versioning 2.0.0--END----------------------------------//
 
 #define STR0(x) #x

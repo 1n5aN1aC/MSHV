@@ -63,6 +63,7 @@ public:
     double ps_hv(double complex z);
     //double ps_hv001(double complex z);
     void cshift1(double complex *a,int cou_a,int ish);
+    void dshift1(double *a,int cou_a,int ish);
     double complex sum_dca_mplay_conj_dca(double complex *a,int a_beg,int a_end,double complex *b);
     void indexx_msk(double *arr,int n,int *indx);
     bool isStandardCall(QString);//2.61  same as  MultiAnswerModW
@@ -80,14 +81,18 @@ class PomFt
 {
 public:
     void initPomFt();
+    bool isgrid4(QString);
     void nuttal_window(double *win,int n);
     void normalizebmet(double *bmet,int n);
     void normalizebmetvar(double *bmet,int n); 
     void twkfreq1(double complex *ca,int npts,double fsample,double *a,double complex *cb);
+    void SetApFt2_4(double *,double *,bool *,int *,int *,int *,int *,double,int,int);
+    bool SetAp7Msg(QString call_1,bool std_1,QString call_2,bool std_2,QString grid4,int i,QString &msg,int &count_msg);
+    //void TryDecAp7(double *,double *,double *,double *,bool *,double *,int,QString,double,double &,QString &,double &,int &);
 	void bpdecode174_91var(double *llr,bool *apmask,bool *message77,bool *cw,int &nharderror);
     void decode174_91(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin);//ntype,//int Keff,
     void osd174_91_1(double *llr,/*int Keff=91*/bool *apmask,int ndeep,bool *message91,bool *cw,int &nhardmin,double &dmin,bool var=false);
-    void decode174_91_ft2(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin);
+    //void decode174_91_ft2(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin);
     //void decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin);
     //void bpdecode174_91(double *llr,bool *apmask,int maxiterations,bool *decoded77,bool *cw,int &nharderror);
     //void osd174_91(double *llr,bool *apmask,int ndeep,bool *message77,bool *cw,int &nhardmin,double &dmin);

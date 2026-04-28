@@ -7838,6 +7838,7 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
                             break;
                         }
                     } //qDebug()<<ldupe<<lFreeText<<k<<nspecial<<msg37<<"call2="<<call2;
+                    if (msg37.count()<1) ldupe=true;//2.76.6 SD error 
                     if (!ldupe)
                     {
                     	QString call2;

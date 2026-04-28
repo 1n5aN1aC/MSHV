@@ -254,14 +254,14 @@ void HvWebSocket::mBinaryMessageReceived(const QByteArray &ba)
             if (fmt==3)
             {	//float32=4
                 union {
-                    uint8_t a[4]; 
+                    uint8_t a[4];
                     float f;
                 } U;
                 U.a[0]=pStream->data[i];
                 U.a[1]=pStream->data[i+1];
                 U.a[2]=pStream->data[i+2];
-                U.a[3]=pStream->data[i+3];                
-                rawrxm[cmono] = (int)(U.f*8388607.0);//rawrxm[cmono] = (int)(U.f*8380000.2);//2.76.2 full=8388607//old rawrxm[cmono] = (int)(U.f*4341632.8);                
+                U.a[3]=pStream->data[i+3];
+                rawrxm[cmono] = (int)(U.f*8388607.0);//rawrxm[cmono] = (int)(U.f*8380000.2);//2.76.2 full=8388607//old rawrxm[cmono] = (int)(U.f*4341632.8);
             }
             else
             {	//For INT types int16=2,int24=3,int32=4
@@ -451,6 +451,8 @@ Network::Network(int ModelID,QWidget *parent)
     tci_tx_enable = false;
     tci_rx_enable = false;
     tci_rx_mute = true;
+    tci_drive=25;
+    tci_split_enable = false;
     //sample_rate = 48000;
     wdevice = "NONE";
     wdemanf = "ExpertSDR3";
@@ -981,11 +983,11 @@ QString Network::GetModeStr(QString mod)
 }
 bool Network::isMyTCICommand(QString sc0)//2.64 tci
 {
-    const int cs = 10;//+3;
+    const int cs = 12;//+3;
     const QString sc[cs] =
         {
             "vfo","modulation","trx","tx_enable","rx_enable","rx_mute","protocol","device",
-            "start","stop"//,"audio_stream_sample_type","audio_stream_channels","audio_stream_samples"
+            "start","stop","split_enable","drive"//,"audio_stream_sample_type","audio_stream_channels","audio_stream_samples"
         };
     bool res = false;
     for (int i = 0; i < cs; ++i)
@@ -1030,7 +1032,7 @@ void Network::wTextMessageReceived(const QString &s0)//tci
         ls1 = cmdd.split(":",QString::SkipEmptyParts);
 #endif
         ls1 <<""<<"";
-        //qDebug()<<"MSHV Receive <-"<<ls1;
+		//qDebug()<<"MSHV Receive <-"<<ls1;
         if (!isMyTCICommand(ls1.at(0))) continue;//2.64
         //if (ls1.at(0)=="if" || ls1.at(0)=="dds") continue; //2.64 HPSDR not needed return from vfo: get set command
         //if (ls1.at(0)=="tx_power" || ls1.at(0)=="tx_swr") continue; //2.64
@@ -1083,9 +1085,8 @@ void Network::wTextMessageReceived(const QString &s0)//tci
         if (ls2.at(0)!=tci_trx) continue; //2.64
         //qDebug()<<"MSHV Receive <-"<<ls1.at(0)<<ls2.at(0)<<ls2.at(1)<<ls2.at(2);
         if (isGetRadio)
-        {
-            //qDebug()<<"First Start---------------------------------------------";
-            isGetRadio = false;
+        {            
+            isGetRadio = false; //qDebug()<<"First Start---------------------------------------------";
             if (ls1.at(0)=="vfo" && ls2.at(1)=="0")//2.64 && ls2.at(0)==tci_trx
             {
                 timer_init->stop();
@@ -1099,14 +1100,13 @@ void Network::wTextMessageReceived(const QString &s0)//tci
                 emit EmitFullRigInfo(wdemanf+" "+wdevice);//2.76.1 for pskreporter
                 //printf("Manufacturer= %s Device= %s\n",qPrintable(wdemanf),qPrintable(wdevice));
                 if (tci_select>0) SetTciStrtStopAudio(true);
-
-                if (!tci_tx_enable) writeData("tx_enable:"+tci_trx+",true;",false,NULL);
-                if (!tci_rx_enable) writeData("rx_enable:"+tci_trx+",true;",false,NULL);
-                if (tci_rx_mute)    writeData("rx_mute:"+tci_trx+",false;",false,NULL);
-                //if (tci_drive==0)   writeData("drive:"+tci_trx+",5;",false,NULL);
-                //writeData("tx_sensors_enable:false;",false,NULL);
-                //writeData("rx_sensors_enable:false;",false,NULL);
-                //writeData("TX_SENSORS_ENABLE:false;",false,NULL);
+                if (!tci_tx_enable)   writeData("tx_enable:"+tci_trx+",true;",false,NULL);
+                if (!tci_rx_enable)   writeData("rx_enable:"+tci_trx+",true;",false,NULL);
+                if (tci_rx_mute)      writeData("rx_mute:"+tci_trx+",false;",false,NULL);
+                if (tci_split_enable) writeData("split_enable:"+tci_trx+",false;",false,NULL);//2.76.6
+                if (tci_drive<=0)     writeData("drive:"+tci_trx+",25;",false,NULL);//2.76.6
+                writeData("tx_sensors_enable:false,500;",false,NULL);//2.76.6
+                writeData("rx_sensors_enable:false,500;",false,NULL);//2.76.6
                 //writeData("stop;",false,NULL);
             }
         }
@@ -1142,15 +1142,21 @@ void Network::wTextMessageReceived(const QString &s0)//tci
             if (ls2.at(1)=="true") tci_rx_enable = true;
             else tci_rx_enable = false;
         }
-        else if (ls1.at(0)=="rx_mute")//2.64 && ls2.at(0)==tci_trx
+        else if (ls1.at(0)=="rx_mute")//2.64
         {
             if (ls2.at(1)=="true") tci_rx_mute = true;
             else tci_rx_mute = false;
         }
-        /*else if (ls1.at(0)=="drive")//2.64 && ls2.at(0)==tci_trx
+        else if (ls1.at(0)=="split_enable")//2.76.6
         {
-            tci_drive = ls2.at(1).toInt();
-        }*/
+            if (ls2.at(1)=="true") tci_split_enable = true;
+            else tci_split_enable = false;
+        }
+        else if (ls1.at(0)=="drive")//2.76.6
+        {
+            tci_drive = ls2.at(1).toInt(); //qDebug()<<"0 tci_drive="<<tci_drive;
+            //if (tci_drive<=0) QTimer::singleShot(1000,this,SLOT(SetTciDrive()));//;writeData("drive:"+tci_trx+",25;",false,NULL);//2.76.6
+        }
     }
 }
 QString Network::GetModeStrKenwood(QChar c)
@@ -1664,6 +1670,7 @@ void Network::SetTciTxOnRX2()
     QString tci_trx150 = "";//0, 1=(1.5.0)andUP, 2=(1.9.0)andUp
     if (tci_select>1 && id_tci_prot>0) tci_trx150 = ",tci";//if (tci_select>1 && tci_protocol>=1.5) tci_trx15 = ",tci";
     writeData("trx:"+tci_trx+",true"+tci_trx150+";",false,NULL);
+    //if (tci_drive<=0) writeData("drive:"+tci_trx+",25;",false,NULL);//2.76.6
 }
 void Network::set_ptt(ptt_t ptt)
 {
@@ -1707,7 +1714,11 @@ void Network::set_ptt(ptt_t ptt)
             if (!is_tci_trx)
             {
                 if (tci_trx=="1") QTimer::singleShot(100,this,SLOT(SetTciTxOnRX2()));//protection
-                else writeData("trx:"+tci_trx+",true"+tci_trx150+";",false,NULL);
+                else 
+                {
+                	writeData("trx:"+tci_trx+",true"+tci_trx150+";",false,NULL);
+                	//if (tci_drive<=0) writeData("drive:"+tci_trx+",25;",false,NULL);//2.76.6
+               	}	                
             }
             //is_my_trx = true;
         }

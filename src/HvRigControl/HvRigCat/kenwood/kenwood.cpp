@@ -123,7 +123,11 @@ void Kenwood::set_mode(QString str)
 
     if 		(str=="LSB" ) md.append("1;");//LSB
     else if (str=="USB" ) md.append("2;");//USB
-    else if (str=="DIGU") md.append("9;");//DIGU
+    else if (str=="DIGU") 
+    {
+    	if (s_rig_name=="TS-990s") md.append("D;");//DIGU  
+    	else md.append("9;");//DIGU    	
+   	}
     else return;
 
     for (int i = 0; i < md.count(); i++) cmdnc[i]=md.at(i).toLatin1();
@@ -170,15 +174,27 @@ void Kenwood::SetReadyRead(QByteArray ar,int size0)
                 emit EmitReadedInfo(GET_FREQ,QString("%1").arg(f));
 
                 QString smode = "WRONG_MODE";
-                if 		(s_read_array[29]==(char)0x31) smode = "LSB"; //0x31=LSB=1
-                else if (s_read_array[29]==(char)0x32) smode = "USB"; //0x32=USB=2  
-                else if (s_read_array[29]==(char)0x33) smode = "CWU";//0x33=CW-USB=3 
-                else if (s_read_array[29]==(char)0x34) smode = "FM";  //0x34=FM=4  
-                else if (s_read_array[29]==(char)0x35) smode = "AM";  //0x35=AM=5  
-                else if (s_read_array[29]==(char)0x36) smode = "DIGL";//0x36=DATA-LSB=6 
-                else if (s_read_array[29]==(char)0x37) smode = "CWL";//0x37=CW-LSB=7              
-                else if (s_read_array[29]==(char)0x39) smode = "DIGU";//0x39=DATA-USB=9                    	
-                    
+                if 		(s_read_array[29]==(char)0x31) smode = "LSB";  //0x31=LSB=1
+                else if (s_read_array[29]==(char)0x32) smode = "USB";  //0x32=USB=2  
+                else if (s_read_array[29]==(char)0x33) smode = "CWU";  //0x33=CW-USB=3 
+                else if (s_read_array[29]==(char)0x34) smode = "FM";   //0x34=FM=4  
+                else if (s_read_array[29]==(char)0x35) smode = "AM";   //0x35=AM=5  
+                else if (s_read_array[29]==(char)0x36)
+                {
+                	if (s_rig_name=="TS-990s") smode = "FSK";
+                	else smode = "DIGL"; //0x36=DATA-LSB=6                 	
+               	}
+                else if (s_read_array[29]==(char)0x37) smode = "CWL";  //0x37=CW-LSB=7              
+                else if (s_read_array[29]==(char)0x39)
+                {
+                	if (s_rig_name=="TS-990s") smode = "FSKR";
+                	else smode = "DIGU"; //0x39=DATA-USB=9                 	
+               	}               
+                else if (s_read_array[29]==(char)0x41) smode = "PSK";  //0x41=PSK=A <- TS-990s
+                else if (s_read_array[29]==(char)0x42) smode = "PSKR"; //0x42=PSK-R=B <- TS-990s                 
+                else if (s_read_array[29]==(char)0x43) smode = "DIGL"; //0x43=DATA-LSB=C <- TS-990s
+                else if (s_read_array[29]==(char)0x44) smode = "DIGU"; //0x44=DATA-USB=D <- TS-990s               
+    			//printf("->ModeRead=%x  =%c\n",(char)s_read_array[29],(int)s_read_array[29]);               
                 emit EmitReadedInfo(GET_MODE,smode);
                 s_CmdID = -1;//I Find my answer no need more
             }
