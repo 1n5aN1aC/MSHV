@@ -1590,6 +1590,11 @@ void DecodeList::InsertItem_hv(QStringList list,bool ffopen,bool forme)
         if (is_filters_active && !freply) freply = f_sho0;
         //if (is_filters_active && !forme ) freply = false;
         if (is_filters_active && !forme ) f_show = f_sho0;
+        // Blacklist applies unconditionally — even to messages directed at you (forme)
+        if (is_filters_active && hide_call_list) {
+            if (call.isEmpty()) call = FindHisCall(list.at(4));
+            if (!HideByCall(call)) { f_show = false; freply = false; }
+        }
         //if (s_list_ident==1/* && f_show!=freply*/) qDebug()<<"f_show="<<f_show<<"freply="<<freply<<list.at(4);
 
         //error counting with filter f_show &&

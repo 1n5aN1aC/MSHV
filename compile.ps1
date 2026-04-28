@@ -3,9 +3,14 @@
 # What this script does:
 # 1) Moves to the repository root (folder where this script lives).
 # 2) Adds the known Qt/MinGW tool folders to PATH for this session.
-# 3) Regenerates the Makefile with qmake so new sources are included.
-# 4) Runs a parallel release build (mingw32-make -j4 release).
-# 5) Prints success/failure and exits with the same build status code.
+# 3) Optionally runs a clean step.
+# 4) Regenerates the Makefile with qmake so new sources are included.
+# 5) Runs a parallel release build (mingw32-make -j4 release).
+# 6) Prints success/failure and exits with the same build status code.
+
+param(
+    [switch]$Clean
+)
 
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
@@ -33,6 +38,15 @@ Write-Host "Building MSHV (release) from: $RepoRoot" -ForegroundColor Cyan
 if ($LASTEXITCODE -ne 0) {
     Write-Host "qmake failed with exit code $LASTEXITCODE." -ForegroundColor Red
     exit $LASTEXITCODE
+}
+
+if ($Clean) {
+    Write-Host 'Running clean step before build.' -ForegroundColor Yellow
+    & mingw32-make clean
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "clean failed with exit code $LASTEXITCODE." -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
 }
 
 # Run release build.
