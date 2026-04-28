@@ -555,7 +555,7 @@ private:
     //QString FindBaseCallRemAllSlash(QString);
 
     //bool isStandardCall(QString w);
-    QString DecodeMacros(QString,bool,int,bool,bool,bool);
+    QString DecodeMacros(QString,bool,int,bool,bool,uint8_t);
     HvSpinBox *SB_MinSigdB;
     //bool f_last_from_queued;
     HvQueuedCallW *TQueuedCall; 

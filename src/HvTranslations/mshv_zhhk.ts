@@ -2845,7 +2845,7 @@ MA DXpedition</source>
 一次性密碼金鑰</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2514"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2533"/>
         <source>Maximum QSOs per Call</source>
         <translation>每次呼叫最多通聯數</translation>
     </message>
@@ -2928,7 +2928,7 @@ if Dist or dB column header is marked</source>
         <translation>設置</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2033"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2052"/>
         <source>In Settings MA, TX Slots: It Is Set To ONE.
 Please choose another dial frequency.
 MSHV will not operate on more than one slot
@@ -2939,33 +2939,33 @@ MSHV 不會在標準FT8和FT4
 HF頻段中有多個插槽操作.</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2511"/>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2539"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2530"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2558"/>
         <source>Call</source>
         <translation>呼號</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2511"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2530"/>
         <source>Filtered By</source>
         <translation>篩選通過</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2512"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2531"/>
         <source>Band</source>
         <translation>波段</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2513"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2532"/>
         <source>Mode</source>
         <translation>模式</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2539"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2558"/>
         <source>QSO Before</source>
         <translation>曾經通聯</translation>
     </message>
     <message>
-        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2540"/>
+        <location filename="../HvTxW/hvmultianswermodw.cpp" line="2559"/>
         <source>Do You Want To Continue QSO?</source>
         <translation>你想繼續通聯嗎?</translation>
     </message>
@@ -2973,73 +2973,73 @@ HF頻段中有多個插槽操作.</translation>
 <context>
     <name>Network</name>
     <message>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="641"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="849"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="867"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="881"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="895"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="910"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="924"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="938"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="643"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="851"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="869"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="883"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="897"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="912"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="926"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="940"/>
         <source>Connecting to</source>
         <translation>連接到</translation>
     </message>
     <message>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="641"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="849"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="867"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="881"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="895"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="910"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="924"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="938"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1097"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1317"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1345"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1378"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1436"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1451"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1503"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1589"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="643"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="851"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="869"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="883"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="897"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="912"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="926"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="940"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1098"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1323"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1351"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1384"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1442"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1457"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1509"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1595"/>
         <source>Port</source>
         <translation>埠</translation>
     </message>
     <message>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="849"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="867"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="881"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="895"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="910"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="924"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="938"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="851"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="869"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="883"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="897"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="912"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="926"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="940"/>
         <source>Try</source>
         <translation>嘗試</translation>
     </message>
     <message>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="834"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="862"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="876"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="890"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="904"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="919"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="933"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="836"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="864"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="878"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="892"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="906"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="921"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="935"/>
         <source>Error To Initialize</source>
         <translation>初始化錯誤</translation>
     </message>
     <message>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1097"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1317"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1345"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1378"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1436"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1451"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1503"/>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1589"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1098"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1323"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1351"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1384"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1442"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1457"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1509"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="1595"/>
         <source>Connected to</source>
         <translation>連接到</translation>
     </message>
     <message>
-        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="655"/>
+        <location filename="../HvRigControl/HvRigCat/network/network.cpp" line="657"/>
         <source>Disconnected</source>
         <translation>斷開</translation>
     </message>

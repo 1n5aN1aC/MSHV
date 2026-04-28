@@ -660,31 +660,51 @@ void PomAll::cshift1(double complex *a,int cou_a,int ish)
     //HV for single shift vareable
     //Left Shift 	ISHFT 	ISHFT(N,M) (M > 0) 	<< 	n<<m 	n shifted left by m bits
     //Right Shift 	ISHFT 	ISHFT(N,M) (M < 0) 	>> 	n>>m 	n shifted right by m bits
-
     //double complex t[cou_a];  //garmi hv v1.42
     //double complex t[cou_a*2+ish+50];  //garmi hv v1.43 ok
     double complex *t = new double complex[cou_a+100]; //garmi pri goliam count hv v1.43 correct ok
-    for (int i=0; i< cou_a; i++)
-        t[i]=a[i];
-
+    for (int i=0; i< cou_a; i++) t[i]=a[i];
     if (ish>0)
     {
         for (int i = 0; i <  cou_a; i++)
         {
-            if (i+ish<cou_a)
-                a[i]=t[i+ish];
-            else
-                a[i]=t[i+ish-cou_a];
+            if (i+ish<cou_a) a[i]=t[i+ish];
+            else a[i]=t[i+ish-cou_a];
         }
     }
     if (ish<0)
     {
         for (int i = 0; i <  cou_a; i++)
         {
-            if (i+ish<0)
-                a[i]=t[i+ish+cou_a];
-            else
-                a[i]=t[i+ish];
+            if (i+ish<0) a[i]=t[i+ish+cou_a];
+            else a[i]=t[i+ish];
+        }
+    }
+    delete [] t;
+}
+void PomAll::dshift1(double *a,int cou_a,int ish)
+{
+    //HV for single shift vareable
+    //Left Shift 	ISHFT 	ISHFT(N,M) (M > 0) 	<< 	n<<m 	n shifted left by m bits
+    //Right Shift 	ISHFT 	ISHFT(N,M) (M < 0) 	>> 	n>>m 	n shifted right by m bits
+    //double complex t[cou_a];  //garmi hv v1.42
+    //double complex t[cou_a*2+ish+50];  //garmi hv v1.43 ok
+    double *t = new double[cou_a+100]; //garmi pri goliam count hv v1.43 correct ok
+    for (int i=0; i< cou_a; i++) t[i]=a[i];
+    if (ish>0)
+    {
+        for (int i = 0; i <  cou_a; i++)
+        {
+            if (i+ish<cou_a) a[i]=t[i+ish];
+            else a[i]=t[i+ish-cou_a];
+        }
+    }
+    if (ish<0)
+    {
+        for (int i = 0; i <  cou_a; i++)
+        {
+            if (i+ish<0) a[i]=t[i+ish+cou_a];
+            else a[i]=t[i+ish];
         }
     }
     delete [] t;
@@ -947,7 +967,21 @@ void PomFt::initPomFt()
     twopi=8.0*atan(1.0);
     pi=4.0*atan(1.0);
 }
-
+bool PomFt::isgrid4(QString s)
+{
+    bool res = false;
+    if (s.count()>3)
+    {
+        int c1 = (int)s.at(0).toLatin1();
+        int c2 = (int)s.at(1).toLatin1();
+        int c3 = (int)s.at(2).toLatin1();
+        int c4 = (int)s.at(3).toLatin1();
+        if (c1>=(int)'A' && c1<=(int)'R' && c2>=(int)'A' && c2<=(int)'R' &&
+                c3>=(int)'0' && c3<=(int)'9' && c4>=(int)'0' && c4<=(int)'9')// && s.mid(0,4)!="RR73"
+            res = true;
+    }
+    return res;
+}
 #include "../HvMsPlayer/libsound/boost/boost_14.hpp"
 short crc14_pomft(unsigned char const * data, int length)
 {
@@ -1018,6 +1052,256 @@ void PomFt::twkfreq1(double complex *ca,int npts,double fsample,double *a,double
         cb[i]=w*ca[i];
     }
 }
+void PomFt::SetApFt2_4(double *llr,double *llr_c,bool *apmask,int *apbits,int *mcq,int *apmy_ru,int *aphis_fd,double apmag,int iaptype,int cont_type)
+{
+    // Activity Type                id	type	dec-id       dec-type	dec-cq
+    //"Standard"					0	0		0 = CQ		 0			0
+    //"EU RSQ And Serial Number"	1	NONE	1  NONE		 NONE		NONE
+    //"NA VHF Contest"				2	2		2  CQ TEST	 1			3 = CQ TEST
+    //"EU VHF Contest"				3 	3		3  CQ TEST	 2			3 = CQ TEST
+    //"ARRL Field Day"				4	4		4  CQ FD	 3			2 = CQ FD
+    //"ARRL Inter. Digital Contest"	5	2		5  CQ TEST   1 			3 = CQ TEST
+    //"WW Digi DX Contest"			6	2		6  CQ WW	 1			4 = CQ WW
+    //"FT4 DX Contest"				7	2		7  CQ WW	 1			4 = CQ WW
+    //"FT8 DX Contest"				8	2		8  CQ WW	 1			4 = CQ WW
+    //"FT Roundup Contest"			9	5		9  CQ RU	 4			1 = CQ RU
+    //"Bucuresti Digital Contest"	10 	5		10 CQ BU 	 4			5 = CQ BU
+    //"FT4 SPRINT Fast Training"	11 	5		11 CQ FT 	 4			6 = CQ FT
+    //"PRO DIGI Contest"			12  5		12 CQ PDC 	 4			7 = CQ PDC
+    //"CQ WW VHF Contest"			13	2		13 CQ TEST	 1			3 = CQ TEST
+    //"Q65 Pileup" or "Pileup"		14	2		14 CQ 		 1			0 = CQ
+    //"NCCC Sprint"					15	2		15 CQ NCCC	 1			8 = CQ NCCC
+    //"ARRL Inter. EME Contest"		16	6		16 CQ 		 0			0 = CQ
+    //"FT Challenge"				17  6       17 CQ FTC    0          9 = CQ FTC
+    const int ND=87;
+    double llr_ap[180];
+    for (int z = 0; z < 2*ND; ++z) llr_ap[z]=llr_c[z];
+    if (iaptype==1) //then  ! CQ or CQ TEST or CQ FD or CQ RU or CQ SCC
+    {
+        for (int z = 0; z < 2*ND; ++z)//2*ND=174
+        {
+            apmask[z]=0;
+            if (z<29)
+            {
+                apmask[z]=1;
+                llr_ap[z]=apmag*(double)mcq[z];
+            }
+        } //qDebug()<<iaptype;
+    }
+    if (iaptype==2) //then ! MyCall,???,???
+    {
+        for (int z = 0; z < 2*ND; ++z) apmask[z]=0;
+        if (cont_type==0 || cont_type==1)// || ncontest==5
+        {
+            for (int z = 0; z < 29; ++z)
+            {
+                apmask[z]=1;//apmask(1:29)=1
+                llr_ap[z]=apmag*(double)apbits[z];//llrd(1:29)=apmag*apsym(1:29)
+            }
+        }
+        else if (cont_type==2)
+        {
+            for (int z = 0; z < 28; ++z)
+            {
+                apmask[z]=1;//apmask(1:28)=1
+                llr_ap[z]=apmag*(double)apbits[z];//llrd(1:28)=apmag*apsym(1:28)
+            }
+        }
+        else if (cont_type==3)
+        {
+            for (int z = 0; z < 28; ++z)
+            {
+                apmask[z]=1;  //apmask(1:28)=1
+                llr_ap[z]=apmag*(double)apbits[z];//llrd(1:28)=apmag*apbits(1:28)
+            }
+        }
+        else if (cont_type==4)//RTTY UU HV-6=BU   || ncontest==6
+        {
+            for (int z = 1; z < 29; ++z)
+            {
+                apmask[z]=1;//apmask(2:29)=1
+                llr_ap[z]=apmag*(double)apmy_ru[z-1];//llrd(2:29)=apmag*apmy_ru(1:28)
+            }
+        }
+    }
+    if (iaptype==3) //then ! MyCall,DxCall,???
+    {
+        for (int z = 0; z < 2*ND; ++z) apmask[z]=0;
+        if (cont_type==0 || cont_type==1 || cont_type==2)// || ncontest==5
+        {
+            for (int z = 0; z < 58; ++z)
+            {
+                apmask[z]=1;// apmask(1:58)=1
+                llr_ap[z]=apmag*(double)apbits[z];// llrd(1:58)=apmag*apbits(1:58)
+            }
+        }
+        else if (cont_type==3) //then ! Field Day
+        {
+            for (int z = 0; z < 56; ++z)//2.36 57 or 56 ???
+            {
+                apmask[z]=1;//apmask(1:56)=1//2.36 if (z<56)//57 or 56 ???
+                if (z<28)
+                {
+                    llr_ap[z]=apmag*(double)apbits[z];//llrd(1:28)=apmag*apbits(1:28)
+                    llr_ap[z+28]=apmag*(double)aphis_fd[z];//llrd(29:56)=apmag*aphis_fd(1:28)????
+                }
+            }
+        }
+        else if (cont_type==4)//then ! RTTY RU HV 6=BU // || ncontest==6
+        {
+            for (int z = 0; z < 57; ++z)
+            {
+                if (z>0) apmask[z]=1;// apmask(2:57)=1
+                if (z<28) llr_ap[z+1]=apmag*(double)apmy_ru[z];//llrd(2:29)=apmag*apmy_ru(1:28)
+                if (z>28) llr_ap[z]=apmag*(double)apbits[z];// llrd(30:57)=apmag*apbits(30:57)
+            }
+        }
+    }
+    if (iaptype==4 || iaptype==5 || iaptype==6)
+    {
+        for (int z = 0; z < 2*ND; ++z) apmask[z]=0;//if(ncontest.le.5) then
+        if (cont_type<=4)//hv new=4
+        {
+            for (int z = 0; z < 77; ++z) apmask[z]=1; //apmask(1:77)=1   //! mycall, hiscall, RRR|73|RR73
+            if (iaptype==6)
+            {
+                for (int z = 0; z < 77; ++z) llr_ap[z]=apmag*(double)apbits[z];//llrd(1:77)=apmag*apbits(1:77)
+            }
+        }
+    }
+    for (int z = 0; z < 2*ND; ++z) llr[z]=llr_ap[z];
+}
+bool PomFt::SetAp7Msg(QString call_1,bool std_1,QString call_2,bool std_2,QString grid4,int i,QString &msg,int &count_msg)
+{
+    //const int MAXMSG=206;//= -50 to +49
+    const int MAXMSG=158;//= -26 to +49
+    msg = call_1+" "+call_2;
+    if (call_1=="CQ" && i!=4) msg = "QU1RK "+call_2;
+    if (!std_1)
+    {
+        if (i==0 || i>=5) msg = "<"+call_1+"> "+call_2;
+        if (i>=1 && i<=3) msg = call_1+" <"+call_2+">";
+    }
+    else if (!std_2)
+    {
+        if (call_1=="CQ" && i!=4) msg = "QU1RK "+call_2;//HV add
+        else
+        {
+            if (i<=3 || i==5) msg = "<"+call_1+"> "+call_2;
+            if (i>=6) msg = call_1+" <"+call_2+">";  //if (i==5) msg = "TNX 73 GL";
+        }
+    }
+    //else if (i==0) msg = msg0.trimmed();
+    if (i==1) msg.append(" RRR");
+    if (i==2) msg.append(" RR73");
+    if (i==3) msg.append(" 73");
+    if (i==4)
+    {
+        if (std_2)
+        {
+            msg = "CQ "+call_2;//+" "+hisgrid.mid(0,4);//KN23SF
+            QString call_10 = call_1+"xxxx";//2.70
+            if (call_10.mid(2,1)=="_") msg = call_1+" "+call_2;
+            if (grid4!="RR73") msg = msg.trimmed()+" "+grid4;
+        }
+        if (!std_2) msg = "CQ "+call_2;//KN23SF
+    }
+    if (i==5 && std_2) msg.append(" "+grid4.mid(0,4));
+    if (i>=6 && i<MAXMSG)
+    {
+        if (i>12 && msg.startsWith("QU1RK "))
+        {
+            //not possyble "CQ <TM22KPW> -26"
+            //not possyble "CQ LZ2HV R-26"
+            //qDebug()<<"BREAK--->"<<msg<<"msgbest="<<msgbest;
+            count_msg = i;
+            return true;//break;
+        }
+        //int isnr = -50 + (i-6)/2;// -50 to +49 MAXMSG=206
+        int isnr = -26 + (i-6)/2;  // -26 to +49 MAXMSG=158
+        if (((i+1) & 1)==1)
+        {
+            if (isnr>-1) msg.append(" +"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
+            else msg.append(" -"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
+        }
+        else
+        {
+            if (isnr>-1) msg.append(" R+"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
+            else msg.append(" R-"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
+        }
+    }
+    return false;
+}
+/*void PomFt::TryDecAp7(double *llra,double *llrb,double *llrc,double *llrd,bool *cw,double *dmm,int i,
+               QString msgsent,double pow0,double &dmin,QString &msgbest,double &pbest,int &nharderrors)
+{
+    bool hdec[178];
+    bool nxor[178];
+    double da = 0.0;
+    double dbb= 0.0;
+    double dc = 0.0;
+    double dd = 0.0;
+    for (int z= 0; z < 174; ++z)
+    {
+        hdec[z] = 0;
+        if (llra[z]>=0.0) hdec[z] = 1;
+        nxor[z]=hdec[z] ^ cw[z];
+        da+=(double)nxor[z]*fabs(llra[z]);
+        hdec[z] = 0;
+        if (llrb[z]>=0.0) hdec[z] = 1;
+        nxor[z]=hdec[z] ^ cw[z];
+        dbb+=(double)nxor[z]*fabs(llrb[z]);
+        hdec[z] = 0;
+        if (llrc[z]>=0.0) hdec[z] = 1;
+        nxor[z]=hdec[z] ^ cw[z];
+        dc+=(double)nxor[z]*fabs(llrc[z]);
+        hdec[z] = 0;
+        if (llrd[z]>=0.0) hdec[z] = 1;
+        nxor[z]=hdec[z] ^ cw[z];
+        dd+=(double)nxor[z]*fabs(llrd[z]);
+    }
+
+    double dm = da;
+    if (dbb<dm) dm=dbb;
+    if (dc<dm)  dm=dc;
+    if (dd<dm)  dm=dd;
+    dmm[i]=dm;
+    if (dm<dmin)
+    {
+        dmin=dm;
+        msgbest=msgsent;
+        pbest=pow0;
+        nharderrors = -1;
+        if (dm==da)
+        {
+            for (int z= 0; z < 174; ++z)
+            {
+                if ((double)(2*cw[z]-1)*llra[z]<0.0) nharderrors++;
+            }
+        }
+        else if (dm==dbb)
+        {
+            for (int z= 0; z < 174; ++z)
+            {
+                if ((double)(2*cw[z]-1)*llrb[z]<0.0) nharderrors++;
+            }
+        }
+        else if (dm==dc)
+        {
+            for (int z= 0; z < 174; ++z)
+            {
+                if ((double)(2*cw[z]-1)*llrc[z]<0.0) nharderrors++;
+            }
+        }
+        else if (dm==dd)
+        {
+            for (int z= 0; z < 174; ++z)
+            {
+                if ((double)(2*cw[z]-1)*llrd[z]<0.0) nharderrors++;
+            }
+        }
+    }
+}*/
 /*void PomFt::twkfreq2(double complex *c3,double complex *c4,int npts,double fsample,double fshift)
 {
     //! Adjust frequency of complex waveform
@@ -1269,31 +1553,24 @@ void PomFt::bshift1(bool *a,int cou_a,int ish)
     //HV for single shift vareable
     //Left Shift 	ISHFT 	ISHFT(N,M) (M > 0) 	<< 	n<<m 	n shifted left by m bits
     //Right Shift 	ISHFT 	ISHFT(N,M) (M < 0) 	>> 	n>>m 	n shifted right by m bits
-
     //double complex t[cou_a];  //garmi hv v1.42
     //double complex t[cou_a*2+ish+50];  //garmi hv v1.43 ok
     bool *t = new bool[cou_a+100]; //garmi pri goliam count hv v1.43 correct ok
-    for (int i=0; i< cou_a; i++)
-        t[i]=a[i];
-
+    for (int i=0; i< cou_a; i++) t[i]=a[i];
     if (ish>0)
     {
         for (int i = 0; i <  cou_a; i++)
         {
-            if (i+ish<cou_a)
-                a[i]=t[i+ish];
-            else
-                a[i]=t[i+ish-cou_a];
+            if (i+ish<cou_a) a[i]=t[i+ish];
+            else a[i]=t[i+ish-cou_a];
         }
     }
     if (ish<0)
     {
         for (int i = 0; i <  cou_a; i++)
         {
-            if (i+ish<0)
-                a[i]=t[i+ish+cou_a];
-            else
-                a[i]=t[i+ish];
+            if (i+ish<0) a[i]=t[i+ish+cou_a];
+            else a[i]=t[i+ish];
         }
     }
     delete [] t;
@@ -1304,7 +1581,7 @@ void PomFt::get_crc14(bool *mc,int len,int &ncrc)
     //! 2. To check a received CRC, mc(1:len is the received message plus CRC.
     //!    ncrc will be zero if the received message/CRC are consistent
     bool r[15+5];
-    bool p[15]={1,1,0,0,1,1,1,0,1,0,1,0,1,1,1};//=26455
+    const bool p[15]={1,1,0,0,1,1,1,0,1,0,1,0,1,1,1};//=26455
     //bool p[15]={1,1,0,0,1,1,1,0,1,0,1,0,1,1,1};
 
     //! divide by polynomial
@@ -2205,7 +2482,7 @@ c998:
     //if(nbadcrc==1) nhardmin=-nhardmin;
     //qDebug()<<"OSD2 nhardmin================"<<nhardmin<<dmin;
 }
-void PomFt::decode174_91_ft2(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin)
+/*void PomFt::decode174_91_ft2(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin)
 {	//int Keff=91,
     const int N=174;
     const int K=91;
@@ -2279,7 +2556,7 @@ void PomFt::decode174_91_ft2(double *llr,int maxosd,int norder,bool *apmask,bool
         {//do i=1,M
             int sum = 0;// synd(i)=sum(cw(Nm(1:nrw(i),i)))
             for (int x = 0; x < nrw_ft8_174_91[i]; ++x) sum += (int)cw[Nm_ft8_174_91_[i][x]-1];//hv-1
-            synd[i]= sum;            
+            synd[i]= sum;
             if ( fmod(synd[i],2) != 0 ) ncheck++;//if( mod(synd(i),2) .ne. 0 ) ncheck=ncheck+1
             //!   if( mod(synd(i),2) .ne. 0 ) write(*,*) 'check ',i,' unsatisfied'
         }
@@ -2376,7 +2653,7 @@ void PomFt::decode174_91_ft2(double *llr,int maxosd,int norder,bool *apmask,bool
         }
     }
     nharderror=-1;
-}
+}*/
 /*#define MSHV_METHOD
 void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin)
 {	//int Keff=91,
@@ -2417,11 +2694,11 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
         if (llr[i]> LLRMAX) llr[i]= LLRMAX;
         if (llr[i]<-LLRMAX) llr[i]=-LLRMAX;
     }
-    for (int i = 0; i < N; ++i) llr_in[i] = llr[i];  
+    for (int i = 0; i < N; ++i) llr_in[i] = llr[i];
     int nrestarts = 3;
     if (maxosd<0) nrestarts = 3;//! more restarts if no OSD
-    //bool bp_converged = false;	
-    for (restart=0; restart<=nrestarts; ++restart)   		
+    //bool bp_converged = false;
+    for (restart=0; restart<=nrestarts; ++restart)
     {//do restart = 0, nrestarts
         for (int i = 0; i<M; ++i)
         {
@@ -2450,8 +2727,8 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
             for (int j = 0; j<M; ++j)
             {
             	int p0 = (j+restart*31);
-            	perm[j] = (p0 % M);//fmod(j+restart*31,M);//perm(j) = mod(j-1 + restart*31, M) + 1            	
-           	}	
+            	perm[j] = (p0 % M);//fmod(j+restart*31,M);//perm(j) = mod(j-1 + restart*31, M) + 1
+           	}
         }
         int ncnt=0;
         int nclast=0;
@@ -2472,7 +2749,7 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
                 else zn[i]=llr[i];
                 if (zn[i]>0.0) cw[i]=1;
             	else cw[i]=0;
-            	if (iter<maxosd) zsum[i]+=zn[i]; 
+            	if (iter<maxosd) zsum[i]+=zn[i];
             }
             if (iter>0 && restart==0 && iter<=fmin(maxosd,6))
             {
@@ -2531,7 +2808,7 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
                 }
             }
             nclast=ncheck;
-#else            
+#else
             for (int i = 0; i< N; ++i)
             {//do i=1,N
                 if (apmask[i]!=1)
@@ -2542,7 +2819,7 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
                 }
                 else zn[i]=llr[i];
             }
-#endif		
+#endif
             if (iter>0)//! Save tov for self-correction + damping comparison
             {
                 for (int i = 0; i<N; ++i)
@@ -2613,9 +2890,9 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
                         zn[ibj]=llr[ibj]+sum0;
                     }
                 }
-            }  //! j (check nodes) — end of layered sweep            
-#if !defined MSHV_METHOD 
-			//! -- Accumulate for OSD snapshots (7 instead of 5) --           
+            }  //! j (check nodes) — end of layered sweep
+#if !defined MSHV_METHOD
+			//! -- Accumulate for OSD snapshots (7 instead of 5) --
             for (int i = 0; i< N; ++i) zsum[i]+=zn[i]; //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
             if (iter>0 && restart==0 && iter<=fmin(maxosd,6))
             {
@@ -2679,7 +2956,7 @@ void PomFt::decode174_91_ft2a(double *llr,int maxosd,int norder,bool *apmask,boo
                 }
             }
             nclast=ncheck;
-#endif             
+#endif
         }   //! bp iterations
     }
     for (int io = 0; io < nosd; ++io)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.

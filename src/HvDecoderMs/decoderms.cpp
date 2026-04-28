@@ -2624,8 +2624,8 @@ void DecoderMs::SetDecode(int *raw,int count_q,QString time, int t_istart,int mo
     //s_time = time;
     s_mousebutton = mousebutton; //mousebutton Left=1, Right=3 fullfile=0 rtd=2 ft8=4,5,6
     DecFt8_0->SetStDecode(time,mousebutton,s_fopen);//2.66 for ap7 s_fopen8
-    DecFt4_0->SetStDecode(time,mousebutton);
-    DecFt2_0->SetStDecode(time,mousebutton);
+    DecFt4_0->SetStDecode(time,mousebutton,s_fopen);
+    DecFt2_0->SetStDecode(time,mousebutton,s_fopen);
     DecQ65->SetStDecode(time,mousebutton,s_fopen);//2.72 for ap pileup
     DecSFox->SetStDecode(time,mousebutton,s_fopen);
 

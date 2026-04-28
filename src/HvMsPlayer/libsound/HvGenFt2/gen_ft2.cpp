@@ -60,9 +60,51 @@ void GenFt2::pack77(QString msgs,int &i3,int n3,bool *c77)// for apset v2
 {
     TPackUnpackMsg77.pack77(msgs,i3,n3,c77);
 }
+void GenFt2::split77(QString &msg,int &nwords,/*int *nw,*/QString *w)// for apset v2
+{
+    TPackUnpackMsg77.split77(msg,nwords,/*int *nw,*/w);
+}
 void GenFt2::encode174_91(bool *message77,bool *codeword)
 {
 	genPomFt.encode174_91(message77,codeword);
+}
+void GenFt2::make_c77_i4tone_codeword(bool *c77,int *i4tone,bool *codeword)//,bool f_gen,bool f_addc
+{	
+    const int icos4a[4]={0,1,3,2};
+    const int icos4b[4]={1,0,2,3};
+    const int icos4c[4]={2,3,1,0};
+    const int icos4d[4]={3,2,0,1};
+    const bool rvec[77]={0,1,0,0,1,0,1,0,0,1,0,1,1,1,1,0,1,0,0,0,1,0,0,1,1,0,1,1,0,
+                   1,0,0,1,0,1,1,0,0,0,0,1,0,0,0,1,0,1,0,0,1,1,1,1,0,0,1,0,1,
+                   0,1,0,1,0,1,1,0,1,1,1,1,1,0,0,0,1,0,1};
+    int itmp[92];//(ND=87)                                  
+    //bool codeword[180];//3*58+5 linux subtract error
+    //bool *codeword = new bool[180];//3*58+5  full=174             
+    bool cc77[180]; // w10 32bit error
+    //bool *cc77 = new bool[100]; // w10 32bit error
+    for (int i= 0; i < 176; ++i)
+    {
+    	if (i<77) cc77[i]=c77[i];
+    	else cc77[i] = 0;
+    	codeword[i] = 0;
+   	}               
+    for (int i= 0; i < 77; ++i) cc77[i]=fmod(cc77[i]+rvec[i],2); //msgbits=mod(msgbits+rvec,2)    	
+    genPomFt.encode174_91(cc77,codeword);
+    for (int i= 0; i < 87; ++i)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
+    {   // do i=1,ND=87
+        int is=codeword[2*i+1]+2*codeword[2*i];//is=codeword(2*i=2,4)+2*codeword(2*i-1)=1,3
+        if      (is==1) itmp[i]=1;
+        else if (is==2) itmp[i]=3;
+        else if (is==3) itmp[i]=2;
+        else            itmp[i]=0;      	
+    }
+    for (int i= 0; i < 4; ++i ) i4tone[i] = icos4a[i];//i4tone(1:4)=icos4a        
+    for (int i= 0; i < 29; ++i) i4tone[i+4]=itmp[i];//i4tone(5:33)=itmp(1:29)        
+    for (int i= 0; i < 4; ++i ) i4tone[i+33]=icos4b[i];//i4tone(34:37)=icos4b
+    for (int i= 0; i < 29; ++i) i4tone[i+37]=itmp[i+29];//i4tone(38:66)=itmp(30:58)
+    for (int i= 0; i < 4; ++i ) i4tone[i+66]=icos4c[i];//i4tone(67:70)=icos4c
+    for (int i= 0; i < 29; ++i) i4tone[i+70]=itmp[i+58];//i4tone(71:99)=itmp(59:87)
+    for (int i= 0; i < 4; ++i ) i4tone[i+99]=icos4d[i];//i4tone(100:103)=icos4d        
 }
 void GenFt2::make_c77_i4tone(bool *c77,int *i4tone)//,bool f_gen,bool f_addc
 {	

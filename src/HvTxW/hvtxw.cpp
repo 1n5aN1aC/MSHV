@@ -2202,9 +2202,9 @@ void HvTxW::DecListTextAll(QString all_txt,QString str,QString tp,QString tx_rpt
 
         if (!hisCall_inmsg_for_ap.isEmpty())//1.73
         {
-            bool fc1,fc2,noQSO;
+            bool fc1,fc2; uint8_t noQSO;
             MultiAnswerMod->isStandardCalls(list_macros.at(0),hisCall_inmsg_for_ap,fc1,fc2,noQSO);
-            if (noQSO)
+            if (noQSO==100)
             {
                 emit EmitGBlockListExp(true);//2.15
                 setFocus(Qt::MouseFocusReason);
@@ -2288,9 +2288,9 @@ void HvTxW::DecListTextAll(QString all_txt,QString str,QString tp,QString tx_rpt
 
         if (!hisCall_inmsg.isEmpty())
         {
-            bool fc1,fc2,noQSO;
+            bool fc1,fc2; uint8_t noQSO;
             MultiAnswerMod->isStandardCalls(list_macros.at(0),hisCall_inmsg,fc1,fc2,noQSO);
-            if (f_two_no_sdtc && noQSO)//if (f_two_no_sdtc)
+            if (f_two_no_sdtc && noQSO==100)//if (f_two_no_sdtc)
             {
                 emit EmitGBlockListExp(true);//2.15
                 setFocus(Qt::MouseFocusReason);
@@ -3868,13 +3868,11 @@ void HvTxW::GenTestTones()
     {
         HvTxIn *TempHvTxIn = (HvTxIn*)V_l->itemAt(i)->widget();
         TempHvTxIn->line_txt->setText(lst.at(i));
-        if (i!=s_b_identif)
-            TempHvTxIn->rb_tx->setChecked(false);
-        else
-            SetEmitMessage(TempHvTxIn->line_txt->text(),false,false,false);
+        if (i!=s_b_identif) TempHvTxIn->rb_tx->setChecked(false);
+        else SetEmitMessage(TempHvTxIn->line_txt->text(),false,false,false);
     }
 }
-QString HvTxW::DecodeMacros(QString str,bool f_sh,int tx_id,bool my_call_is_std,bool his_call_is_std,bool noQSO)
+QString HvTxW::DecodeMacros(QString str,bool f_sh,int tx_id,bool my_call_is_std,bool his_call_is_std,uint8_t noQSO)
 {
     QString str_out = str;
     QString his_call = le_his_call->getText();
@@ -3929,19 +3927,16 @@ QString HvTxW::DecodeMacros(QString str,bool f_sh,int tx_id,bool my_call_is_std,
     }
 
     if (s_mode==0 || s_mode==11 || s_mode==13 || s_mode==18 || allq65)//ft4
-    {
+    { 	//qDebug()<<noQSO;
         if (tx_id==0)//2.02
         {
             /*if (!his_call_is_std)
                 his_call = "<"+his_call+">";
             else if (!my_call_is_std)
                 str_out ="<"+his_call+"> "+my_call;*/
-            if (!his_call_is_std && !my_call_is_std && !noQSO)
-                str_out ="<"+his_call+"> "+my_call;
-            else if (!his_call_is_std)
-                his_call = "<"+his_call+">";
-            else if (!my_call_is_std)
-                str_out ="<"+his_call+"> "+my_call;
+            if (!his_call_is_std && !my_call_is_std && noQSO!=100) str_out ="<"+his_call+"> "+my_call;
+            else if (!his_call_is_std) his_call = "<"+his_call+">";
+            else if (!my_call_is_std) str_out ="<"+his_call+"> "+my_call;
         }
         else if (tx_id==1 || tx_id==2)
         {
@@ -3958,15 +3953,25 @@ QString HvTxW::DecodeMacros(QString str,bool f_sh,int tx_id,bool my_call_is_std,
                 my_call  = "<"+my_call+">";
             }
             else if (!his_call_is_std && !my_call_is_std)
-            {
-                his_call = "<"+his_call+">";
-                if (!noQSO)
-                    my_call = s_my_base_call;
+            {              
+                if (noQSO==0 || noQSO==1 || noQSO==2 || noQSO==6) 
+                {
+                	his_call = "<"+his_call+">";
+                	my_call = s_my_base_call;                	
+               	}
+            	if (noQSO==3 || noQSO==4 || noQSO==5) 
+                {
+                	his_call = MultiAnswerMod->FindBaseFullCallRemAllSlash(his_call);
+                	my_call = "<"+my_call+">";                	
+               	}
+                if (noQSO==7) 
+                {
+                	his_call = "<"+his_call+">";
+                	my_call  = "<"+my_call+">";                	
+               	}
             }
-            else if (!his_call_is_std && my_call_is_std)
-                his_call = "<"+his_call+">";
-            else if (his_call_is_std && !my_call_is_std)
-                my_call  = "<"+my_call+">";
+            else if (!his_call_is_std && my_call_is_std) his_call = "<"+his_call+">";
+            else if (his_call_is_std && !my_call_is_std) my_call  = "<"+my_call+">";
         }
         else if (tx_id==3 || tx_id==4)//rrr, 73
         {
@@ -3981,18 +3986,16 @@ QString HvTxW::DecodeMacros(QString str,bool f_sh,int tx_id,bool my_call_is_std,
                 his_call  = "<"+his_call+">";*/
             if (!his_call_is_std && !my_call_is_std)
             {
-                if (!noQSO)
-                    my_call  = "<"+my_call+">";
+                if (noQSO==0 || noQSO==1 || noQSO==2 || noQSO==5 || noQSO==6 || noQSO==7) my_call  = "<"+my_call+">";
+                else if (noQSO==3 || noQSO==4) his_call = "<"+his_call+">";
                 else
                 {
                     his_call = MultiAnswerMod->FindBaseFullCallRemAllSlash(his_call);
                     my_call = s_my_base_call;
                 }
             }
-            else if (!his_call_is_std && my_call_is_std)
-                my_call  = "<"+my_call+">";
-            else if (his_call_is_std && !my_call_is_std)
-                his_call  = "<"+his_call+">";
+            else if (!his_call_is_std && my_call_is_std) my_call  = "<"+my_call+">";
+            else if (his_call_is_std && !my_call_is_std) his_call  = "<"+his_call+">";
         }
         else if (tx_id==5)//cq
         {
@@ -4008,17 +4011,14 @@ QString HvTxW::DecodeMacros(QString str,bool f_sh,int tx_id,bool my_call_is_std,
         {
             if (TQueuedCall->haveQueuedCall())// RU Queued
             {
-                if (tx_id==3)
-                    str_out.replace(" RRR"," RR73");
+                if (tx_id==3) str_out.replace(" RRR"," RR73");
                 //else if (tx_id==4)
                 //str_out.replace(" 73"," RR73");
             }
             if (TQueuedCall->isLastFromQueued())
             {
-                if (tx_id==2 && s_cont_type==5)//else if(s_id_contest_mode>1)
-                    str_out = "TU; "+str_out;
-                else if (tx_id==3)
-                    str_out.replace(" RRR"," RR73");
+                if (tx_id==2 && s_cont_type==5) str_out = "TU; "+str_out;//else if(s_id_contest_mode>1)                    
+                else if (tx_id==3) str_out.replace(" RRR"," RR73");                    
                 //else if (tx_id==4)
                 //str_out.replace(" 73"," RR73");
             }
@@ -4147,7 +4147,7 @@ void HvTxW::gen_msg()
     le_rst_tx->SetText(le_rst_tx->format_rpt(le_rst_tx->getText()),false);
     bool c1std = true;
     bool c2std = true;
-    bool noQSO = false;
+    uint8_t noQSO = 0;
     if (s_mode==0 || s_mode==11 || s_mode==13 || s_mode==18 || allq65) MultiAnswerMod->isStandardCalls(list_macros.at(0),le_his_call->getText(),c1std,c2std,noQSO);
     for (int i = 0; i<count_tx_widget; i++)
     {
@@ -5201,9 +5201,9 @@ void HvTxW::SetTextForAutoSeq(QStringList list_in)
 
             bool fc1 = true;
             bool fc2 = true;
-            bool noQSO = false;
+            uint8_t noQSO = 0;
             if (!hisCall_inmsg.isEmpty()) MultiAnswerMod->isStandardCalls(list_macros.at(0),hisCall_inmsg,fc1,fc2,noQSO);
-            if (f_two_no_sdtc && noQSO)//if (f_two_no_sdtc)
+            if (f_two_no_sdtc && noQSO==100)//if (f_two_no_sdtc)
             {
                 return;
             }

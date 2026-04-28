@@ -131,6 +131,8 @@ private:
 	bool tci_tx_enable;//tci
 	bool tci_rx_enable;//tci
 	bool tci_rx_mute;//tci
+	int tci_drive;//tci
+	bool tci_split_enable;//tci
 	QString wdemanf;//tci
 	QString wdevice;//tci
 	QStringList lsV012;

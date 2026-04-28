@@ -30,12 +30,14 @@ public:
     explicit GenFt2(bool fl);//f_dec_gen = dec=true gen=false
     ~GenFt2();
  
-    int genft2(QString,int *t_iwave,double samp_rate,double f0);//,int i3b ,int &ntxslot   
+    int genft2(QString,int *t_iwave,double samp_rate,double f0);//,int i3b ,int &ntxslot 
+    void make_c77_i4tone_codeword(bool *c77,int *i4tone,bool *codeword);  
     void make_c77_i4tone(bool *c77,int *i4tone);//,bool f_gen,bool f_addc           
     QString GetUnpackMsg(){return s_unpack_msg;};
     void save_hash_call_mam(QStringList ls);
     QString unpack77(bool *c77,bool &unpk77_success); 
     void pack77(QString msgs,int &i3,int n3,bool *c77);
+    void split77(QString &msg,int &nwords,/*int *nw,*/QString *w);
     void encode174_91(bool *message,bool *codeword); 
     	
 private: 

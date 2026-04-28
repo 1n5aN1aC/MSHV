@@ -988,9 +988,9 @@ void MultiAnswerModW::DetectTextInMsg(QString str, QString &hisCall_inmsg,QStrin
     QString str0 = str+"xxxx";
     if (str0.mid(0,4)=="TU; ") str.remove("TU; ");
     int cst0 = str0.count(); //bool tu0 = false;
-    if (cst0>6) 
+    if (cst0>6)
     {
-		if (str0.mid(cst0-7,3)==" TU") str.remove(cst0-7,3);//2.76.5 str.remove(" TU");
+        if (str0.mid(cst0-7,3)==" TU") str.remove(cst0-7,3);//2.76.5 str.remove(" TU");
     }
     str.remove("<");
     str.remove(">");
@@ -1305,11 +1305,11 @@ bool MultiAnswerModW::isStandardCall(QString w)//,bool nobc
     } //printf(" id_mshf= %d Call= %s isStd= %s\n",id_mshf,qPrintable(w),res0 ? "true" : "false");
     return res0; //return pomAll.isStandardCall(w);
 }
-void MultiAnswerModW::isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,bool &noQSO)
+void MultiAnswerModW::isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,uint8_t &noQSO)
 {
     fc1 = isStandardCall(c1);
     fc2 = isStandardCall(c2); //qDebug()<<"-------->"<<"MyC="<<fc1<<c1<<"HisC="<<fc2<<c2;
-    noQSO = false;
+    noQSO = 0;
     if (s_co_type==0 || s_co_id==16 || s_co_id==17)//2.74 || s_co_type==6 s_co_id==16 ?
     {
         if (id_mshf!=2)
@@ -1331,8 +1331,9 @@ void MultiAnswerModW::isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,
                 if (c1end=="/P" || c1end=="/R")
                 {
                     QString bc2 = FindBaseFullCallRemAllSlash(c2);
-                    if (!isStandardCall(bc2)) noQSO = true;
-                    else fc1 = false;
+                    if (!isStandardCall(bc2)) noQSO = 1;//lz2hv/p lz22hv
+                    else noQSO = 2; //lz2hv/p lz2hv/mm
+                    fc1 = false;
                 }
             }
             else if (!fc1 && fc2) // LZ2HV/QRP R5WM/R, LZ2222HV R5WM/R, LZ2HV/QRP R5WM
@@ -1340,16 +1341,20 @@ void MultiAnswerModW::isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,
                 if (c2end=="/P" || c2end=="/R")
                 {
                     QString bc1 = FindBaseFullCallRemAllSlash(c1);
-                    if (!isStandardCall(bc1)) noQSO = true;
-                    else fc2 = false;
+                    if (!isStandardCall(bc1)) noQSO = 3;//lz22hv lz2hv/p
+                    else  noQSO = 4;//lz2hv/mm lz2hv/p
+                    fc2 = false;
                 }
             }
             else if (!fc1 && !fc2)// NOSTD->  LZ2HV/QRP LZ2020HV LZ2020HV/P
             {
                 QString bc1 = FindBaseFullCallRemAllSlash(c1);
                 QString bc2 = FindBaseFullCallRemAllSlash(c2);
-                if (isStandardCall(bc1) && isStandardCall(bc2)) noQSO = false;
-                else noQSO = true;
+                if 		( isStandardCall(bc1) &&  isStandardCall(bc2)) noQSO = 0;//lz2hv/mm lz3hv/gg
+                else if (!isStandardCall(bc1) &&  isStandardCall(bc2)) noQSO = 5;//lz22hv   lz2hv/gg
+                else if ( isStandardCall(bc1) && !isStandardCall(bc2)) noQSO = 6;//lz2hv/gg	lz22hv
+                else if (!isStandardCall(bc1) && !isStandardCall(bc2)) noQSO = 7;//lz22hv	lz33hv
+                //else noQSO = true;
             }
         }
         if (id_mshf>0)//2.76.2
@@ -1357,21 +1362,20 @@ void MultiAnswerModW::isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,
             if (id_mshf==2)//2.76.2 me_sfox his Basecall need to be std // && !fc2
             {
                 QString bc2 = FindBaseFullCallRemAllSlash(c2);
-                if (!isStandardCall(bc2)) noQSO = true;
-                else noQSO = false;
+                if (!isStandardCall(bc2)) noQSO = 100;
+                else noQSO = 0;
             }
             if (id_mshf==1)//2.76.2 me_shound my Basecall need to be std // && !fc1
             {
                 QString bc1 = FindBaseFullCallRemAllSlash(c1);
-                if (!isStandardCall(bc1)) noQSO = true;
-                else noQSO = false;
+                if (!isStandardCall(bc1)) noQSO = 100;
+                else noQSO = 0;
             }
         }
     }
     else
-    {
-        // if (!fc1 && !fc2) // for contests no use new logic eventual exception  //2.39 old EU VHF
-        if (!fc1 && !fc2 && s_co_type!=3) noQSO = true; //2.39 for new EU VHF
+    {// if (!fc1 && !fc2) // for contests no use new logic eventual exception  //2.39 old EU VHF
+        if (!fc1 && !fc2 && s_co_type!=3) noQSO = 100; //2.39 for new EU VHF
     } //qDebug()<<"MyC="<<fc1<<c1<<"HisC="<<fc2<<c2<<"BlockQSO="<<noQSO;
     //printf("id_mshf= %d\nMyCall= %s isStd= %s\nHiCall= %s isStd= %s\nnoQSO= %s\n--------\n",id_mshf,qPrintable(c1),fc1 ? "true" : "false",qPrintable(c2),fc2 ? "true" : "false",noQSO ? "true" : "false");
 }
@@ -1405,7 +1409,8 @@ QString MultiAnswerModW::DecodeMacros(int row, QString id)//row from listNow id 
     QString my_call = list_macros.at(0);
     QString his_call = LsNow->model.item(row,0)->text();
     //bool his_call_is_std = true;//isStandardCall(his_call);
-    bool my_call_is_std,his_call_is_std,noQSO;
+    bool my_call_is_std,his_call_is_std;
+    uint8_t noQSO;
     isStandardCalls(my_call,his_call,my_call_is_std,his_call_is_std,noQSO);
 
     bool f_sf4r = false;//2.76sf
@@ -1420,7 +1425,7 @@ QString MultiAnswerModW::DecodeMacros(int row, QString id)//row from listNow id 
 
     if (tx_id==0) //click to someone else
     {
-        if (!his_call_is_std && !my_call_is_std && !noQSO) str_out ="<"+his_call+"> "+my_call;
+        if (!his_call_is_std && !my_call_is_std && noQSO!=100) str_out ="<"+his_call+"> "+my_call;
         else if (!his_call_is_std) his_call = "<"+his_call+">";
         else if (!my_call_is_std) str_out ="<"+his_call+"> "+my_call;
     }
@@ -1436,8 +1441,21 @@ QString MultiAnswerModW::DecodeMacros(int row, QString id)//row from listNow id 
         }
         else if (!his_call_is_std && !my_call_is_std)
         {
-            his_call = "<"+his_call+">";
-            if (!noQSO) my_call = s_my_base_call;
+            if (noQSO==0 || noQSO==1 || noQSO==2 || noQSO==6)
+            {
+                his_call = "<"+his_call+">";
+                my_call = s_my_base_call;
+            }
+            if (noQSO==3 || noQSO==4 || noQSO==5)
+            {
+                his_call = FindBaseFullCallRemAllSlash(his_call);
+                my_call = "<"+my_call+">";
+            }
+            if (noQSO==7)
+            {
+                his_call = "<"+his_call+">";
+                my_call  = "<"+my_call+">";
+            }
         }
         else if (!his_call_is_std && my_call_is_std) his_call = "<"+his_call+">";
         else if (his_call_is_std && !my_call_is_std) my_call  = "<"+my_call+">";
@@ -1507,9 +1525,10 @@ QString MultiAnswerModW::DecodeMacros(int row, QString id)//row from listNow id 
             my_call  = "<"+my_call+">";
         else if (his_call_is_std && !my_call_is_std)
             his_call  = "<"+his_call+">";*/
-        else if (!his_call_is_std && !my_call_is_std)
+        if (!his_call_is_std && !my_call_is_std)
         {
-            if (!noQSO) my_call  = "<"+my_call+">";
+            if (noQSO==0 || noQSO==1 || noQSO==2 || noQSO==5 || noQSO==6 || noQSO==7) my_call  = "<"+my_call+">";
+            else if (noQSO==3 || noQSO==4) his_call = "<"+his_call+">";
             else
             {
                 his_call = FindBaseFullCallRemAllSlash(his_call);
@@ -1957,15 +1976,15 @@ void MultiAnswerModW::ConfigRestrictW()
     if (SBslots->maximumS()==1) SBslots->setEnabled(false);
     else if (!g_block_setx || !g_hf_b) SBslots->setEnabled(true);//2.71 added g_block_setx
     else if (g_hf_b && g_block_setx) SBslots->setEnabled(false);
-    
+
     if (s_mode!=11 && s_mode!=13 && s_mode!=18 && !allq65) emit EmitMAFirstTX(false);//2.76.4
     else
-    {//2.71 
-    	if (g_hf_b && g_block_setx && f_multi_answer_mod_std && SBslots->valueS()>1) SBslots->setValue(1);
-    	else if (g_hf_b && f_multi_answer_mod_std && SBslots->valueS()>1/*||LsNow->GetRowCount()>1*/) emit EmitMAFirstTX(true);
-    	else if (f_multi_answer_mod_std && LsNow->GetRowCount()<2) emit EmitMAFirstTX(false);
-    	else emit EmitMAFirstTX(true);
-    }   
+    {//2.71
+        if (g_hf_b && g_block_setx && f_multi_answer_mod_std && SBslots->valueS()>1) SBslots->setValue(1);
+        else if (g_hf_b && f_multi_answer_mod_std && SBslots->valueS()>1/*||LsNow->GetRowCount()>1*/) emit EmitMAFirstTX(true);
+        else if (f_multi_answer_mod_std && LsNow->GetRowCount()<2) emit EmitMAFirstTX(false);
+        else emit EmitMAFirstTX(true);
+    }
     //qDebug()<<g_hf_b<<g_block_setx<<f_multi_answer_mod_std<<SBslots->valueS();
     //qDebug()<<"valueS="<<SBslots->valueS()<<"value="<<SBslots->value();
     //printf("valueS=%d maximumS=%d\n",SBslots->valueS(),SBslots->maximumS());
@@ -2168,14 +2187,14 @@ void MultiAnswerModW::CbCQChanged(QString)
 
     if (!Cbcqtype->isHidden())
     {
-        QString sc = Cbcqtype->currentText();//QString sr = Cbcqtype->itemText(0);//reset        
+        QString sc = Cbcqtype->currentText();//QString sr = Cbcqtype->itemText(0);//reset
         if (sc=="Free Msg")
         {
             LeFreeCQ->setEnabled(true);
             pb_use_free_cq->setEnabled(true);
             if (LeFreeCQ->text()=="PSE SYNC TIME")
             {
-            	QString sr = Cbcqtype->itemText(0);//reset
+                QString sr = Cbcqtype->itemText(0);//reset
                 QString Myloc4 = list_macros.at(1).mid(0,4);
                 LeFreeCQ->setText(sr+" "+list_macros.at(0)+" "+Myloc4);//reset
                 BlockFrreCq(false);
@@ -2622,13 +2641,14 @@ void MultiAnswerModW::DecListTextAll(QString tx_rpt,QString str,QString freq,boo
 
     if ((!myCall_inmsg.isEmpty() || f_multi_answer_mod_std) && !hisCall_inmsg.isEmpty())
     {
-        bool fc1,fc2,noQSO;
+        bool fc1,fc2;
+        uint8_t noQSO;
         isStandardCalls(list_macros.at(0),hisCall_inmsg,fc1,fc2,noQSO);
         if (f_multi_answer_mod_std && f_con_only_sdtc)
         {
             if (!fc1 || !fc2) return;
         }
-        if (noQSO) return; //two_no_sdtc
+        if (noQSO==100) return; //two_no_sdtc
 
         int id_0qe_1nw_2ne = 2;//0=Queue,1=Now,2=New //2.47 moved here
         if (row_queue>-1) id_0qe_1nw_2ne = 0;

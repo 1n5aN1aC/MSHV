@@ -46,9 +46,18 @@ DecoderFt2::DecoderFt2(int id)
     pi=4.0*atan(1.0);
     cont_id0_ft2_2 = 0;
     //f_new_p = true;
-    jseq=0;
+    jseq_a=0;
     ft2_clravg(0);
     ft2_clravg(1); //printf(" EXP=%lf",exp(10));
+    //////////AP7//////////////////
+    jseq_a7=0;
+    nutc0="-1";
+    c_zerop = 0;
+    for (int i= 0; i < 2; ++i)
+    {
+        for (int j= 0; j < 2; ++j) ndec[i][j] = 0;
+    }
+    //////////end AP7//////////////////
 }
 DecoderFt2::~DecoderFt2()
 {}
@@ -86,11 +95,12 @@ void DecoderFt2::SetStQSOProgress(int i)
 }
 static QString s_time2 = "000000";
 static int s_mousebutton2 = 0;
-void DecoderFt2::SetStDecode(QString time,int mousebutton)
+static bool s_fopen2 = false;
+void DecoderFt2::SetStDecode(QString time,int mousebutton,bool ffopen)
 {
     s_time2 = time;
     s_mousebutton2 = mousebutton;//mousebutton Left=1, Right=3 fullfile=0 rtd=2
-    //s_fopen4 = ffopen;
+    s_fopen2 = ffopen;
 }
 static QString s_MyCall2 = "NOT__EXIST";
 //static QString s_MyBaseCall4 = "NOT__EXIST";
@@ -112,40 +122,6 @@ void DecoderFt2::SetStHisCall(QString c)
 void DecoderFt2::SetMAMCalls(QStringList ls)
 {
     TGenFt2->save_hash_call_mam(ls);
-}
-void DecoderFt2::dshift1(double *a,int cou_a,int ish)
-{
-    //HV for single shift vareable
-    //Left Shift 	ISHFT 	ISHFT(N,M) (M > 0) 	<< 	n<<m 	n shifted left by m bits
-    //Right Shift 	ISHFT 	ISHFT(N,M) (M < 0) 	>> 	n>>m 	n shifted right by m bits
-
-    //double complex t[cou_a];  //garmi hv v1.42
-    //double complex t[cou_a*2+ish+50];  //garmi hv v1.43 ok
-    double *t = new double[cou_a+100]; //garmi pri goliam count hv v1.43 correct ok
-    for (int i=0; i< cou_a; i++)
-        t[i]=a[i];
-
-    if (ish>0)
-    {
-        for (int i = 0; i <  cou_a; i++)
-        {
-            if (i+ish<cou_a)
-                a[i]=t[i+ish];
-            else
-                a[i]=t[i+ish-cou_a];
-        }
-    }
-    if (ish<0)
-    {
-        for (int i = 0; i <  cou_a; i++)
-        {
-            if (i+ish<0)
-                a[i]=t[i+ish+cou_a];
-            else
-                a[i]=t[i+ish];
-        }
-    }
-    delete [] t;
 }
 void DecoderFt2::ft2_downsample(double *dd,bool newdata,double f0,double complex *c)
 {
@@ -174,7 +150,7 @@ void DecoderFt2::ft2_downsample(double *dd,bool newdata,double f0,double complex
             window_ft2_ds[i]=0.0;//window(2*iwt+iwf:)=0.0
 
         int iws = (int)(baud/df);
-        dshift1(window_ft2_ds,NFFT2,iws);//window_ft4_ds=cshift(window_ft4_ds,iws)  window=cshift(window,iws)
+        pomAll.dshift1(window_ft2_ds,NFFT2,iws);//window_ft4_ds=cshift(window_ft4_ds,iws)  window=cshift(window,iws)
         first_ft2_ds=false;
     }
     if (newdata)
@@ -203,8 +179,8 @@ void DecoderFt2::ft2_downsample(double *dd,bool newdata,double f0,double complex
 void DecoderFt2::ft2_baseline(double *s,int nfa,int nfb,double *sbase)
 {
     const int NFFT1=1152;//2304;
-    const int NH1=NFFT1/2;//=1152
-    double df=DEC_SAMPLE_RATE/(double)NFFT1;                    //!3.125 Hz
+    const int NH1=NFFT1/2;//ft2=576  ft4=1152
+    double df=DEC_SAMPLE_RATE/(double)NFFT1;//!3.125 Hz
     int ia=fmax((int)(200.0/df),nfa);
     int ib=fmin(NH1,nfb);
     int nseg = 10;
@@ -231,8 +207,7 @@ void DecoderFt2::ft2_baseline(double *s,int nfa,int nfb,double *sbase)
         int ja=ia + (n-0)*nlen;
         int jb=ja+nlen-0;
 
-        for (int z = 0; z<NH1-ja; ++z)//NH1=1152
-            t_s[z] = s[z+ja];
+        for (int z = 0; z<NH1-ja; ++z) t_s[z] = s[z+ja];//NH1=1152
         //qDebug()<<"ja jb"<<ja<<jb<<nlen<<1920-ja;
         double base = pomAll.pctile_shell(t_s,nlen,npct);//pctile(s(ja),nlen,npct,base); //!Find lowest npct of points
         //qDebug()<<"base"<<base;
@@ -243,8 +218,7 @@ void DecoderFt2::ft2_baseline(double *s,int nfa,int nfb,double *sbase)
                 //if (k<1000) k++;       //!Save all "lower envelope" points
                 x[k]=i-i0;
                 y[k]=s[i];
-                if (k<999)
-                    k++;
+                if (k<999) k++;
             }
         }
     }
@@ -267,7 +241,7 @@ void DecoderFt2::ft2_baseline(double *s,int nfa,int nfb,double *sbase)
     }
 }
 void DecoderFt2::getcandidates2(double *dd,double fa,double fb,double fa1,double fb1,double syncmin,double nfqso,
-                                int maxcand,double candidate[2][250],int &ncand)
+                                int maxcand,double candidate[2][250],int &ncand,double *sbase)
 {
     const int NFFT1=1152;//2304;
     const int NSTEP=288;//576;
@@ -279,7 +253,7 @@ void DecoderFt2::getcandidates2(double *dd,double fa,double fb,double fa1,double
     double s_[NHSYM+10][NH1+10];//(NH1,NHSYM)
     double savsm[NH1+50];
     //int indx[NH1+50];
-    double sbase[NH1+50];
+    //double sbase[NH1+50];
     double savg[NH1+50];
     double candidatet[2][250];
     //qDebug()<<NHSYM;
@@ -287,8 +261,7 @@ void DecoderFt2::getcandidates2(double *dd,double fa,double fb,double fa1,double
     if (first_ft2detcad)
     {
         first_ft2detcad=false;
-        for (int i = 0; i < NFFT1; ++i)
-            window_ft2[i]=0.0;
+        for (int i = 0; i < NFFT1; ++i) window_ft2[i]=0.0;
         pomFt.nuttal_window(window_ft2,NFFT1);
     }
 
@@ -342,7 +315,7 @@ void DecoderFt2::getcandidates2(double *dd,double fa,double fb,double fa1,double
     if (nfb1>471) nfb1=471;
 
     ncand=0;
-    //qDebug()<<200.0/df<<4910.0/df;// 38.3   942.7
+    //qDebug()<<200.0/df<<4910.0/df<<2000.0/df;// 38.3   942.7
     //1000/df=192=96 1200/df=230=115 1500/df=288=144 2000/df=384=192 3000/df=576=288 HV correction
     if ((fb1-fa1)<2000)
     {
@@ -602,7 +575,7 @@ void DecoderFt2::sync2d(double complex *cd0,int i0,double complex *ctwk,int itwk
     else if (i4+4*NSS-1>NP-1) //else if( i4+4*NSS-1.gt.NP-1 ) then
     {
         int npts=(NP-1-i4+1)/2;//npts=(NP-1-i4+1)/2;
-        if (npts<=16) z4=0.0+0.0*I;//if(npts.le.16) then            
+        if (npts<=16) z4=0.0+0.0*I;//if(npts.le.16) then
         else
         {
             //z4=sum(cd0(i4:i4+2*npts-1:2)*conjg(csync2(1:npts)))
@@ -618,16 +591,16 @@ void DecoderFt2::sync2d(double complex *cd0,int i0,double complex *ctwk,int itwk
     //new p(z1)=(real(z1*fac)**2 + aimag(z1*fac)**2)**0.5
     //sync = ps_hv(z1*fac_ft4_sync) + ps_hv(z2*fac_ft4_sync) + ps_hv(z3*fac_ft4_sync) + ps_hv(z4*fac_ft4_sync);
     /*sync = pow(pomAll.ps_hv(z1*fac_ft2_sync),0.5) + pow(pomAll.ps_hv(z2*fac_ft2_sync),0.5) +
-           pow(pomAll.ps_hv(z3*fac_ft2_sync),0.5) + pow(pomAll.ps_hv(z4*fac_ft2_sync),0.5);*/       
-	double p1=pow(pomAll.ps_hv(z1*fac_ft2_sync),0.5);
-	double p2=pow(pomAll.ps_hv(z2*fac_ft2_sync),0.5);
-	double p3=pow(pomAll.ps_hv(z3*fac_ft2_sync),0.5);
-	double p4=pow(pomAll.ps_hv(z4*fac_ft2_sync),0.5);  
-	double pmin=p1;//fmin(p1,p2,p3,p4)
-	if (pmin>p2) pmin=p2;
-	if (pmin>p3) pmin=p3;
-	if (pmin>p4) pmin=p4;
-	sync = p1 + p2 + p3 + p4 - pmin; //static int g=0; if (g<20) printf("p1=%.3f p2=%.3f p3=%.3f p4=%.3f pmin=%.3f\n",p1,p2,p3,p4,pmin); g++;     
+           pow(pomAll.ps_hv(z3*fac_ft2_sync),0.5) + pow(pomAll.ps_hv(z4*fac_ft2_sync),0.5);*/
+    double p1=pow(pomAll.ps_hv(z1*fac_ft2_sync),0.5);
+    double p2=pow(pomAll.ps_hv(z2*fac_ft2_sync),0.5);
+    double p3=pow(pomAll.ps_hv(z3*fac_ft2_sync),0.5);
+    double p4=pow(pomAll.ps_hv(z4*fac_ft2_sync),0.5);
+    double pmin=p1;//fmin(p1,p2,p3,p4)
+    if (pmin>p2) pmin=p2;
+    if (pmin>p3) pmin=p3;
+    if (pmin>p4) pmin=p4;
+    sync = p1 + p2 + p3 + p4 - pmin; //static int g=0; if (g<20) printf("p1=%.3f p2=%.3f p3=%.3f p4=%.3f pmin=%.3f\n",p1,p2,p3,p4,pmin); g++;
 }
 void DecoderFt2::gen_ft2cwaveRx(int *i4tone,double f_tx,double complex *cwave)
 {
@@ -719,20 +692,7 @@ void DecoderFt2::subtractft2(double *dd,int *itone,double f0,double dt)
         if (j>=0 && j<NMAX)
             dd[j]-=1.94*creal(cfilt[i]*cref[i]);//2.35 1.94   2.18 1.93
     }
-    /*int kstop = 0;
-    for (int i = 0; i < NFRAME; ++i)//if(j.ge.1 .and. j.le.NMAX) dd(j)=dd(j)-2*REAL(cfilt(i)*cref(i))
-    {
-        int j=nstart+i-1;//0 -1
-        if (j>=0 && j<NMAX)
-        {
-            dd66[j]=1.94*creal(cfilt[i]*cref[i]);//2.35 1.94   2.26 1.93 no->2.0  //2.07 1.92<-tested    1.5,1.6  ,1.7ok,
-            kstop=j;
-        }
-    }
-    int kstart = nstart-1;
-    if (kstart<0) kstart=0;
-    for (int i = kstart; i < kstop+1; ++i)
-        dd[i]-=dd66[i];*/
+
     delete [] cref;
     delete [] cfilt;
 }
@@ -918,7 +878,7 @@ void DecoderFt2::ft2_channel_est(double complex *cd,double complex *cd_eq,double
         }
     }
 }
-void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync)
+void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync,double s4_[120][4])
 {
     const int NN=103;
     const int NSPS=288;//576;
@@ -926,7 +886,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
     const int NSS=NSPS/NDOWN;//=32
     double complex csymb[NSS+10];//complex csymb(NSS)
     double complex cs_[NN+10][4];//complex cs(0:3,NN)
-    double s4_[NN+10][4];// real s4(0:3,NN)
+    //double s4_[NN+10][4];// real s4(0:3,NN)
     //double s2[256+20];
     const int graymap[4]=
         {
@@ -1013,7 +973,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
                 noise_sum += pwr_[k+99][itone];//(itone,k)
                 nnoise++;
             }
-        } 
+        }
     }
     if (nnoise>0) noise_var = noise_sum / (double)nnoise; //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
     else noise_var = 1.0;
@@ -1043,9 +1003,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
         if (icos4d[k]==ip) is4++;           //if(icos4d(k-1).eq.(ip(1)-1)) is4=is4+1
     }
     int nsync=is1+is2+is3+is4; //printf(" %d= %d= %d= %d= %d= \n",nsync,is1,is2,is3,is4);
-    if (nsync < 7)
-        //if (nsync < 5)
-        //if (nsync < 4)//ft4=8)
+    if (nsync < 7)//if (nsync < 5)//if (nsync < 4)//ft4=8)
     {
         badsync=true;
         return;
@@ -1112,7 +1070,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
             double beta_eff = beta / (double)nsym;
             for (int ib = 0; ib <= ibmax; ++ib)//bmeta[206] (2*NN)
             {//do ib=0,ibmax   //s2[256]  bool one_ft4_2[8][256];//(0:255,0:7)
-                //bm=maxval(s2(0:nt-1),one(0:nt-1,ibmax-ib))-maxval(s2(0:nt-1),.not.one(0:nt-1,ibmax-ib))                
+                //bm=maxval(s2(0:nt-1),one(0:nt-1,ibmax-ib))-maxval(s2(0:nt-1),.not.one(0:nt-1,ibmax-ib))
                 if (ipt+ib>(2*NN-1)) continue;
                 //! -- Log-Sum-Exp for bit=1 --
                 double maxp1 = -1.0e30;
@@ -1129,10 +1087,10 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
                 {//do i=0,nt-1
                     if (one_ft2_2[ibmax-ib][i])
                     {
-                    	double exp0 = beta_eff*sp[i] - maxp1;
-                    	if (exp0>20.0) exp0=20.0; 
-                    	lse1 += exp(exp0);//if(one(i,ibmax-ib)) then
-                   	}
+                        double exp0 = beta_eff*sp[i] - maxp1;
+                        if (exp0>20.0) exp0=20.0;
+                        lse1 += exp(exp0);//if(one(i,ibmax-ib)) then
+                    }
                 } //if(lse1>200) qDebug()<<"0--"<<lse1;
                 lse1 = maxp1 + log(fmax(lse1,1.0e-30));
                 //! -- Log-Sum-Exp for bit=0 --
@@ -1150,8 +1108,8 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
                 {//do i=0,nt-1
                     if (!one_ft2_2[ibmax-ib][i])
                     {
-                    	double exp0 = beta_eff*sp[i] - maxp0;
-                    	if (exp0>20.0) exp0=20.0;                    	
+                        double exp0 = beta_eff*sp[i] - maxp0;
+                        if (exp0>20.0) exp0=20.0;
                         lse0 += exp(exp0);
                     }
                 } //if(lse0>200) qDebug()<<"1--"<<lse0;
@@ -1190,17 +1148,17 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
     else fading_depth = 30.0;  //! Deep fade detected
     //! Use channel-equalized metrics if fading >3 dB (otherwise AWGN, no benefit)
     bool use_cheq = false;//3.0
-    const double limdB=4.0;
+    const double limdB=6.0;//4.0;
     if (fading_depth > limdB) use_cheq = true;
     //if (snr_max-snr_min > 3.0) use_cheq = true;
-    //if (use_cheq) qDebug()<<fading_depth<<use_cheq;//<<snr_max<<snr_min<<
+    //if (use_cheq && fading_depth<30) qDebug()<<fading_depth<<use_cheq;//<<snr_max<<snr_min<<
     //if (!use_cheq) qDebug()<<" ---  "<<fading_depth<<use_cheq;
 
-    /*bitmetrics_[1][204]=bitmetrics_[0][204];//bmetb(205:206)=bmeta(205:206)
-       bitmetrics_[1][205]=bitmetrics_[0][205];
-       for (int zz = 200; zz < 204; ++zz) bitmetrics_[2][zz]=bitmetrics_[1][zz];//bmetc(201:204)=bmetb(201:204)
-       bitmetrics_[2][204]=bitmetrics_[0][204];//bmetc(205:206)=bmeta(205:206)
-       bitmetrics_[2][205]=bitmetrics_[0][205];*/
+    /*bitmetrics_[1][204]=bitmetrics_[0][204];
+    bitmetrics_[1][205]=bitmetrics_[0][205];
+    for (int zz = 200; zz < 204; ++zz) bitmetrics_[2][zz]=bitmetrics_[1][zz];
+    bitmetrics_[2][204]=bitmetrics_[0][204];
+    bitmetrics_[2][205]=bitmetrics_[0][205];*/
 
     if (use_cheq)
     {	//! Compute single-symbol metrics on equalized signal
@@ -1282,23 +1240,23 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
                     {
                         if (pval > maxp0) maxp0 = pval;
                     }
-                } 
+                }
                 double lse1 = 0.0;
-                double lse0 = 0.0;                
+                double lse0 = 0.0;
                 for (int i = 0; i < 4; ++i)
                 {//do i=0,nt-1
                     if (one_ft2_2[ibmax-ib][i])
-                    {	
-                    	double exp0 = beta_eq*sp_eq[i] - maxp1;
-                    	if (exp0>20.0) exp0=20.0; 
-                    	lse1 += exp(exp0);
-                   	}
-                    else 
-                    {	
-                    	double exp0 = beta_eq*sp_eq[i] - maxp0; 
-                    	if (exp0>20.0) exp0=20.0;  
-                    	lse0 += exp(exp0);
-                   	}
+                    {
+                        double exp0 = beta_eq*sp_eq[i] - maxp1;
+                        if (exp0>20.0) exp0=20.0;
+                        lse1 += exp(exp0);
+                    }
+                    else
+                    {
+                        double exp0 = beta_eq*sp_eq[i] - maxp0;
+                        if (exp0>20.0) exp0=20.0;
+                        lse0 += exp(exp0);
+                    }
                 } //if(lse0>10 || lse1>10) qDebug()<<"2--"<<lse0<<lse1;
                 lse1 = maxp1 + log(fmax(lse1,1.0e-30));
                 lse0 = maxp0 + log(fmax(lse0,1.0e-30));
@@ -1317,16 +1275,16 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
         {//do i=1,2*NN
             bitmetrics_[0][i] = (1.0-blend)*bitmetrics_[0][i] + blend*bmet_eq[i];//bitmetrics(i,1) = (1.0-blend)*bitmetrics(i,1) + blend*bmet_eq(i)
         }//! Re-normalize after blending
-        pomFt.normalizebmet(bitmetrics_[0],2*NN);//call normalizebmet(bitmetrics(:,1),2*NN)
+        //pomFt.normalizebmet(bitmetrics_[0],2*NN);//call normalizebmet(bitmetrics(:,1),2*NN)
     }
-    else pomFt.normalizebmet(bitmetrics_[0],2*NN);//call normalizebmet(bitmetrics(:,1),2*NN)
+    //else pomFt.normalizebmet(bitmetrics_[0],2*NN);//call normalizebmet(bitmetrics(:,1),2*NN)
     /////////////////////////////////////////////////////////////////////////////////////
     bitmetrics_[1][204]=bitmetrics_[0][204];//bmetb(205:206)=bmeta(205:206)
     bitmetrics_[1][205]=bitmetrics_[0][205];
     for (int zz = 200; zz < 204; ++zz) bitmetrics_[2][zz]=bitmetrics_[1][zz];//bmetc(201:204)=bmetb(201:204)
     bitmetrics_[2][204]=bitmetrics_[0][204];//bmetc(205:206)=bmeta(205:206)
     bitmetrics_[2][205]=bitmetrics_[0][205];
-    //pomFt.normalizebmet(bitmetrics_[0],2*NN);
+    pomFt.normalizebmet(bitmetrics_[0],2*NN);
     pomFt.normalizebmet(bitmetrics_[1],2*NN);
     pomFt.normalizebmet(bitmetrics_[2],2*NN);
 }
@@ -1343,36 +1301,542 @@ void DecoderFt2::ft2_clravg(int jseq)
     ft2avg[jseq].f_avg=0.0;
     ft2avg[jseq].dt_avg=0.0;
 }
-uint8_t DecoderFt2::isFalseDecode(QString msg,int nsnr,double qual,bool do_avg,int nharderror,int i3)
+int DecoderFt2::ft2_even_odd(QString s)//res=0 (even first), or res=1 (odd second)
 {
-    if (msg.contains("<> ")) return 1;
-    int harde = 36;
-    if (nsnr<-19 && qual<0.06) harde = 19;
-    if (!do_avg && nsnr<-17 && qual<0.07 && nharderror>harde) return 2;
-    if (!do_avg && nsnr<-19 && qual<0.17 && nharderror>36) return 3;
-    harde = 36;
-    if (!do_avg && nsnr<-19 && qual<0.36) harde = 23;
-    if (qual<0.35 && msg.contains("/") && nharderror>harde) return 4;
+    bool res = 0;
+    if (s.count()<6) return 0; //2.70 protection
+    int time_ss =  s.midRef(4,2).toInt();//get seconds 120023
+    int time_mm =  s.midRef(2,2).toInt();//get min 120023
+    int time_ms = 0;
+    if      (time_ss == 3 || time_ss == 18 || time_ss == 33 || time_ss == 48) time_ms = 75;
+    else if (time_ss == 7 || time_ss == 22 || time_ss == 37 || time_ss == 52) time_ms = 50;
+    else if (time_ss ==11 || time_ss == 26 || time_ss == 41 || time_ss == 56) time_ms = 25;
+    int time_p = (time_mm*6000)+(time_ss*100)+time_ms;
+    time_p = time_p % (375*2);
+    if (time_p<375) res = 0;
+    else res = 1;
+    /*int mm = s.midRef(2, 2).toInt();
+    int ss = s.midRef(4, 2).toInt(); // 2. Map the specific second offsets to 250ms units (0, 1, 2, or 3)
+    int quarter_units = 0;
+    if      (ss % 15 == 3)  quarter_units = 3; // 0.75s -> 3 units
+    else if (ss % 15 == 7)  quarter_units = 2; // 0.50s -> 2 units
+    else if (ss % 15 == 11) quarter_units = 1; // 0.25s -> 1 unit
+    // 3. Calculate total units (1 second = 4 units)
+    // Total period (7.5s) = 30 units. Half period (3.75s) = 15 units.
+    long total_units = (mm * 60 * 4) + (ss * 4) + quarter_units;
+    // 4. Determine phase (Even/Odd 3.75s blocks)
+    res = (total_units / 15) % 2;*/
+    /*int ss = s.midRef(4,2).toInt();
+    if      (ss % 15 == 3)  res = 1; // 0.75s -> 3 units
+    else if (ss % 15 == 7)  res = 0; // 0.50s -> 2 units
+    else if (ss % 15 == 11) res = 1; // 0.25s -> 1 unit*/
+    return res;
+}
+//////////AP7//////////////////
+void DecoderFt2::ft2_a7_save(QString nutc,double dt,double f,QString msg)
+{
+    int nwords = 0;
+    QString w[19+8]; //qDebug()<<"msg="<<msg;
+    if (msg.indexOf("/")>-1 || msg.indexOf("<")>-1) return;
+    msg.append(" ");//for any case for label->c5
+    for (int z = 0; z<19; ++z) w[z]="             ";//13 blinks char
+    TGenFt2->split77(msg,nwords,w);
+    if (nwords<1) return;
+    if (w[0].mid(0,3)=="CQ_") return;//???
+    int j=ft2_even_odd(nutc);
+    jseq_a7=j;
+    //Add this decode to current table for this sequence
+    //Number of decodes in this sequence
+    int i=ndec[1][j];
+    dt0[1][j][i]=dt;
+    f0[1][j][i]=f;
+    msg0[1][j][i]=w[0].trimmed()+" "+w[1].trimmed();
+    QString s = w[1].trimmed();
+    if (w[0].mid(0,3)=="CQ " && s.count()<=2)
+    {
+        msg0[1][j][i]="CQ "+w[1].trimmed()+" "+w[2].trimmed();//Save "CQ DX Call_2" ???
+    }
+    //QString msg1=msg0[1][j][i];//msg1=msg0(i,j,1)
+    //nn=len(trim(msg1))
+    //Include grid as part of message
+    if (pomFt.isgrid4(w[nwords-1])) msg0[1][j][i]=msg0[1][j][i]+" "+w[nwords-1].trimmed();
+    //If a transmission at this frequency with message fragment "call_1 call_2"
+    //was decoded in the previous sequence, flag it as "DO NOT USE" because
+    //we have already decoded and subtracted that station's next transmission.
+    s = msg0[1][j][i]+"   ";//for any case for label->c5
+    for (int z = 0; z<19; ++z) w[z]="             ";//13 blinks char
+    TGenFt2->split77(s,nwords,w);
+    for (int z = 0; z<ndec[0][j]; ++z)
+    {	//hv protect from dupe decode in same period
+        if (f0[0][j][z]<=-98.0) continue;
+        int i2=msg0[0][j][z].indexOf(" "+w[1].trimmed());
+        if (fabs(f-f0[0][j][z])<=3.0 && i2>=2) f0[0][j][z]=-98.0;//Flag as "do not use" for a potential a7 decode
+    }
+    if (i>MAXDEC-2) return;
+    ndec[1][j]++; //qDebug()<<"Save="<<j<<msg<<ndec[1][j];
+}
+void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_2,QString grid4,
+                         double &xdt,double &f0,double xbase,int &nharderrors,double &,QString &message,double &xsnr)
+{
+    const int ndepth = 3;
+    const int MAXMSG=158;//= -26 to +49
+    const int ND=87;
+    const int NS=16;
+    const int NMAX=45000;
+    const int NDOWN=9;//ft4=18;
+    const int NDMAX=NMAX/NDOWN;
+    const int NN=NS+ND;
+    const int NSPS=288;
+    const int NSS=NSPS/NDOWN;//=32
+    const int c_cb = NDMAX;
+    const int c_cd2 = NDMAX;
+    const int c_cd = NN*NSS;
+    double complex cd2[NDMAX+100];
+    double complex cb[NDMAX+100];
+    double complex cd[c_cd+500];
+    double sum2=0.0;
+    bool badsync = false;
+    double sm1_sub, sp1_sub, den_sub;
+    bool hbits[220];
+    double s4_[NN+10][4];
+    double bitmetrics_[3][220];//NN*2
+    double llra[174];
+    double llrb[174];
+    double llrc[174];
+    double llrd[174];
+    int itone[NN+5];//NN
+    bool hdec[178];
+    bool nxor[178];
+    double dmm[MAXMSG+50];
+    QString msgbest = "";
+    QString msgsent = "";
+    double pbest;
+    double xibest;
+    bool std_1,std_2;
+
+    //call_1="CQ"; call_2="LZ444HV"; grid4="    ";
+    std_1 = pomAll.isStandardCall(call_1.trimmed());
+    if (call_1=="CQ") std_1=true;
+    std_2 = pomAll.isStandardCall(call_2.trimmed());
+    //qDebug()<<"  IN================="<<call_1<<call_2<<grid4<<"std"<<std_1<<std_2;
+    nharderrors=-1;
+    ft2_downsample(dd0,dobigfft,f0,cd2);  //!Downsample to 32 Sam/Sym
+    if (dobigfft) dobigfft=false;
+    for (int i = 0; i < c_cd2; ++i) sum2+=creal(cd2[i]*conj(cd2[i]));//???
+    sum2=sum2/((double)NMAX/(double)NDOWN);//sum2=sum(cd2*conjg(cd2))/(real(NZZ)/real(NDOWN))
+    if (sum2>0.0)//if(sum2.gt.0.0) cd2=cd2/sqrt(sum2)
+    {
+        for (int i = 0; i < c_cd2; ++i) cd2[i]=cd2[i]/sqrt(sum2);
+    }
+    for (int iseg = 1; iseg <= 3; ++iseg)//! DT search is done over 3 segments
+    {//do iseg=1,3
+        int idfbest = 0;
+        int ibest = -1;
+        double smax=-99.0;
+        double smax1=-99.0;
+        for (int isync = 1; isync <= 2; ++isync)
+        {
+            int idfmin,idfmax,idfstp,ibmin,ibmax,ibstp;
+            ibmin = -688;//108;
+            ibmax = 2024;//565;
+            if (isync==1)
+            {
+                idfmin=-12;//12
+                idfmax=12; //12
+                idfstp=3;  //3
+                //ibmin=-344;
+                //ibmax=1012;
+                if (iseg==1)
+                {
+                    ibmin=216;//108;
+                    ibmax=1120;//565;//560
+                }
+                else if (iseg==2)
+                {
+                    smax1=smax;
+                    ibmin=1120;//555;//560
+                    ibmax=2024;//1012;
+                }
+                else if (iseg==3)
+                {
+                    ibmin=-688;//-344;
+                    ibmax=216;//118;//108
+                }
+                ibstp=4;
+            }
+            else
+            {
+                idfmin=idfbest-4;//-4
+                idfmax=idfbest+4;//4
+                idfstp=1;
+                ibmin=ibest-5;//ibmin=fmax(0,ibest-5);
+                ibmax=ibest+5;//ibmax=fmin(ibest+5,NDMAX/NDOWN-1);
+                ibstp=1;
+            }
+            //qDebug()<<"m/m"<<isync<<idfmin<<idfmax<<idfbest;
+            ibest=-1;
+            smax=-99.0;
+            idfbest=0;
+            for (int idf = idfmin; idf <= idfmax; idf+=idfstp)
+            {//do idf=idfmin,idfmax,idfstp
+                for (int istart = ibmin; istart <= ibmax; istart+=ibstp)
+                {//do istart=ibmin,ibmax,ibstp
+                    double sync=-99.0;
+                    sync2d(cd2,istart,ctwk2_ft2_[idf+20],1,sync);//20  sync4d(cd2,istart,ctwk2(:,idf),1,sync)  //!Find sync power
+                    if (sync>smax) //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
+                    {
+                        smax=sync;
+                        ibest=istart;//+ibstp;
+                        idfbest=idf;//+idfstp;
+                    }
+                }
+            } //qDebug()<<"iseg"<<smax<<iseg<<f0<<f0+idfbest<<ibest;
+        }
+        //if (iseg==1) smax1=smax;
+        //if (smax<0.9) continue;//stop 038
+        double smaxthresh=0.60;//0.80;//0.9;//038
+        if (ndepth>=3) smaxthresh=0.50;//0.65;//0.72;//0.65;//0.75;//038
+        //if (isp>=2) smaxthresh=smaxthresh*0.88; //! pass 2: ~15%
+        //if (isp>=3) smaxthresh=smaxthresh*0.76; //! pass 3+: ~25%
+        if (smax<smaxthresh) continue;//038
+        if (iseg>1 && smax<smax1) continue;
+        double f1=f0+(double)idfbest; //qDebug()<<idfbest<<f1;
+        if ( f1<=10.0 || f1>=4990.0 ) continue;//cycle
+        ft2_downsample(dd0,dobigfft,f1,cb); //!Final downsample, corrected f1
+        sum2=0.0;
+        for (int i = 0; i < c_cb; ++i) sum2+=cabs(cb[i])*cabs(cb[i]);//sum2=sum(abs(cb)**2)/(real(NSS)*NN)
+        sum2 = sum2/(double)(NSS*NN);
+        if (sum2>0.0)
+        {
+            for (int i = 0; i < c_cb; ++i) cb[i]=cb[i]/sqrt(sum2);
+        }
+        //????????????????????????????
+        //qDebug()<<"kkk="<<ibest<<f1;
+        //const int c_cb = NDMAX;//=4032
+        //const int c_cd = NN*NSS;//=3296
+        for (int i = 0; i < c_cd+5; ++i) cd[i]=0.0+0.0*I;//cd=0. //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
+        if (ibest>=0)
+        {
+            int it=fmin(NDMAX-1,ibest+NN*NSS-1);
+            int np=it-ibest+1;
+            for (int i = 0; i < np; ++i) cd[i]=cb[i+ibest];//cd(0:np-1)=cb(ibest:it)
+        }
+        else
+        {
+            for (int i = 0; i < (NN*NSS+2*ibest); ++i)//cd(-ibest:ibest+NN*NSS-1)=cb(0:NN*NSS+2*ibest-1)
+            {
+                if (i-ibest>=0) cd[i-ibest]=cb[i];//for any case array out of bounds
+            }
+        } //qDebug()<<fmin(NDMAX-1,ibest+NN*NSS-1)-ibest+1<<NN*NSS+2*ibest<<c_cd<<c_cb<<f1;
+        get_ft2_bitmetrics(cd,bitmetrics_,badsync,s4_);//get_ft2a7_bitmetrics(cd,bitmetrics_,badsync,s4_);//
+        if (badsync) continue;
+        //! Sub-sample DT refinement via 3-point parabolic interpolation
+        //! Improves DT accuracy from ±0.75ms (1 sample) to ±0.1ms
+        if (ibest>0 && ibest<NDMAX-1)
+        {
+            sync2d(cd2,ibest-1,ctwk2_ft2_[idfbest+20],1,sm1_sub);//sync2d(cd2,ibest-1,ctwk2(:,idfbest),1,sm1_sub);
+            sync2d(cd2,ibest+1,ctwk2_ft2_[idfbest+20],1,sp1_sub);//sync2d(cd2,ibest+1,ctwk2(:,idfbest),1,sp1_sub);
+            den_sub = sm1_sub - 2.0*smax + sp1_sub;
+            if (fabs(den_sub) > 1.0e-6) xibest = (double)ibest + 0.5*(sm1_sub - sp1_sub)/den_sub;
+            else xibest = (double)ibest;
+        }
+        else xibest = (double)ibest;
+        //qDebug()<<" --->2   xibest="<<xibest;
+        //where(bmeta>=0) hbits=1;
+        for (int x = 0; x < 2*NN; ++x)
+        {
+            if (bitmetrics_[0][x]>=0.0) hbits[x]=1;
+            else hbits[x]=0;
+        }
+        bool ms1[8] = {0,0,0,1,1,0,1,1};//count(hbits(  1:  8)==(/0,0,0,1,1,0,1,1/))
+        int ns1=count_eq_bits(hbits,0,  ms1,8);
+        bool ms2[8] = {0,1,0,0,1,1,1,0};//count(hbits( 67: 74)==(/0,1,0,0,1,1,1,0/))
+        int ns2=count_eq_bits(hbits,66, ms2,8);
+        bool ms3[8] = {1,1,1,0,0,1,0,0};//count(hbits(133:140)==(/1,1,1,0,0,1,0,0/))
+        int ns3=count_eq_bits(hbits,132,ms3,8);
+        bool ms4[8] = {1,0,1,1,0,0,0,1};//count(hbits(199:206)==(/1,0,1,1,0,0,0,1/))
+        int ns4=count_eq_bits(hbits,198,ms4,8);
+        int nsync_qual=ns1+ns2+ns3+ns4;
+        //qDebug()<<"nsync_qual="<<nsync_qual<<ns1<<ns2<<ns3<<ns4<<f1;
+        //if (nsync_qual<15) continue;//stop 038
+        int nsync_qual_min=13;//15;//038
+        if (ndepth>=3) nsync_qual_min=10;//12;//10;//12;//038
+        if (nsync_qual<nsync_qual_min) continue;//038
+        double scalefac=2.83;  //llr[174]; =2*ND
+        for (int x = 0; x < 58; ++x)
+        {
+            llra[x]=bitmetrics_[0][x+8];
+            llra[x+58]=bitmetrics_[0][x+74];
+            llra[x+116]=bitmetrics_[0][x+140];
+            llrb[x]=bitmetrics_[1][x+8];
+            llrb[x+58]=bitmetrics_[1][x+74];
+            llrb[x+116]=bitmetrics_[1][x+140];
+            llrc[x]=bitmetrics_[2][x+8];
+            llrc[x+58]=bitmetrics_[2][x+74];
+            llrc[x+116]=bitmetrics_[2][x+140];
+        }
+        double maxval_llra_abs = 0.0;
+        for (int x = 0; x < 2*ND; ++x)//llr[174]; =2*ND
+        {
+            llra[x]=scalefac*llra[x];
+            llrb[x]=scalefac*llrb[x];
+            llrc[x]=scalefac*llrc[x];
+            double llra_abs = fabs(llra[x]);
+            if (llra_abs>maxval_llra_abs) maxval_llra_abs=llra_abs;
+        }
+        //double apmag = maxval_llra_abs*1.1;//apmag=maxval(abs(llra))*1.1
+        for (int i = 0; i < 2*ND; ++i)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
+        {//do i=1,2*ND
+            if (fabs(llra[i])>=fabs(llrb[i]) && fabs(llra[i])>=fabs(llrc[i])) llrd[i]=llra[i];
+            else if (fabs(llrb[i])>=fabs(llrc[i])) llrd[i]=llrb[i];
+            else llrd[i]=llrc[i]; //llre[i]=(llra[i]+llrb[i]+llrc[i])/3.0;
+        }
+        bool c77[140];
+        bool cw[180];
+        pbest=0.0;
+        double dmin=1.e30;
+        int count_msg = MAXMSG;
+        for (int i = 0; i < MAXMSG; ++i)
+        {
+            QString msg;
+            if (pomFt.SetAp7Msg(call_1,std_1,call_2,std_2,grid4,i,msg,count_msg)) break;
+            
+            int i3=0;
+            int n3=0;
+            for (int z= 0; z < 176; ++z)
+            {
+                if (z<100) c77[z]=0;
+                cw[z] = 0;
+            }
+            TGenFt2->pack77(msg,i3,n3,c77);
+            TGenFt2->make_c77_i4tone_codeword(c77,itone,cw);
+            if (msg.startsWith("QU1RK ")) msgsent = msg;
+            else
+            {
+                bool unpk77_success = false;
+                msgsent = "";
+                msgsent = TGenFt2->unpack77(c77,unpk77_success);
+            }
+            //if (msgsent!=msg.trimmed()) qDebug()<<"---------------"<<i<<msg<<msgsent; //no-std-call problem  "CQ <TM22KPW> R-26"
+            //if (msgsent.isEmpty()) msgsent = "QU1RK ";
+            double pow0=0.0;
+            for (int z = 0; z < NN; ++z)
+            {
+                double s88 = s4_[z][itone[z]]*0.001;//1000.0; //s8_/1000.0 = s2_  HV from v1.
+                pow0+=(s88*s88);
+            }
+
+            double da = 0.0;
+            double dbb= 0.0;
+            double dc = 0.0;
+            double dd = 0.0;
+            for (int z= 0; z < 174; ++z)
+            {
+                hdec[z] = 0;
+                if (llra[z]>=0.0) hdec[z] = 1;
+                nxor[z]=hdec[z] ^ cw[z];
+                da+=(double)nxor[z]*fabs(llra[z]);
+                hdec[z] = 0;
+                if (llrb[z]>=0.0) hdec[z] = 1;
+                nxor[z]=hdec[z] ^ cw[z];
+                dbb+=(double)nxor[z]*fabs(llrb[z]);
+                hdec[z] = 0;
+                if (llrc[z]>=0.0) hdec[z] = 1;
+                nxor[z]=hdec[z] ^ cw[z];
+                dc+=(double)nxor[z]*fabs(llrc[z]);
+                hdec[z] = 0;
+                if (llrd[z]>=0.0) hdec[z] = 1;
+                nxor[z]=hdec[z] ^ cw[z];
+                dd+=(double)nxor[z]*fabs(llrd[z]);
+            }
+
+            double dm = da;
+            if (dbb<dm) dm=dbb;
+            if (dc<dm)  dm=dc;
+            if (dd<dm)  dm=dd;
+            dmm[i]=dm;
+            if (dm<dmin)
+            {
+                dmin=dm;
+                msgbest=msgsent;
+                pbest=pow0;
+                nharderrors = -1;
+                if (dm==da)
+                {
+                    for (int z= 0; z < 174; ++z)
+                    {
+                        if ((double)(2*cw[z]-1)*llra[z]<0.0) nharderrors++;
+                    }
+                }
+                else if (dm==dbb)
+                {
+                    for (int z= 0; z < 174; ++z)
+                    {
+                        if ((double)(2*cw[z]-1)*llrb[z]<0.0) nharderrors++;
+                    }
+                }
+                else if (dm==dc)
+                {
+                    for (int z= 0; z < 174; ++z)
+                    {
+                        if ((double)(2*cw[z]-1)*llrc[z]<0.0) nharderrors++;
+                    }
+                }
+                else if (dm==dd)
+                {
+                    for (int z= 0; z < 174; ++z)
+                    {
+                        if ((double)(2*cw[z]-1)*llrd[z]<0.0) nharderrors++;
+                    }
+                }
+            }
+            //pomFt.TryDecAp7(llra,llrb,llrc,llrd,cw,dmm,i,msgsent,pow0,dmin,msgbest,pbest,nharderrors);
+        }
+        int pos = 0;
+        double min = dmm[0];
+        for (int z= 1; z < count_msg; ++z)//MAXMSG
+        {
+            if (dmm[z]<min)
+            {
+                min=dmm[z];
+                pos = z;
+            }
+        }
+        dmm[pos] = 1.e30;
+        pos = 0;
+        min = dmm[0];
+        for (int z= 1; z < count_msg; ++z)//MAXMSG
+        {
+            if (dmm[z]<min)
+            {
+                min=dmm[z];
+                pos = z;
+            }
+        }
+        double dmin2 = dmm[pos];
+        message=msgbest;
+        msgbest += "xxxxxx";//2.70 protection
+        if (dmin==0.0) dmin=0.0001;//devide by zero
+        if (dmin>100.0 || dmin2/dmin<1.27) nharderrors=-1;
+        if (msgbest.mid(0,3)=="CQ " && std_2 && grid4=="    ") nharderrors=-1;
+        if (msgbest.mid(0,6)=="QU1RK " || message.isEmpty()) nharderrors=-1;
+        if (nharderrors>95) nharderrors=-1;
+        //if (nharderrors==-1) qDebug()<<" NO DEC AP7===="<<xdt<<f1<<message<<dmin<<dmin2<<nharderrors;
+        //else qDebug()<<"         DEC AP7===="<<xdt<<f1<<message<<dmin<<dmin2<<nharderrors;
+        if (nharderrors>=0)
+        {
+        	if (xbase<=0.0) xbase=0.001;
+        	//double arg=pbest/xbase/3.0e6 - 1.0;
+        	//if (arg>0.0) xsnr=fmax(-21.0,pomAll.db(arg)-22.0);
+        	//if (xbase<=0.0) xbase=0.001;
+        	xsnr=pomAll.db(pbest/xbase - 1.0) - 42.0;
+        	if (xsnr < -21.0) xsnr=-21.0;
+        	if (xsnr > 49.0)  xsnr=49.0; //double dt0=xibest/1333.33;
+        	xdt=xibest/1333.33 - 0.5;
+        	f0=f1;
+        	break;
+       	}       	
+    }
+}
+//////////end AP7//////////////////
+void DecoderFt2::PrintMsg(QString tmm,int nsnr,double xdt,double f1,QString message,int iaptype,
+                          bool do_avg,float qual,bool &have_dec,bool &f_only_one_color,bool fshow)
+{
+    if (fshow)
+    {
+        if (f_only_one_color)
+        {
+            f_only_one_color = false;
+            emit EmitBackColor();
+        }
+        if (qual<0.0001) qual=0.0;//no show -0.0
+        QString str_iaptype = "";
+        if (!do_avg)
+        {
+            if (qual<0.17) str_iaptype = "? ";
+            if (iaptype!=0) str_iaptype.append("AP");
+            str_iaptype.append(QString("%1").arg(iaptype));
+        }
+        else str_iaptype = "Avg";
+
+        int df_hv = f1-s_nftx2;//2.12
+        QString sdtx = QString("%1").arg(xdt,0,'f',1);
+        if (sdtx=="-0.0") sdtx="0.0";//2.08 remove -0.0 exception
+
+        QStringList list;
+        list <<tmm<<QString("%1").arg(nsnr)
+        <<sdtx<<QString("%1").arg((int)df_hv)
+        <<message<<str_iaptype
+        <<QString("%1").arg(qual,0,'f',1)
+        <<QString("%1").arg((int)f1);
+        emit EmitDecodetTextFt(list);//1.27 psk rep   fopen bool true    false no file open
+        have_dec = true;
+        if (do_avg) ft2_clravg(jseq_a);
+    }
+    if (!s_fopen2 && message.count()>2) ft2_a7_save(s_time2,xdt,f1,message);
+}
+//#define DEB_FALSEDEC
+uint8_t DecoderFt2::isFalseDecode(QString msg,int nsnr,double qual,bool do_avg,int nharderror,int i3,int n3)
+{
+    if (msg.count()<1) return 1;
+    if (msg.indexOf("<> ")>-1 || msg.indexOf(" <>")>-1 || msg.startsWith("CQ_001 ")) return 2;
+    int harde = 35;
+    if (nsnr<-19 && qual<0.08) harde = 18;//0.06
+    if (!do_avg && nharderror>harde)
+    {
+        if (nsnr<-17 && qual<0.09) return 3;//0.07
+        if (nsnr<-19 && qual<0.17) return 4;//34
+    }
     harde = 36;
     if (!do_avg && nsnr<-19 && qual<0.16) harde = 19;
     if ((i3==2 || i3==3 || i3==4) && nsnr<-18 && qual<0.17 && nharderror>harde) return 5;
-    if (nsnr<-19 && qual<0.35 && !msg.contains(' ')) return 6;
-    if (nsnr<-14 && qual<0.3 && msg.startsWith("<...> <...> ")) return 7;
-    if (nsnr<-17 && qual<0.51)//-19 0.39 qual<0.5
+    harde = 34;
+    if (!do_avg && nsnr<-18 && qual<0.2) harde = 24;
+    if (nsnr<-12 && qual<0.55 && msg.indexOf('/')>-1 && nharderror>harde) return 6;
+    harde = 34;//30
+    if (!do_avg && nsnr<-18 && qual<0.43) harde = 19;//-18
+    if (nsnr<-14 && qual<0.45 && (msg.indexOf("/P")>-1 || msg.indexOf("/R")>-1) && nharderror>harde) return 7;
+    if (nsnr<-17 && qual<0.50 && msg.indexOf(' ')<0 && nharderror>19) return 8;
+    if (nsnr<-13 && qual<0.55 && msg.startsWith("TU; ") && nharderror>18) return 9;
+    harde = 18;
+    if (nsnr<-18 && qual<0.4) harde = 15;//i3=5 && (n3==5 || n3==7)//5=R+N+Loc 7=N+Loc
+    if (nsnr<-10 && qual<0.55 && msg.startsWith("<...> <...> ") && nharderror>harde) return 10;
+    if (nsnr<-13 && qual<0.6)
     {
-        if (msg.contains(" <...> ") || msg.startsWith("CQ_") || msg.startsWith("<...> ") ||
-                msg.endsWith(" <...>") || msg.startsWith("TU; ")) return 8;
+        if ((msg.indexOf(" <...> ")>-1 || msg.startsWith("<...> ") || msg.endsWith(" <...>")) && nharderror>18) return 11;
         harde = 36;
-        if (nsnr<-19 && qual<0.35) harde = 19;
-        if (nsnr<-19 && qual<0.45 && msg.contains(" R ") && nharderror>harde) return 9;
+        if (!do_avg && nsnr<-16 && qual<0.55 && (nsnr<-18 || qual<0.17)) harde = 19;
+        //if (i3==0 && (n3==3 || n3==4) && (nsnr<-18 || qual<0.2) && nharderror>harde) return 12;//0.3 0.4 WA9XYZ KA1ABC R 16A EMA //ARRL Field Day
+        if ((nsnr<-18 || qual<0.3) && msg.indexOf(" R ")>-1 && nharderror>harde) return 12;
+        if ((nsnr<-18 || qual<0.3) && msg.count()>5)
+        {
+            if (msg.at(msg.count()-5)==' ')
+            {
+                bool fend4D = true;
+                for (int i=msg.count()-4; i<msg.count(); ++i)
+                {
+                    if (msg.at(i).isLetter())
+                    {
+                        fend4D = false;
+                        break;
+                    }
+                }
+                if (fend4D && nharderror>harde) return 13;
+            }
+        }
+        if (!do_avg && nsnr<-18 && msg.startsWith("CQ "))//CQ RY4UY4T6G
+        {
+            QString s = msg.mid(3,msg.count()-3);
+            if (s.indexOf(' ')<0 && nharderror>harde) return 14;
+        }//(n3==3 || n3==4) DEC Snr=-20 Qual=0.2450 Msg=1W5DTH 264HKO 21E KS Avg=0 nhrr=28 i3=0 n3=4 iap=0
+        if (i3==0 && n3==4 && nsnr<-19 && nharderror>harde) return 15;
     }
     return 0;
 }
-//#define DEB_FALSEDEC
-void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSOProgress,bool lapcqonly,
-                                  int ndepth,int cont_type,double f1,double snr,double nfqso,bool doosd,
-                                  bool dosubtract,double xibest,int &ndecodes,QString *decodes,int maxcand,
-                                  int &nharderror,bool &f_only_one_color,bool &have_dec,bool do_avg)
+void DecoderFt2::make_bm_ap(double *dd,double bitmetrics_[3][220],int nQSOProgress,bool lapcqonly,
+                            int ndepth,int cont_type,double f1,double snr,double nfqso,bool doosd,
+                            bool dosubtract,double xibest,int &ndecodes,QString *decodes,int maxcand,
+                            int &nharderror,bool &f_only_one_color,bool &have_dec,bool do_avg)
 {
     const int ND=87;
     //const int NS=16;
@@ -1430,18 +1894,9 @@ void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSO
 
     for (int i = 0; i < 2*ND; ++i)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
     {//do i=1,2*ND
-        if (fabs(llra[i])>=fabs(llrb[i]) && fabs(llra[i])>=fabs(llrc[i]))
-        {
-            llrd[i]=llra[i];
-        }
-        else if (fabs(llrb[i])>=fabs(llrc[i]))
-        {
-            llrd[i]=llrb[i];
-        }
-        else
-        {
-            llrd[i]=llrc[i];
-        }
+        if (fabs(llra[i])>=fabs(llrb[i]) && fabs(llra[i])>=fabs(llrc[i])) llrd[i]=llra[i];
+        else if (fabs(llrb[i])>=fabs(llrc[i])) llrd[i]=llrb[i];
+        else llrd[i]=llrc[i];
         llre[i]=(llra[i]+llrb[i]+llrc[i])/3.0;
     }
     int npasses=5+nappasses_2[nQSOProgress];//npasses=3+nappasses(nQSOProgress)
@@ -1469,7 +1924,7 @@ void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSO
         double napwid=80.0; //2.39 old double napwid=75.0;
         if (ipass > 5)
         {
-            for (int z = 0; z < 2*ND; ++z) llrd[z]=llrc[z]; //2.39 old llrd[z]=llra[z];
+            //for (int z = 0; z < 2*ND; ++z) llrd[z]=llrc[z]; //2.39 old llrd[z]=llra[z];
             //iaptype=naptypes(nQSOProgress,ipass-3)
             iaptype=naptypes_2[nQSOProgress][ipass-(5+1)];// v1 4+1
             if (lapcqonly) iaptype=1;
@@ -1501,110 +1956,7 @@ void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSO
             //if(iaptype.ge.3 .and. apbits(30).gt.1) cycle ! No, or nonstandard, dxcall
             if (iaptype>=2 && apbits_ft2[0]>1) continue;
             if (iaptype>=3 && apbits_ft2[29]>1) continue;
-
-            if (iaptype==1) //then  ! CQ or CQ TEST or CQ FD or CQ RU or CQ SCC
-            {
-                for (int z = 0; z < 2*ND; ++z)//2*ND=174
-                {
-                    apmask[z]=0;
-                    if (z<29)
-                    {
-                        apmask[z]=1;
-                        llrd[z]=apmag*(double)mcq_ft2[z];
-                    }
-                } //qDebug()<<iaptype;
-            }
-            if (iaptype==2) //then ! MyCall,???,???
-            {
-                for (int z = 0; z < 2*ND; ++z) apmask[z]=0;
-                if (cont_type==0 || cont_type==1)// || ncontest==5
-                {
-                    for (int z = 0; z < 29; ++z)
-                    {
-                        apmask[z]=1;//apmask(1:29)=1
-                        llrd[z]=apmag*(double)apbits_ft2[z];//llrd(1:29)=apmag*apsym(1:29)
-                    }
-                }
-                else if (cont_type==2)
-                {
-                    for (int z = 0; z < 28; ++z)
-                    {
-                        apmask[z]=1;//apmask(1:28)=1
-                        llrd[z]=apmag*(double)apbits_ft2[z];//llrd(1:28)=apmag*apsym(1:28)
-                    }
-                }
-                else if (cont_type==3)
-                {
-                    for (int z = 0; z < 28; ++z)
-                    {
-                        apmask[z]=1;  //apmask(1:28)=1
-                        llrd[z]=apmag*(double)apbits_ft2[z];//llrd(1:28)=apmag*apbits(1:28)
-                    }
-                }
-                else if (cont_type==4)//RTTY UU HV-6=BU   || ncontest==6
-                {
-                    for (int z = 1; z < 29; ++z)
-                    {
-                        apmask[z]=1;//apmask(2:29)=1
-                        llrd[z]=apmag*(double)apmy_ru_ft2[z-1];//llrd(2:29)=apmag*apmy_ru(1:28)
-                    }
-                }
-            }
-            if (iaptype==3) //then ! MyCall,DxCall,???
-            {
-                for (int z = 0; z < 2*ND; ++z)
-                    apmask[z]=0;
-                if (cont_type==0 || cont_type==1 || cont_type==2)// || ncontest==5
-                {
-                    for (int z = 0; z < 58; ++z)
-                    {
-                        apmask[z]=1;// apmask(1:58)=1
-                        llrd[z]=apmag*(double)apbits_ft2[z];// llrd(1:58)=apmag*apbits(1:58)
-                    }
-                }
-                else if (cont_type==3) //then ! Field Day
-                {
-                    for (int z = 0; z < 56; ++z)//2.36 57 or 56 ???
-                    {
-                        //2.36 if (z<56)//57 or 56 ???
-                        apmask[z]=1;//apmask(1:56)=1
-                        if (z<28)
-                        {
-                            llrd[z]=apmag*(double)apbits_ft2[z];//llrd(1:28)=apmag*apbits(1:28)
-                            llrd[z+28]=apmag*(double)aphis_fd_ft2[z];//llrd(29:56)=apmag*aphis_fd(1:28)????
-                        }
-                    }
-                }
-                else if (cont_type==4)//then ! RTTY RU HV 6=BU // || ncontest==6
-                {
-                    for (int z = 0; z < 57; ++z)
-                    {
-                        if (z>0)
-                            apmask[z]=1;// apmask(2:57)=1
-                        if (z<28)
-                            llrd[z+1]=apmag*(double)apmy_ru_ft2[z];//llrd(2:29)=apmag*apmy_ru(1:28)
-                        if (z>28)
-                            llrd[z]=apmag*(double)apbits_ft2[z];// llrd(30:57)=apmag*apbits(30:57)
-                    }
-                }
-            }
-            if (iaptype==4 || iaptype==5 || iaptype==6)
-            {
-                for (int z = 0; z < 2*ND; ++z)
-                    apmask[z]=0;
-                //if(ncontest.le.5) then
-                if (cont_type<=4)//hv new=4
-                {
-                    for (int z = 0; z < 77; ++z)
-                        apmask[z]=1; //apmask(1:77)=1   //! mycall, hiscall, RRR|73|RR73
-                    if (iaptype==6)
-                    {
-                        for (int z = 0; z < 77; ++z)
-                            llrd[z]=apmag*apbits_ft2[z];//llrd(1:77)=apmag*apbits(1:77)
-                    }
-                }
-            }
-            for (int z = 0; z < 2*ND; ++z) llr[z]=llrd[z];
+            pomFt.SetApFt2_4(llr,llrc,apmask,apbits_ft2,mcq_ft2,apmy_ru_ft2,aphis_fd_ft2,apmag,iaptype,cont_type);
         }
 
         for (int z = 0; z < 174; ++z)
@@ -1627,8 +1979,8 @@ void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSO
         if (fabs(nfqso-f1)<=napwid && ndepth>=3) maxosd=4;*/
 
         if (!doosd) maxosd = -1;
-        pomFt.decode174_91_ft2(llr,maxosd,ndeep,apmask,message91,cw,nharderror,dmin);//Keff,ntype,
-        //pomFt.decode174_91(llr,maxosd,ndeep,apmask,message91,cw,nharderror,dmin);//Keff,ntype,
+        //not used for the moment -> pomFt.decode174_91_ft2(llr,maxosd,ndeep,apmask,message91,cw,nharderror,dmin);
+        pomFt.decode174_91(llr,maxosd,ndeep,apmask,message91,cw,nharderror,dmin);//Keff,ntype,
 
         int c_m77 = 0;
         for (int z = 0; z < 77; z++) c_m77 +=message91[z];
@@ -1640,18 +1992,14 @@ void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSO
             bool unpk77_success=false;
             QString message = TGenFt2->unpack77(message91,unpk77_success);
             if (!unpk77_success) break;
-#if defined DEB_FALSEDEC
             int n3=4*message91[71] + 2*message91[72] + message91[73];
-#endif
             int i3=4*message91[74] + 2*message91[75] + message91[76];
             if (!do_avg)
             {
                 if (unpk77_success && dosubtract)
                 {
-                    //int i3=4*message77[74] + 2*message77[75] + message77[76];
                     int i4tone[120];
                     TGenFt2->make_c77_i4tone(message91,i4tone);
-
                     double dt=xibest/1333.33;//double dt=(double)ibest/1333.33;//666.67;//750.0;
                     subtractft2(dd,i4tone,f1,dt); //qDebug()<<"subtractft4"<<message<<dt<<f1<<ipass<<i3;
                 }
@@ -1683,91 +2031,34 @@ void DecoderFt2::make_bm_ap_print(double *dd,double bitmetrics_[3][220],int nQSO
             else
             {
                 nsnr=-21;
-                xdt=ft2avg[jseq].dt_avg - 0.5;
+                xdt=ft2avg[jseq_a].dt_avg - 0.5;
             }
             float qual=1.0-((float)nharderror+(float)dmin)/60.0;
             if (qual<0.0005) qual=0.0;//no show -0.0
 
-            uint8_t false_dec = isFalseDecode(message,nsnr,qual,do_avg,nharderror,i3);
+            uint8_t false_dec = isFalseDecode(message,nsnr,qual,do_avg,nharderror,i3,n3);
             if (false_dec>0)
             {
 #if defined DEB_FALSEDEC
-                printf("->Falsh=%d Snr=%d Qual=%.4f FalseDec=%s Avg=%d nhrr=%d i3=%d n3=%d\n",false_dec,nsnr,qual,qPrintable(message),do_avg,nharderror,i3,n3);
+                printf("->Falsh=%d Snr=%d Qual=%.4f FalseDec=%s Avg=%d nhrr=%d i3=%d n3=%d iap=%d\n",false_dec,nsnr,qual,qPrintable(message),do_avg,nharderror,i3,n3,iaptype);
 #endif
                 break;
             }
-
-            if (f_only_one_color)
-            {
-                f_only_one_color = false;
-                emit EmitBackColor();
-            }
-            /*float qual=1.0-((float)nharderror+(float)dmin)/60.0;
-            if (qual<0.001) qual=0.0;//no show -0.0*/
-            QString str_iaptype = "";
-            if (!do_avg)
-            {
-                if (qual<0.17) str_iaptype = "? ";
-                if (iaptype!=0) str_iaptype.append("AP");
-                str_iaptype.append(QString("%1").arg(iaptype));
-            }
-            else str_iaptype = "Avg";
-
-            int df_hv = f1-s_nftx2;//2.12
-            QString sdtx = QString("%1").arg(xdt,0,'f',1);
-            if (sdtx=="-0.0") sdtx="0.0";//2.08 remove -0.0 exception
-
-            QStringList list;
-            list <<s_time2<<QString("%1").arg(nsnr)
-            <<sdtx<<QString("%1").arg((int)df_hv)
-            <<message<<str_iaptype
-            <<QString("%1").arg(qual,0,'f',1)
-            <<QString("%1").arg((int)f1);
 #if defined DEB_FALSEDEC
-            printf("    DEC Snr=%d Qual=%.4f Msg=%s Avg=%d nhrr=%d i3=%d n3=%d\n",nsnr,qual,qPrintable(message),do_avg,nharderror,i3,n3);
-#endif
-            emit EmitDecodetTextFt(list);//1.27 psk rep   fopen bool true    false no file open
-            have_dec = true;
-            if (do_avg) ft2_clravg(jseq);
+        if (nsnr<-13 && qual<0.6) printf("    DEC Snr=%d Qual=%.4f Msg=%s Avg=%d nhrr=%d i3=%d n3=%d iap=%d\n",nsnr,qual,qPrintable(message),do_avg,nharderror,i3,n3,iaptype);
+#endif            
+            PrintMsg(s_time2,nsnr,xdt,f1,message,iaptype,do_avg,qual,have_dec,f_only_one_color,true);
             break;//exit
         }
     }  //!Sequence estimation
 }
-int DecoderFt2::ft2_even_odd(QString s)//res=0 (even first), or res=1 (odd second)
-{
-    bool res = 0;
-    if (s.count()<6) return 0; //2.70 protection
-    int time_ss =  s.midRef(4,2).toInt();//get seconds 120023
-    int time_mm =  s.midRef(2,2).toInt();//get min 120023
-    int time_ms = 0;
-    if      (time_ss == 3 || time_ss == 18 || time_ss == 33 || time_ss == 48) time_ms = 75;
-    else if (time_ss == 7 || time_ss == 22 || time_ss == 37 || time_ss == 52) time_ms = 50;
-    else if (time_ss ==11 || time_ss == 26 || time_ss == 41 || time_ss == 56) time_ms = 25;
-    int time_p = (time_mm*6000)+(time_ss*100)+time_ms;
-    time_p = time_p % (375*2);
-    if (time_p<375) res = 0;
-    else res = 1;
-    /*int mm = s.midRef(2, 2).toInt();
-    int ss = s.midRef(4, 2).toInt(); // 2. Map the specific second offsets to 250ms units (0, 1, 2, or 3)
-    int quarter_units = 0;
-    if      (ss % 15 == 3)  quarter_units = 3; // 0.75s -> 3 units
-    else if (ss % 15 == 7)  quarter_units = 2; // 0.50s -> 2 units
-    else if (ss % 15 == 11) quarter_units = 1; // 0.25s -> 1 unit
-    // 3. Calculate total units (1 second = 4 units)
-    // Total period (7.5s) = 30 units. Half period (3.75s) = 15 units.
-    long total_units = (mm * 60 * 4) + (ss * 4) + quarter_units;
-    // 4. Determine phase (Even/Odd 3.75s blocks)
-    res = (total_units / 15) % 2;*/
-    /*int ss = s.midRef(4,2).toInt();
-    if      (ss % 15 == 3)  res = 1; // 0.75s -> 3 units
-    else if (ss % 15 == 7)  res = 0; // 0.50s -> 2 units
-    else if (ss % 15 == 11) res = 1; // 0.25s -> 1 unit*/
-    return res;
-}
 int DecoderFt2::count_eq_bits(bool *a,int b_a,bool *b,int c)
 {
     int ns1=0;
-    for (int x = 0; x < c; ++x) if (a[x+b_a]==b[x]) ns1++;
+    for (int x = 0; x < c; ++x)
+    {
+    	if (a[x+b_a]==b[x]) ns1++;    	
+   	}
     return ns1;
 }
 void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double f0b1,double fqso,bool &have_dec)//,int /*npts no need*/)
@@ -1813,6 +2104,7 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
     double complex cb[NDMAX+100];
     double complex cd[4000];//(103*32-1)=3295   //!Complex waveform
     bool hbits[220];//(2*NN)=206
+    double s4_[120][4];
     /*double llr [180];//(2*ND)=174
     double llra[180];//(2*ND)=174
     double llrb[180];//(2*ND)=174
@@ -1828,6 +2120,78 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
     int ndecodes=0;
     QString decodes[maxcand+50];
     for (int i = 0; i < maxcand; ++i) decodes[i]=" ";
+
+    //////////AP7//////////////////
+    int jseqr = ft2_even_odd(s_time2);
+    const int NFFT1=1152;//2304;
+    const int NH1=NFFT1/2;
+    const double df= 12000.0/(double)NFFT1;
+    double sbase[NH1+10];    
+    if (nutc0=="-1")
+    {
+        for (int k = 0; k < 2; ++k)
+        {
+            for (int j = 0; j < 2; ++j)
+            {
+                for (int i = 0; i < MAXDEC; ++i)
+                {
+                    msg0[k][j][i]= "";
+                    dt0[k][j][i] = 0.0;
+                    f0[k][j][i]  = 0.0;
+                }
+            }
+        }
+        nutc0="000001";//2.70 crash if = -1
+    }
+    if (s_time2!=nutc0 && !s_fopen2)//2.66 for ap7 s_fopen8
+    {
+        if (ndec[1][jseq_a7]==0) c_zerop++; //2.66 HV add
+        else c_zerop=0;
+
+        int iz=ndec[1][jseq_a7];
+        for (int i = 0; i < iz; ++i)
+        {
+            dt0[0][jseq_a7][i]  = dt0[1][jseq_a7][i];
+            f0[0][jseq_a7][i]   = f0[1][jseq_a7][i];
+            msg0[0][jseq_a7][i] = msg0[1][jseq_a7][i];
+        }
+        int t_ss1 =  s_time2.midRef(4,2).toInt();
+        int t_mm1 =  s_time2.midRef(2,2).toInt();
+        int t_hh1 =  s_time2.midRef(0,2).toInt();
+        int t_p1  = (t_hh1*3600)+(t_mm1*60)+t_ss1;
+        t_ss1 =  nutc0.midRef(4,2).toInt();
+        t_mm1 =  nutc0.midRef(2,2).toInt();
+        t_hh1 =  nutc0.midRef(0,2).toInt();
+        int t_p0  = (t_hh1*3600)+(t_mm1*60)+t_ss1;
+        if (t_p1-t_p0>11 || c_zerop>2)//2.66 HV add=3p   if (t_p1-t_p0>60 || c_zerop>3)//2.66 HV add=4p
+        {
+            //ft2 11 and 3 for 3 periods//15 and 4 for 4 periods ...
+            //1. We lost 3 periods (no decode),= data is not actual, ap7 not permitted
+            //2. We stopped APP for 3 periods, = data is not actual, ap7 not permitted
+            ndec[0][0]=0;
+            ndec[0][1]=0;
+            //for (int i = 0; i < MAXDEC; ++i)// no needed
+            //{
+            //dt0[0][0][i]=0.0;
+            //f0[0][0][i]=0.0;
+            //dt0[0][1][i]=0.0;
+            //f0[0][1][i]=0.0;
+            //}
+            c_zerop=0;
+        }
+        else
+        {
+            if (iz>0) ndec[0][jseq_a7]=iz;//2.66 HV correction
+        }
+        ndec[1][jseq_a7]=0;
+        for (int i = 0; i < MAXDEC; ++i)// no needed
+        {
+            dt0[1][jseq_a7][i]=0.0;
+            f0[1][jseq_a7][i]=0.0;
+        } 
+        nutc0=s_time2;
+    }
+    //////////end AP7//////////////////
 
     //int ntol = G_DfTolerance;
     double nfqso=fqso;
@@ -1895,8 +2259,7 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
     if (mycall!=mycall0_ft2 || hiscall!=hiscall0_ft2)
     {
         //QString sss = "";
-        for (int i = 0; i < 2*ND; ++i)
-            apbits_ft2[i]=0;
+        for (int i = 0; i < 2*ND; ++i) apbits_ft2[i]=0;
         apbits_ft2[0]=99;
         apbits_ft2[29]=99;
         for (int i = 0; i < 28; ++i)
@@ -1924,7 +2287,6 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
         TGenFt2->pack77(message,i3,n3,c77);
         msgsent=TGenFt2->unpack77(c77,unpk77_success);
         if (i3!=1 || (message!=msgsent) || !unpk77_success) goto c10;
-        //read(c77,'(77i1)') message77
         for (int i = 0; i < 28; ++i)
         {
             apmy_ru_ft2[i]=2*fmod(c77[i]+rvec[i+1],2)-1;
@@ -1965,7 +2327,7 @@ c10:
     int ndepth = s_decoder_deep2;
     //int max_iterations=40;
     double syncmin=0.8;//0.90  1.18;//1.2 //ws300rc1 syncmin=1.18
-    if (ndepth>=2) syncmin=0.78;//0.75;//0.85;//038
+    if (ndepth>=2) syncmin=0.75;//0.85;//038
     if (ndepth>=3) syncmin=0.70;//0.75;//0.70;//0.80;//038
     bool dosubtract=true;
     bool doosd=true;
@@ -1992,7 +2354,7 @@ c10:
     double xibest=0.0;//                    //!Sub-sample ibest (fractional sample)
     double sm1_sub, sp1_sub, den_sub;   //!Parabolic interpolation temporaries
     bool got_candidate=false;
-    if (f_use_avg) jseq = ft2_even_odd(s_time2);//res=0 (even first), or res=1 (odd second)
+    if (f_use_avg) jseq_a = jseqr;//ft2_even_odd(s_time2);//res=0 (even first), or res=1 (odd second)
     /*if (jseq==0) qDebug()<<decid<<"---> s_time2="<<s_time2<<"Even="<<jseq;
     else qDebug()<<decid<<"---> s_time2="<<s_time2<<" Odd="<<jseq;*/
 
@@ -2026,7 +2388,7 @@ c10:
             for (int j = 0; j < maxcand; ++j) candidate[i][j]=0.0;
         }
         int ncand=0;
-        getcandidates2(dd,nfa,nfb,nfa1,nfb1,syncmin_pass,nfqso2,maxcand,candidate,ncand);
+        getcandidates2(dd,nfa,nfb,nfa1,nfb1,syncmin_pass,nfqso2,maxcand,candidate,ncand,sbase);
         //printf(" nsp=%d isp=%d ncand=%d\n",nsp,isp,ncand);
         /*for (int z= 0; z < ncand; z++)
         {
@@ -2040,10 +2402,10 @@ c10:
         bool dobigfft=true;
         for (int icand = 0; icand < ncand; ++icand)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
         {//do icand=1,ncand
-            double f0=candidate[0][icand];       //f0=candidate(1,icand)
+            double f00=candidate[0][icand];       //f0=candidate(1,icand)
             double snr=candidate[1][icand]-1.0;  //snr=candidate(3,icand)-1.0
             //if (f0>1200 && f0<1400) qDebug()<<icand<<f0<<snr;
-            ft2_downsample(dd,dobigfft,f0,cd2);  //!Downsample to 32 Sam/Sym
+            ft2_downsample(dd,dobigfft,f00,cd2);  //!Downsample to 32 Sam/Sym
             if (dobigfft) dobigfft=false;
             double sum2=0.0;
             for (int i = 0; i < c_cd2; ++i) sum2+=creal(cd2[i]*conj(cd2[i]));//???
@@ -2122,13 +2484,12 @@ c10:
                 //if (smax<0.9) continue;//stop 038
                 double smaxthresh=0.60;//0.80;//0.9;//038
                 if (ndepth>=3) smaxthresh=0.50;//0.65;//0.72;//0.65;//0.75;//038
-
                 if (isp>=2) smaxthresh=smaxthresh*0.88; //! pass 2: ~15%
                 if (isp>=3) smaxthresh=smaxthresh*0.76; //! pass 3+: ~25%
 
                 if (smax<smaxthresh) continue;//038
                 if (iseg>1 && smax<smax1) continue;
-                double f1=f0+(double)idfbest; //qDebug()<<idfbest<<f1;
+                double f1=f00+(double)idfbest; //qDebug()<<idfbest<<f1;
                 if ( f1<=10.0 || f1>=4990.0 ) continue;//cycle
                 ft2_downsample(dd,dobigfft,f1,cb); //!Final downsample, corrected f1
                 sum2=0.0;
@@ -2157,12 +2518,7 @@ c10:
                     }
                 } //qDebug()<<fmin(NDMAX-1,ibest+NN*NSS-1)-ibest+1<<NN*NSS+2*ibest<<c_cd<<c_cb<<f1;
 
-                get_ft2_bitmetrics(cd,bitmetrics_,badsync);
-                /*if (badsync)
-                {
-                	printf(" badsync= %d\n",badc);
-                	badc++;               	
-                }*/
+                get_ft2_bitmetrics(cd,bitmetrics_,badsync,s4_);
                 if (badsync) continue;
                 //qDebug()<<" 1   ibest="<<ibest;
                 //! Sub-sample DT refinement via 3-point parabolic interpolation
@@ -2216,47 +2572,107 @@ c10:
                 //qDebug()<<"nsync_qual="<<nsync_qual<<ns1<<ns2<<ns3<<ns4<<f1;
 
                 int nharderror = -1;
-                make_bm_ap_print(dd,bitmetrics_,nQSOProgress,lapcqonly,ndepth,cont_type,f1,snr,nfqso,doosd,
-                                 dosubtract,xibest,ndecodes,decodes,maxcand,nharderror,f_only_one_color,have_dec,false);
+                make_bm_ap(dd,bitmetrics_,nQSOProgress,lapcqonly,ndepth,cont_type,f1,snr,nfqso,doosd,
+                           dosubtract,xibest,ndecodes,decodes,maxcand,nharderror,f_only_one_color,have_dec,false);
                 if (nharderror>=0) break;
             }      //!3 DT segments
         }          //!Candidate list
     }              //!Subtraction loop
 
+    if (/*fl_lapon && */ndec[0][jseqr]>0 && !s_fopen2)////2.69 for ap7 s_fopen8 260r5=+fl_lapon
+    {
+        bool newdat = true;
+        for (int i = 0; i<ndec[0][jseqr]; ++i)
+        {
+            //qDebug()<<"======="<<msg0[0][jseqr][i]<<f0[0][jseqr][i]<<newdat;
+            //if (f0[0][jseqr][i]==-99.0) break; = s_fopen
+            if (f0[0][jseqr][i]==-98.0) continue;
+            if (msg0[0][jseqr][i].indexOf("<")>-1) continue;
+            message=msg0[0][jseqr][i]+"      ";//2.70 =6 pouse crash mid
+            int i1=message.indexOf(" ");
+            int i2=message.indexOf(" ",i1+1);
+            QString call_1=message.mid(0,i1);
+            QString call_2=message.mid(i1+1,i2-i1-1);
+            QString grid4 =message.mid(i2+1,4); //qDebug()<<i1<<i2+1<<i2+1+4<<message.count()<<message;
+            //if(grid4.eq.'RR73' .or. index(grid4,'+').gt.0 .or. index(grid4,'-').gt.0) grid4='    '
+            if (grid4=="RR73" || grid4.indexOf("+")>-1 || grid4.indexOf("-")>-1) grid4="    ";
+            double xdt=dt0[0][jseqr][i];
+            double f1=f0[0][jseqr][i];
+            double xbase=pow(10.0,(0.1*(sbase[(int)fmax(1.0,(f1/df))]-40.0)));
+            //double xbase = 1.0;
+            //int ixb=fmax(0,(f1/(12000.0/(double)NFFT1)));
+            //if(ixb>-1 && ixb<NH1) xbase=sbase[ixb];
+            message="";
+            int nharderrors = 0;
+            double xsnr = 0.0;
+            double dmin = 0.0; //qDebug()<<"======="<<call_1<<call_2<<grid4<<newdat<<s_fopen2;
+            ft2_a7d(dd,newdat,call_1,call_2,grid4,xdt,f1,xbase,nharderrors,dmin,message,xsnr);
+            //if (nharderrors==-1) qDebug()<<" NO DEC AP7===="<<xdt<<f1<<message<<dmin<<nharderrors;
+            if (nharderrors>=0)
+            {
+                bool ldupe=false;
+                for (int z = 0; z < ndecodes; z++)
+                {
+                    if (decodes[z]==message)
+                    {
+                        ldupe=true;
+                        break;
+                    }
+                }
+                if (!ldupe)
+                {
+					/*decodes[ndecodes]=message;
+            		if (ndecodes < (maxcand-1)) ndecodes++;
+            		int i3=0; int n3=0; int i4tone[120];
+            		for (int i = 0; i < 78; ++i) c77[i]=0;            		
+            		TGenFt2->pack77(message,i3,n3,c77);
+            		TGenFt2->make_c77_i4tone(c77,i4tone);
+            		subtractft2(dd,i4tone,f1,(xdt+0.5));*/
+                    int nsnr=(int)xsnr;
+                    bool fshow = true;
+                    float qual=1.0-((float)nharderrors+(float)dmin)/60.0;
+                    if (nfa1>f1 || nfb1<f1 || (!s_lapon2 && qual<0.2) || (s_lapon2 && qual<0.02)) fshow = false;
+                    //qDebug()<<"         DEC AP7===="<<xdt<<f1<<message<<dmin<<nharderrors<<qual<<fshow;
+                    PrintMsg(s_time2,nsnr,xdt,f1,message,7,false,qual,have_dec,f_only_one_color,fshow);
+                }   //if (ldupe) qDebug()<<"            DUPE DEC AP7===="<<xdt<<f1<<message<<ldupe;
+            }
+        }
+    }
+
     if (f_use_avg && got_candidate)
     {
         //jseq = ft2_even_odd(s_time2);
-        if (ft2avg[jseq].navg_ft2==0 || fabs(best_f1_avg-ft2avg[jseq].f_avg)>10.0)
+        if (ft2avg[jseq_a].navg_ft2==0 || fabs(best_f1_avg-ft2avg[jseq_a].f_avg)>10.0)
         {	//! First period or frequency changed: reset accumulator
             for (int x = 0; x < 3; ++x)//bm_avg=best_bm
             {
-                for (int y = 0; y < 2*NN; ++y) ft2avg[jseq].bm_avg_[x][y]=best_bm_[x][y];
+                for (int y = 0; y < 2*NN; ++y) ft2avg[jseq_a].bm_avg_[x][y]=best_bm_[x][y];
             }
-            ft2avg[jseq].navg_ft2=1;
-            ft2avg[jseq].f_avg=best_f1_avg;
-            ft2avg[jseq].dt_avg=best_xibest_avg/1333.33; //qDebug()<<"   1 navg_ft2="<<ft2avg[jseq].navg_ft2;
+            ft2avg[jseq_a].navg_ft2=1;
+            ft2avg[jseq_a].f_avg=best_f1_avg;
+            ft2avg[jseq_a].dt_avg=best_xibest_avg/1333.33; //qDebug()<<"   1 navg_ft2="<<ft2avg[jseq].navg_ft2;
         }
         else
         {	//! Accumulate using EMA (Exponential Moving Average)
-            ft2avg[jseq].navg_ft2++;
-            int ntc=fmin(ft2avg[jseq].navg_ft2,6);//int ntc=fmin(ft2avg[jseq].navg_ft2,4);
+            ft2avg[jseq_a].navg_ft2++;
+            int ntc=fmin(ft2avg[jseq_a].navg_ft2,6);//int ntc=fmin(ft2avg[jseq].navg_ft2,4);
             double u=1.0/(double)ntc;
             for (int x = 0; x < 3; ++x)//bm_avg=u*best_bm + (1.0-u)*bm_avg
             {
-                for (int y = 0; y < 2*NN; ++y) ft2avg[jseq].bm_avg_[x][y]=u*best_bm_[x][y] + (1.0-u)*ft2avg[jseq].bm_avg_[x][y];
+                for (int y = 0; y < 2*NN; ++y) ft2avg[jseq_a].bm_avg_[x][y]=u*best_bm_[x][y] + (1.0-u)*ft2avg[jseq_a].bm_avg_[x][y];
             }
-            ft2avg[jseq].f_avg=u*best_f1_avg + (1.0-u)*ft2avg[jseq].f_avg;
-            ft2avg[jseq].dt_avg=u*best_xibest_avg/1333.33 + (1.0-u)*ft2avg[jseq].dt_avg; //qDebug()<<"   Icrease navg_ft2="<<ft2avg[jseq].navg_ft2;
+            ft2avg[jseq_a].f_avg=u*best_f1_avg + (1.0-u)*ft2avg[jseq_a].f_avg;
+            ft2avg[jseq_a].dt_avg=u*best_xibest_avg/1333.33 + (1.0-u)*ft2avg[jseq_a].dt_avg; //qDebug()<<"   Icrease navg_ft2="<<ft2avg[jseq].navg_ft2;
         }
-        if (ndecodes==0 && ft2avg[jseq].navg_ft2>=2)
+        if (ndecodes==0 && ft2avg[jseq_a].navg_ft2>=2)
         {   //! Try averaged decode if single-period failed and navg >= 2
             double snr=-21.0;
             int nharderror=-1; //qDebug()<<"   Try AVG="<<ft2avg[jseq].navg_ft2;
-            make_bm_ap_print(dd,ft2avg[jseq].bm_avg_,nQSOProgress,lapcqonly,ndepth,cont_type,ft2avg[jseq].f_avg,snr,nfqso,doosd,
-                             dosubtract,best_xibest_avg,ndecodes,decodes,maxcand,nharderror,f_only_one_color,have_dec,true);
+            make_bm_ap(dd,ft2avg[jseq_a].bm_avg_,nQSOProgress,lapcqonly,ndepth,cont_type,ft2avg[jseq_a].f_avg,snr,nfqso,doosd,
+                       dosubtract,best_xibest_avg,ndecodes,decodes,maxcand,nharderror,f_only_one_color,have_dec,true);
             //if (ft2avg[jseq].navg_ft2>9) ft2_clravg(jseq);
         }
-        if (ft2avg[jseq].navg_ft2>20) ft2_clravg(jseq);//16=2min
+        if (ft2avg[jseq_a].navg_ft2>20) ft2_clravg(jseq_a);//16=2min
     }   //qDebug()<<decid<<"<--- END s_time2="<<s_time2<<jseq;
 }
 

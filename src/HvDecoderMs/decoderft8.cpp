@@ -1015,8 +1015,7 @@ void DecoderFt8::ft8b(double *dd,bool &newdat,int nQSOProgress,double nfqso,doub
             //if(ncontest.eq.7 .and. iaptype.ge.2 .and. aph10(1).gt.1) cycle
             if (iaptype>=3 && apsym[29]>1) continue; //! No, or nonstandard, dxcall if(iaptype>=3 && apsym(30).gt.1) cycle
             //qDebug()<<"type2"<<iaptype<<ncontest;
-            for (int z = 0; z < 58; ++z)//apsym[58+5]
-                apsym[z]=2*apsym[z]-1;    // apsym=2*apsym-1  //! Change from [0,1] to antipodal
+            for (int z = 0; z < 58; ++z) apsym[z]=2*apsym[z]-1;// apsym=2*apsym-1  //! Change from [0,1] to antipodal//apsym[58+5]               
             if (iaptype==1) //! CQ or CQ RU or CQ TEST or CQ FD
             {
                 for (int z = 0; z < 174; ++z)//3*ND 174
@@ -1862,21 +1861,6 @@ void DecoderFt8::Decode3intFt(bool f)//2.39 remm
 {
     s_3intFt8_d_ = f; //qDebug()<<"DecoderFt8 s_3intFt_d_="<<s_3intFt_d_;
 }
-bool DecoderFt8::isgrid4(QString s)
-{
-    bool res = false;
-    if (s.count()>3)
-    {
-        int c1 = (int)s.at(0).toLatin1();
-        int c2 = (int)s.at(1).toLatin1();
-        int c3 = (int)s.at(2).toLatin1();
-        int c4 = (int)s.at(3).toLatin1();
-        if (c1>=(int)'A' && c1<=(int)'R' && c2>=(int)'A' && c2<=(int)'R' &&
-                c3>=(int)'0' && c3<=(int)'9' && c4>=(int)'0' && c4<=(int)'9')// && s.mid(0,4)!="RR73"
-            res = true;
-    }
-    return res;
-}
 int DecoderFt8::ft8_even_odd(QString s)//res=0 (even first), or res=1 (odd second)
 {
     bool res = 0;
@@ -1921,7 +1905,7 @@ void DecoderFt8::ft8_a7_save(QString nutc,double dt,double f,QString msg)
     //QString msg1=msg0[1][j][i];//msg1=msg0(i,j,1)
     //nn=len(trim(msg1))
     //Include grid as part of message
-    if (isgrid4(w[nwords-1])) msg0[1][j][i]=msg0[1][j][i]+" "+w[nwords-1].trimmed();
+    if (pomFt.isgrid4(w[nwords-1])) msg0[1][j][i]=msg0[1][j][i]+" "+w[nwords-1].trimmed();
 
     //If a transmission at this frequency with message fragment "call_1 call_2"
     //was decoded in the previous sequence, flag it as "DO NOT USE" because
@@ -2011,68 +1995,8 @@ void DecoderFt8::ft8_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,
     int count_msg = MAXMSG;
     for (int i = 0; i < MAXMSG; ++i)
     {
-        //QString msg = msg0;
-        QString msg = call_1+" "+call_2;
-        if (call_1=="CQ" && i!=4) msg = "QU1RK "+call_2;
-        if (!std_1)
-        {
-            if (i==0 || i>=5) msg = "<"+call_1+"> "+call_2;
-            if (i>=1 && i<=3) msg = call_1+" <"+call_2+">";
-        }
-        else if (!std_2)
-        {
-            if (call_1=="CQ" && i!=4) msg = "QU1RK "+call_2;//HV add
-            else
-            {
-                if (i<=3 || i==5) msg = "<"+call_1+"> "+call_2;
-                if (i>=6) msg = call_1+" <"+call_2+">";  //if (i==5) msg = "TNX 73 GL";
-            }
-        }
-        //else if (i==0) msg = msg0.trimmed();
-        if (i==1) msg.append(" RRR");
-        if (i==2) msg.append(" RR73");
-        if (i==3) msg.append(" 73");
-        if (i==4)
-        {
-            if (std_2)
-            {
-                msg = "CQ "+call_2;//+" "+hisgrid.mid(0,4);//KN23SF
-                QString call_10 = call_1+"xxxx";//2.70
-                if (call_10.mid(2,1)=="_") msg = call_1+" "+call_2;
-                if (grid4!="RR73") msg = msg.trimmed()+" "+grid4;
-            }
-            if (!std_2) msg = "CQ "+call_2;//KN23SF
-        }
-        if (i==5 && std_2) msg.append(" "+grid4.mid(0,4));
-        if (i>=6 && i<MAXMSG)
-        {
-            if (i>12 && msg.startsWith("QU1RK "))
-            {
-                //not possyble "CQ <TM22KPW> -26"
-                //not possyble "CQ LZ2HV R-26"
-                //qDebug()<<"BREAK--->"<<msg<<"msgbest="<<msgbest;
-                count_msg = i;
-                break;
-            }
-
-            //int isnr = -50 + (i-6)/2;// -50 to +49
-            int isnr = -26 + (i-6)/2;  // -26 to +49
-            if (((i+1) & 1)==1)
-            {
-                if (isnr>-1) msg.append(" +"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
-                else msg.append(" -"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
-            }
-            else
-            {
-                if (isnr>-1) msg.append(" R+"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
-                else msg.append(" R-"+QString("%1").arg(abs(isnr),2,10,QChar('0')));
-            }
-        }
-        /*if (!std_2)
-        {
-        	qDebug()<<i<<msg<<"----Call_2="<<call_2;
-        	if (i==MAXMSG-1) qDebug()<<"------------------------------";
-        }*/
+        QString msg;
+        if (pomFt.SetAp7Msg(call_1,std_1,call_2,std_2,grid4,i,msg,count_msg)) break;
 
         int i3=0;
         int n3=0;
@@ -2081,14 +2005,9 @@ void DecoderFt8::ft8_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,
             if (z<100) c77[z]=0;
             cw[z] = 0;
         }
-
         TGenFt8->pack77(msg,i3,n3,c77);
         TGenFt8->make_c77_i4tone_codeword(c77,itone,cw);
-
-        if (msg.startsWith("QU1RK "))
-        {
-            msgsent = msg;
-        }
+        if (msg.startsWith("QU1RK ")) msgsent = msg;
         else
         {
             bool unpk77_success = false;
@@ -2108,7 +2027,7 @@ void DecoderFt8::ft8_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,
         for (int z = 0; z < 79; ++z)
         {
             double s88 = s8_[z][itone[z]]*0.001;//1000.0; //s8_/1000.0 = s2_  HV from v1.
-            pow0=pow0+s88*s88;
+            pow0+=(s88*s88);
         }
 
         double da = 0.0;
@@ -2175,6 +2094,7 @@ void DecoderFt8::ft8_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,
                 }
             }
         }
+        //pomFt.TryDecAp7(llra,llrb,llrc,llrd,cw,dmm,i,msgsent,pow0,dmin,msgbest,pbest,nharderrors);
     }
 
     int pos = 0;
@@ -2207,7 +2127,7 @@ void DecoderFt8::ft8_a7d(double *dd0,bool &newdat,QString call_1,QString call_2,
     double arg=pbest/xbase/3.0e6 - 1.0;
     if (arg>0.0) xsnr=fmax(-24.0,pomAll.db(arg)-27.0);*/
     if (xbase<=0.0) xbase=0.001;
-    xsnr=pomAll.db(pbest/xbase - 1.0) - 32.0 - 4.0;
+    xsnr=pomAll.db(pbest/xbase - 1.0) - 36.0;
     if (xsnr < -25.0) xsnr=-25.0;
     if (xsnr > 49.0)  xsnr=49.0;
 
@@ -2688,10 +2608,9 @@ void DecoderFt8::ft8_decode(double *dd,int c_dd,double f0a,double f0b,double fqs
         t_mm1 =  nutc0.midRef(2,2).toInt();
         t_hh1 =  nutc0.midRef(0,2).toInt();
         int t_p0  = (t_hh1*3600)+(t_mm1*60)+t_ss1;
-        //bool resss = false;
         if (t_p1-t_p0>45 || c_zerop>2)//2.66 HV add=3p   if (t_p1-t_p0>60 || c_zerop>3)//2.66 HV add=4p
         {
-            //45 and 3 for 3 periods//60 and 4 for 4 periods ...
+            //ft8 45 and 3 for 3 periods//60 and 4 for 4 periods ...
             //1. We lost 3 periods (no decode),= data is not actual, ap7 not permitted
             //2. We stopped APP for 3 periods, = data is not actual, ap7 not permitted
             ndec[0][0]=0;
@@ -2704,7 +2623,6 @@ void DecoderFt8::ft8_decode(double *dd,int c_dd,double f0a,double f0b,double fqs
                	f0[0][1][i]=0.0; 
             }*/
             c_zerop=0;
-            //resss = true;
         }
         else
         {

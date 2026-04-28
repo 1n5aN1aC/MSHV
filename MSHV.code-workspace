@@ -1,0 +1,19 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "chat.tools.terminal.autoApprove": {
+            "/^powershell -ExecutionPolicy Bypass -File \\.\\\\HOW_TO_COMPILE\\.ps1$/": {
+                "approve": true,
+                "matchCommandLine": true
+            },
+            "/^powershell -ExecutionPolicy Bypass -File \\.\\\\compile\\.ps1$/": {
+                "approve": true,
+                "matchCommandLine": true
+            }
+        }
+    }
+}

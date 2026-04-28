@@ -188,7 +188,7 @@ public:
     }
     void SetFont(QFont f);
     bool isStandardCall(QString w);//,bool nobc = false
-    void isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,bool &noQSO);
+    void isStandardCalls(QString c1,QString c2,bool &fc1,bool &fc2,uint8_t &noQSO);
     void SetTextMark(bool b,bool m);
     void SetInfoDupeQso(bool f);
     bool DialogIsCallDupeInLog(QString hisCall_inmsg);
