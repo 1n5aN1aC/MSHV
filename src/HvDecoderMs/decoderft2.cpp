@@ -280,8 +280,7 @@ void DecoderFt2::getcandidates2(double *dd,double fa,double fb,double fa1,double
         int ia=j*NSTEP;//ia=(j-1)*NSTEP + 1
         int ib=ia+NFFT1;   //ib=ia+NFFT1-1
         if (ib>NMAX) break;// if(ib.gt.NMAX) exit
-        for (int z = 0; z < NFFT1; ++z)
-            x[z]=fac*dd[ia+z]*window_ft2[z]*0.01;
+        for (int z = 0; z < NFFT1; ++z) x[z]=fac*dd[ia+z]*window_ft2[z]*0.01;
         f2a.four2a_d2c(cx,x,NFFT1,-1,0,decid);              //!r2c FFT
         for (int i = 0; i < NH1; ++i)
         {//do i=1,NH1
@@ -291,13 +290,11 @@ void DecoderFt2::getcandidates2(double *dd,double fa,double fb,double fa1,double
         }
         //savg=savg + s(1:NH1,j)                   !Average spectrum
     }
-    for (int i = 0; i < NH1; ++i)
-        savsm[i]=0.0;
+    for (int i = 0; i < NH1; ++i) savsm[i]=0.0;
     for (int i = 7; i < NH1-7; ++i)
     {//do i=8,NH1-7
         double sum = 0.0;
-        for (int j = -7; j < 8; ++j)
-            sum+=savg[i-j];
+        for (int j = -7; j < 8; ++j) sum+=savg[i-j];
         savsm[i]=sum/15.0;//savsm(i)=sum(savg(i-7:i+7))/15.
     }
 
@@ -689,8 +686,7 @@ void DecoderFt2::subtractft2(double *dd,int *itone,double f0,double dt)
     for (int i = 0; i < NFRAME; ++i)//if(j.ge.1 .and. j.le.NMAX) dd(j)=dd(j)-2*REAL(cfilt(i)*cref(i))
     {//do i=1,nframe
         int j=nstart+i-1;//0 -1
-        if (j>=0 && j<NMAX)
-            dd[j]-=1.94*creal(cfilt[i]*cref[i]);//2.35 1.94   2.18 1.93
+        if (j>=0 && j<NMAX) dd[j]-=1.94*creal(cfilt[i]*cref[i]);//2.35 1.94   2.18 1.93
     }
 
     delete [] cref;
@@ -805,44 +801,44 @@ void DecoderFt2::ft2_channel_est(double complex *cd,double complex *cd_eq,double
     //! We interpolate between group centers: 2.5, 35.5, 68.5, 101.5
     //! Before first group center (symbols 1-2): use first group average
     h_est[0] =  h_sync[0];
-    h_est[1] = (h_sync[0] + h_sync[1]) / 2.0;
-    h_est[2] = (h_sync[1] + h_sync[2]) / 2.0;
-    h_est[3] = (h_sync[2] + h_sync[3]) / 2.0;
+    h_est[1] = (h_sync[0] + h_sync[1])*0.5;
+    h_est[2] = (h_sync[1] + h_sync[2])*0.5;
+    h_est[3] = (h_sync[2] + h_sync[3])*0.5;
     //! Between Costas A center (2.5) and Costas B center (35.5)
     for (int k = 4; k < 33; ++k)
     {//do k = 5, 33
         w = (double)(k - 2) / (double)(34 - 2);//w = real(k - 3) / real(35 - 3)     //! 0 at sym 3, 1 at sym 35
         w = fmax(0.0,fmin(1.0,w));
-        h_est[k] = (1.0 - w) * (h_sync[2] + h_sync[3])/2.0 + w  * (h_sync[4] + h_sync[5])/2.0;
+        h_est[k] = (1.0 - w)*(h_sync[2] + h_sync[3])*0.5 + w *(h_sync[4] + h_sync[5])*0.5;
     }
     //! Costas B region
-    h_est[33] = (h_sync[4] + h_sync[5]) / 2.0;
-    h_est[34] = (h_sync[5] + h_sync[6]) / 2.0;
-    h_est[35] = (h_sync[6] + h_sync[7]) / 2.0;
+    h_est[33] = (h_sync[4] + h_sync[5])*0.5;
+    h_est[34] = (h_sync[5] + h_sync[6])*0.5;
+    h_est[35] = (h_sync[6] + h_sync[7])*0.5;
     h_est[36] =  h_sync[7];
     //! Between Costas B center (35.5) and Costas C center (68.5)
     for (int k = 37; k < 66; ++k)
     {//do k = 38, 66
         w = (double)(k - 35) / (double)(67 - 35);
         w = fmax(0.0,fmin(1.0,w));
-        h_est[k] = (1.0 - w) * (h_sync[6] + h_sync[7])/2.0 + w  * (h_sync[8] + h_sync[9])/2.0;
+        h_est[k] = (1.0 - w)*(h_sync[6] + h_sync[7])*0.5 + w*(h_sync[8] + h_sync[9])*0.5;
     }
     //! Costas C region
-    h_est[66] = (h_sync[8] + h_sync[9])  / 2.0;
-    h_est[67] = (h_sync[9] + h_sync[10]) / 2.0;
-    h_est[68] = (h_sync[10]+ h_sync[11]) / 2.0;
+    h_est[66] = (h_sync[8] + h_sync[9]) *0.5;
+    h_est[67] = (h_sync[9] + h_sync[10])*0.5;
+    h_est[68] = (h_sync[10]+ h_sync[11])*0.5;
     h_est[69] =  h_sync[11];
     //! Between Costas C center (68.5) and Costas D center (101.5)
     for (int k = 70; k < 99; ++k)
     {//do k = 38, 66
         w = (double)(k - 68) / (double)(100 - 68);
         w = fmax(0.0,fmin(1.0,w));
-        h_est[k] = (1.0 - w) * (h_sync[10] + h_sync[11])/2.0 + w  * (h_sync[12] + h_sync[13])/2.0;
+        h_est[k] = (1.0 - w)*(h_sync[10] + h_sync[11])*0.5 + w*(h_sync[12] + h_sync[13])*0.5;
     }
     //! Costas D region
-    h_est[99]  = (h_sync[12] + h_sync[13]) / 2.0;
-    h_est[100] = (h_sync[13] + h_sync[14]) / 2.0;
-    h_est[101] = (h_sync[14] + h_sync[15]) / 2.0;
+    h_est[99]  = (h_sync[12] + h_sync[13])*0.5;
+    h_est[100] = (h_sync[13] + h_sync[14])*0.5;
+    h_est[101] = (h_sync[14] + h_sync[15])*0.5;
     h_est[102] =  h_sync[15];
     //! =============================================
     //! Step 3: MMSE Equalization
@@ -878,7 +874,7 @@ void DecoderFt2::ft2_channel_est(double complex *cd,double complex *cd_eq,double
         }
     }
 }
-void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync,double s4_[120][4])
+void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[5][220],bool &badsync,double s4_[120][4],int mnsync)
 {
     const int NN=103;
     const int NSPS=288;//576;
@@ -1003,7 +999,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
         if (icos4d[k]==ip) is4++;           //if(icos4d(k-1).eq.(ip(1)-1)) is4=is4+1
     }
     int nsync=is1+is2+is3+is4; //printf(" %d= %d= %d= %d= %d= \n",nsync,is1,is2,is3,is4);
-    if (nsync < 7)//if (nsync < 5)//if (nsync < 4)//ft4=8)
+    if (nsync < mnsync)//if (nsync < 5)//if (nsync < 4)//ft4=8)
     {
         badsync=true;
         return;
@@ -1041,20 +1037,17 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
                 int i4=(i & 3);
                 if (nsym==1) //s2[256]
                 {
-                    ctmp=cs_[ks-1][graymap[i4]];
-                    //s2[i]=cabs(ctmp);//graymap(i4),ks)
+                    ctmp=cs_[ks-1][graymap[i4]]; //s2[i]=cabs(ctmp);//graymap(i4),ks)
                     sp[i]=pomAll.ps_hv(ctmp);
                 }
                 else if (nsym==2) //cs_(graymap(i3),ks)+cs(graymap(i4),ks+1)
                 {
-                    ctmp=cs_[ks-1][graymap[i3]]+cs_[ks+0][graymap[i4]];
-                    //s2[i]=cabs(ctmp);
+                    ctmp=cs_[ks-1][graymap[i3]]+cs_[ks+0][graymap[i4]];//s2[i]=cabs(ctmp);
                     sp[i]=pomAll.ps_hv(ctmp);
                 }
                 else if (nsym==4)//cs_(graymap(i1),ks) + cs(graymap(i2),ks+1) + cs(graymap(i3),ks+2) + cs(graymap(i4),ks+3)
                 {
-                    ctmp=cs_[ks-1][graymap[i1]] + cs_[ks+0][graymap[i2]] + cs_[ks+1][graymap[i3]] + cs_[ks+2][graymap[i4]];
-                    //s2[i]=cabs(ctmp);
+                    ctmp=cs_[ks-1][graymap[i1]] + cs_[ks+0][graymap[i2]] + cs_[ks+1][graymap[i3]] + cs_[ks+2][graymap[i4]];//s2[i]=cabs(ctmp);
                     sp[i]=pomAll.ps_hv(ctmp);
                 }
                 //else //no possyble
@@ -1148,7 +1141,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
     else fading_depth = 30.0;  //! Deep fade detected
     //! Use channel-equalized metrics if fading >3 dB (otherwise AWGN, no benefit)
     bool use_cheq = false;//3.0
-    const double limdB=6.0;//4.0;
+    const double limdB=8.0;//4.0;
     if (fading_depth > limdB) use_cheq = true;
     //if (snr_max-snr_min > 3.0) use_cheq = true;
     //if (use_cheq && fading_depth<30) qDebug()<<fading_depth<<use_cheq;//<<snr_max<<snr_min<<
@@ -1290,9 +1283,7 @@ void DecoderFt2::get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220
 }
 void DecoderFt2::ft2_clravg(int jseq)
 {
-    //const int ND=87;
-    //const int NS=16;
-    //const int NN=NS+ND; //=206
+    //const int ND=87; const int NS=16; const int NN=NS+ND; =206
     for (int x = 0; x < 3; ++x)//y=2*NN
     {
         for (int y = 0; y < 207; ++y) ft2avg[jseq].bm_avg_[x][y]=0.0;
@@ -1331,6 +1322,95 @@ int DecoderFt2::ft2_even_odd(QString s)//res=0 (even first), or res=1 (odd secon
     else if (ss % 15 == 7)  res = 0; // 0.50s -> 2 units
     else if (ss % 15 == 11) res = 1; // 0.25s -> 1 unit*/
     return res;
+}
+void DecoderFt2::sync_dt_df(double complex *cd2,int iseg,int &idfbest,int &ibest,double &smax,double &smax1)
+{
+    idfbest = 0;
+    ibest = -1;
+    smax=-99.0;
+    smax1=-99.0;
+    for (int isync = 1; isync <= 2; ++isync)
+    {
+        int idfmin,idfmax,idfstp,ibmin,ibmax,ibstp;
+        ibmin = -688;//108;
+        ibmax = 2024;//565;
+        if (isync==1)
+        {
+            idfmin=-12;//12
+            idfmax=12; //12
+            idfstp=3;  //3
+            //ibmin=-344;
+            //ibmax=1012;
+            if (iseg==1)
+            {
+                ibmin=216;//108;
+                ibmax=1120;//565;//560
+            }
+            else if (iseg==2)
+            {
+                smax1=smax;
+                ibmin=1120;//555;//560
+                ibmax=2024;//1012;
+            }
+            else if (iseg==3)
+            {
+                ibmin=-688;//-344;
+                ibmax=216;//118;//108
+            }
+            ibstp=4;
+        }
+        else
+        {
+            idfmin=idfbest-4;//-4
+            idfmax=idfbest+4;//4
+            idfstp=1;
+            ibmin=ibest-5;//ibmin=fmax(0,ibest-5);
+            ibmax=ibest+5;//ibmax=fmin(ibest+5,NDMAX/NDOWN-1);
+            ibstp=1;
+        }
+        //qDebug()<<"m/m"<<isync<<idfmin<<idfmax<<idfbest;
+        ibest=-1;
+        smax=-99.0;
+        idfbest=0;
+        for (int idf = idfmin; idf <= idfmax; idf+=idfstp)
+        {//do idf=idfmin,idfmax,idfstp
+            for (int istart = ibmin; istart <= ibmax; istart+=ibstp)
+            {//do istart=ibmin,ibmax,ibstp
+                double sync=-99.0;
+                sync2d(cd2,istart,ctwk2_ft2_[idf+20],1,sync);//20  sync4d(cd2,istart,ctwk2(:,idf),1,sync)  //!Find sync power
+                if (sync>smax) //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
+                {
+                    smax=sync;
+                    ibest=istart;//+ibstp;
+                    idfbest=idf;//+idfstp;
+                }
+            }
+        } //qDebug()<<"iseg"<<smax<<iseg<<f0<<f0+idfbest<<ibest;
+    }
+    if (iseg==1) smax1=smax;
+}
+double DecoderFt2::get_xibest(double complex *cd2,int ibest,int idfbest,double smax)
+{
+    const int NMAX=45000;
+    const int NDOWN=9;//ft4=18;
+    const int NDMAX=NMAX/NDOWN;
+    double xibest=0.0;
+    double sm1_sub, sp1_sub, den_sub;
+    if (ibest>0 && ibest<NDMAX-1)
+    {
+        sync2d(cd2,ibest-1,ctwk2_ft2_[idfbest+20],1,sm1_sub);
+        sync2d(cd2,ibest+1,ctwk2_ft2_[idfbest+20],1,sp1_sub);
+        den_sub = sm1_sub - 2.0*smax + sp1_sub;
+        if (fabs(den_sub) > 1.0e-6)//xibest = (double)ibest + 0.5*(sm1_sub - sp1_sub)/den_sub;
+        {
+            double delta=0.5*(sm1_sub - sp1_sub)/den_sub;
+            delta=fmax(-1.0,fmin(1.0,delta));
+            xibest=(double)ibest + delta;
+        }
+        else xibest = (double)ibest;
+    }
+    else xibest = (double)ibest;
+    return xibest;
 }
 //////////AP7//////////////////
 void DecoderFt2::ft2_a7_save(QString nutc,double dt,double f,QString msg)
@@ -1376,7 +1456,7 @@ void DecoderFt2::ft2_a7_save(QString nutc,double dt,double f,QString msg)
     ndec[1][j]++; //qDebug()<<"Save="<<j<<msg<<ndec[1][j];
 }
 void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_2,QString grid4,
-                         double &xdt,double &f0,double xbase,int &nharderrors,double &,QString &message,double &xsnr)
+                         double &xdt,double &f0,double xbase,int &nharderrors,double &dmin,QString &message,double &xsnr)
 {
     const int ndepth = 3;
     const int MAXMSG=158;//= -26 to +49
@@ -1396,17 +1476,18 @@ void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_
     double complex cd[c_cd+500];
     double sum2=0.0;
     bool badsync = false;
-    double sm1_sub, sp1_sub, den_sub;
-    bool hbits[220];
+    //double sm1_sub, sp1_sub, den_sub;
+    //bool hbits[220];
     double s4_[NN+10][4];
-    double bitmetrics_[3][220];//NN*2
+    double bitmetrics_[5][220];//NN*2
     double llra[174];
     double llrb[174];
     double llrc[174];
     double llrd[174];
+    double llre[174];//fictive
     int itone[NN+5];//NN
-    bool hdec[178];
-    bool nxor[178];
+    //bool hdec[178];
+    //bool nxor[178];
     double dmm[MAXMSG+50];
     QString msgbest = "";
     QString msgsent = "";
@@ -1434,65 +1515,7 @@ void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_
         int ibest = -1;
         double smax=-99.0;
         double smax1=-99.0;
-        for (int isync = 1; isync <= 2; ++isync)
-        {
-            int idfmin,idfmax,idfstp,ibmin,ibmax,ibstp;
-            ibmin = -688;//108;
-            ibmax = 2024;//565;
-            if (isync==1)
-            {
-                idfmin=-12;//12
-                idfmax=12; //12
-                idfstp=3;  //3
-                //ibmin=-344;
-                //ibmax=1012;
-                if (iseg==1)
-                {
-                    ibmin=216;//108;
-                    ibmax=1120;//565;//560
-                }
-                else if (iseg==2)
-                {
-                    smax1=smax;
-                    ibmin=1120;//555;//560
-                    ibmax=2024;//1012;
-                }
-                else if (iseg==3)
-                {
-                    ibmin=-688;//-344;
-                    ibmax=216;//118;//108
-                }
-                ibstp=4;
-            }
-            else
-            {
-                idfmin=idfbest-4;//-4
-                idfmax=idfbest+4;//4
-                idfstp=1;
-                ibmin=ibest-5;//ibmin=fmax(0,ibest-5);
-                ibmax=ibest+5;//ibmax=fmin(ibest+5,NDMAX/NDOWN-1);
-                ibstp=1;
-            }
-            //qDebug()<<"m/m"<<isync<<idfmin<<idfmax<<idfbest;
-            ibest=-1;
-            smax=-99.0;
-            idfbest=0;
-            for (int idf = idfmin; idf <= idfmax; idf+=idfstp)
-            {//do idf=idfmin,idfmax,idfstp
-                for (int istart = ibmin; istart <= ibmax; istart+=ibstp)
-                {//do istart=ibmin,ibmax,ibstp
-                    double sync=-99.0;
-                    sync2d(cd2,istart,ctwk2_ft2_[idf+20],1,sync);//20  sync4d(cd2,istart,ctwk2(:,idf),1,sync)  //!Find sync power
-                    if (sync>smax) //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
-                    {
-                        smax=sync;
-                        ibest=istart;//+ibstp;
-                        idfbest=idf;//+idfstp;
-                    }
-                }
-            } //qDebug()<<"iseg"<<smax<<iseg<<f0<<f0+idfbest<<ibest;
-        }
-        //if (iseg==1) smax1=smax;
+        sync_dt_df(cd2,iseg,idfbest,ibest,smax,smax1);
         //if (smax<0.9) continue;//stop 038
         double smaxthresh=0.60;//0.80;//0.9;//038
         if (ndepth>=3) smaxthresh=0.50;//0.65;//0.72;//0.65;//0.75;//038
@@ -1528,63 +1551,32 @@ void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_
                 if (i-ibest>=0) cd[i-ibest]=cb[i];//for any case array out of bounds
             }
         } //qDebug()<<fmin(NDMAX-1,ibest+NN*NSS-1)-ibest+1<<NN*NSS+2*ibest<<c_cd<<c_cb<<f1;
-        get_ft2_bitmetrics(cd,bitmetrics_,badsync,s4_);//get_ft2a7_bitmetrics(cd,bitmetrics_,badsync,s4_);//
+        get_ft2_bitmetrics(cd,bitmetrics_,badsync,s4_,4);
         if (badsync) continue;
-        //! Sub-sample DT refinement via 3-point parabolic interpolation
-        //! Improves DT accuracy from ±0.75ms (1 sample) to ±0.1ms
-        if (ibest>0 && ibest<NDMAX-1)
-        {
-            sync2d(cd2,ibest-1,ctwk2_ft2_[idfbest+20],1,sm1_sub);//sync2d(cd2,ibest-1,ctwk2(:,idfbest),1,sm1_sub);
-            sync2d(cd2,ibest+1,ctwk2_ft2_[idfbest+20],1,sp1_sub);//sync2d(cd2,ibest+1,ctwk2(:,idfbest),1,sp1_sub);
-            den_sub = sm1_sub - 2.0*smax + sp1_sub;
-            if (fabs(den_sub) > 1.0e-6) xibest = (double)ibest + 0.5*(sm1_sub - sp1_sub)/den_sub;
-            else xibest = (double)ibest;
-        }
-        else xibest = (double)ibest;
-        //qDebug()<<" --->2   xibest="<<xibest;
-        //where(bmeta>=0) hbits=1;
-        for (int x = 0; x < 2*NN; ++x)
-        {
-            if (bitmetrics_[0][x]>=0.0) hbits[x]=1;
-            else hbits[x]=0;
-        }
-        bool ms1[8] = {0,0,0,1,1,0,1,1};//count(hbits(  1:  8)==(/0,0,0,1,1,0,1,1/))
-        int ns1=count_eq_bits(hbits,0,  ms1,8);
-        bool ms2[8] = {0,1,0,0,1,1,1,0};//count(hbits( 67: 74)==(/0,1,0,0,1,1,1,0/))
-        int ns2=count_eq_bits(hbits,66, ms2,8);
-        bool ms3[8] = {1,1,1,0,0,1,0,0};//count(hbits(133:140)==(/1,1,1,0,0,1,0,0/))
-        int ns3=count_eq_bits(hbits,132,ms3,8);
-        bool ms4[8] = {1,0,1,1,0,0,0,1};//count(hbits(199:206)==(/1,0,1,1,0,0,0,1/))
-        int ns4=count_eq_bits(hbits,198,ms4,8);
-        int nsync_qual=ns1+ns2+ns3+ns4;
-        //qDebug()<<"nsync_qual="<<nsync_qual<<ns1<<ns2<<ns3<<ns4<<f1;
-        //if (nsync_qual<15) continue;//stop 038
+
+        int nsync_qual = pomFt.SyncQualFt2_4(bitmetrics_[0]);//if (nsync_qual<15) continue;//stop 038
         int nsync_qual_min=13;//15;//038
         if (ndepth>=3) nsync_qual_min=10;//12;//10;//12;//038
         if (nsync_qual<nsync_qual_min) continue;//038
-        double scalefac=2.83;  //llr[174]; =2*ND
+
+        //! Sub-sample DT refinement via 3-point parabolic interpolation
+        //! Improves DT accuracy from ±0.75ms (1 sample) to ±0.1ms
+        xibest = get_xibest(cd2,ibest,idfbest,smax);
+
+        /*double scalefac=2.83;  //llr[174]; =2*ND
         for (int x = 0; x < 58; ++x)
         {
-            llra[x]=bitmetrics_[0][x+8];
-            llra[x+58]=bitmetrics_[0][x+74];
-            llra[x+116]=bitmetrics_[0][x+140];
-            llrb[x]=bitmetrics_[1][x+8];
-            llrb[x+58]=bitmetrics_[1][x+74];
-            llrb[x+116]=bitmetrics_[1][x+140];
-            llrc[x]=bitmetrics_[2][x+8];
-            llrc[x+58]=bitmetrics_[2][x+74];
-            llrc[x+116]=bitmetrics_[2][x+140];
-        }
-        double maxval_llra_abs = 0.0;
-        for (int x = 0; x < 2*ND; ++x)//llr[174]; =2*ND
-        {
-            llra[x]=scalefac*llra[x];
-            llrb[x]=scalefac*llrb[x];
-            llrc[x]=scalefac*llrc[x];
-            double llra_abs = fabs(llra[x]);
-            if (llra_abs>maxval_llra_abs) maxval_llra_abs=llra_abs;
-        }
-        //double apmag = maxval_llra_abs*1.1;//apmag=maxval(abs(llra))*1.1
+            llra[x]=bitmetrics_[0][x+8]*scalefac;
+            llra[x+58]=bitmetrics_[0][x+74]*scalefac;
+            llra[x+116]=bitmetrics_[0][x+140]*scalefac;
+            llrb[x]=bitmetrics_[1][x+8]*scalefac;
+            llrb[x+58]=bitmetrics_[1][x+74]*scalefac;
+            llrb[x+116]=bitmetrics_[1][x+140]*scalefac;
+            llrc[x]=bitmetrics_[2][x+8]*scalefac;
+            llrc[x+58]=bitmetrics_[2][x+74]*scalefac;
+            llrc[x+116]=bitmetrics_[2][x+140]*scalefac;
+        }*/
+        pomFt.SetLlrFt2_4(llra,llrb,llrc,llrd,llre,bitmetrics_,3);
         for (int i = 0; i < 2*ND; ++i)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
         {//do i=1,2*ND
             if (fabs(llra[i])>=fabs(llrb[i]) && fabs(llra[i])>=fabs(llrc[i])) llrd[i]=llra[i];
@@ -1594,15 +1586,14 @@ void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_
         bool c77[140];
         bool cw[180];
         pbest=0.0;
-        double dmin=1.e30;
+        dmin=1.e30;
         int count_msg = MAXMSG;
         for (int i = 0; i < MAXMSG; ++i)
         {
             QString msg;
-            if (pomFt.SetAp7Msg(call_1,std_1,call_2,std_2,grid4,i,msg,count_msg)) break;
-            
             int i3=0;
-            int n3=0;
+        	int n3=0;
+            if (pomFt.SetAp7Msg(call_1,std_1,call_2,std_2,grid4,i,msg,count_msg)) break;
             for (int z= 0; z < 176; ++z)
             {
                 if (z<100) c77[z]=0;
@@ -1624,73 +1615,8 @@ void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_
             {
                 double s88 = s4_[z][itone[z]]*0.001;//1000.0; //s8_/1000.0 = s2_  HV from v1.
                 pow0+=(s88*s88);
-            }
-
-            double da = 0.0;
-            double dbb= 0.0;
-            double dc = 0.0;
-            double dd = 0.0;
-            for (int z= 0; z < 174; ++z)
-            {
-                hdec[z] = 0;
-                if (llra[z]>=0.0) hdec[z] = 1;
-                nxor[z]=hdec[z] ^ cw[z];
-                da+=(double)nxor[z]*fabs(llra[z]);
-                hdec[z] = 0;
-                if (llrb[z]>=0.0) hdec[z] = 1;
-                nxor[z]=hdec[z] ^ cw[z];
-                dbb+=(double)nxor[z]*fabs(llrb[z]);
-                hdec[z] = 0;
-                if (llrc[z]>=0.0) hdec[z] = 1;
-                nxor[z]=hdec[z] ^ cw[z];
-                dc+=(double)nxor[z]*fabs(llrc[z]);
-                hdec[z] = 0;
-                if (llrd[z]>=0.0) hdec[z] = 1;
-                nxor[z]=hdec[z] ^ cw[z];
-                dd+=(double)nxor[z]*fabs(llrd[z]);
-            }
-
-            double dm = da;
-            if (dbb<dm) dm=dbb;
-            if (dc<dm)  dm=dc;
-            if (dd<dm)  dm=dd;
-            dmm[i]=dm;
-            if (dm<dmin)
-            {
-                dmin=dm;
-                msgbest=msgsent;
-                pbest=pow0;
-                nharderrors = -1;
-                if (dm==da)
-                {
-                    for (int z= 0; z < 174; ++z)
-                    {
-                        if ((double)(2*cw[z]-1)*llra[z]<0.0) nharderrors++;
-                    }
-                }
-                else if (dm==dbb)
-                {
-                    for (int z= 0; z < 174; ++z)
-                    {
-                        if ((double)(2*cw[z]-1)*llrb[z]<0.0) nharderrors++;
-                    }
-                }
-                else if (dm==dc)
-                {
-                    for (int z= 0; z < 174; ++z)
-                    {
-                        if ((double)(2*cw[z]-1)*llrc[z]<0.0) nharderrors++;
-                    }
-                }
-                else if (dm==dd)
-                {
-                    for (int z= 0; z < 174; ++z)
-                    {
-                        if ((double)(2*cw[z]-1)*llrd[z]<0.0) nharderrors++;
-                    }
-                }
-            }
-            //pomFt.TryDecAp7(llra,llrb,llrc,llrd,cw,dmm,i,msgsent,pow0,dmin,msgbest,pbest,nharderrors);
+            }            
+            pomFt.TryDecAp7(llra,llrb,llrc,llrd,cw,dmm,i,msgsent,pow0,dmin,msgbest,pbest,nharderrors);
         }
         int pos = 0;
         double min = dmm[0];
@@ -1714,28 +1640,26 @@ void DecoderFt2::ft2_a7d(double *dd0,bool &dobigfft,QString call_1,QString call_
             }
         }
         double dmin2 = dmm[pos];
-        message=msgbest;
+        message=msgbest; //qDebug()<<"         DEC AP7===="<<xdt<<f1<<message<<dmin<<dmin2<<nharderrors;
         msgbest += "xxxxxx";//2.70 protection
         if (dmin==0.0) dmin=0.0001;//devide by zero
-        if (dmin>100.0 || dmin2/dmin<1.27) nharderrors=-1;
+        if (dmin>100.0 || dmin2/dmin<1.2) nharderrors=-1;//1.27
         if (msgbest.mid(0,3)=="CQ " && std_2 && grid4=="    ") nharderrors=-1;
         if (msgbest.mid(0,6)=="QU1RK " || message.isEmpty()) nharderrors=-1;
         if (nharderrors>95) nharderrors=-1;
-        //if (nharderrors==-1) qDebug()<<" NO DEC AP7===="<<xdt<<f1<<message<<dmin<<dmin2<<nharderrors;
-        //else qDebug()<<"         DEC AP7===="<<xdt<<f1<<message<<dmin<<dmin2<<nharderrors;
         if (nharderrors>=0)
         {
-        	if (xbase<=0.0) xbase=0.001;
-        	//double arg=pbest/xbase/3.0e6 - 1.0;
-        	//if (arg>0.0) xsnr=fmax(-21.0,pomAll.db(arg)-22.0);
-        	//if (xbase<=0.0) xbase=0.001;
-        	xsnr=pomAll.db(pbest/xbase - 1.0) - 42.0;
-        	if (xsnr < -21.0) xsnr=-21.0;
-        	if (xsnr > 49.0)  xsnr=49.0; //double dt0=xibest/1333.33;
-        	xdt=xibest/1333.33 - 0.5;
-        	f0=f1;
-        	break;
-       	}       	
+            if (xbase<=0.0) xbase=0.001;
+            //double arg=pbest/xbase/3.0e6 - 1.0;
+            //if (arg>0.0) xsnr=fmax(-21.0,pomAll.db(arg)-22.0);
+            //if (xbase<=0.0) xbase=0.001;
+            xsnr=pomAll.db(pbest/xbase - 1.0) - 42.0;
+            if (xsnr < -21.0) xsnr=-21.0;
+            if (xsnr > 49.0)  xsnr=49.0; //double dt0=xibest/1333.33;
+            xdt=xibest/1333.33 - 0.5;
+            f0=f1;
+            break;
+        }
     }
 }
 //////////end AP7//////////////////
@@ -1780,34 +1704,34 @@ uint8_t DecoderFt2::isFalseDecode(QString msg,int nsnr,double qual,bool do_avg,i
 {
     if (msg.count()<1) return 1;
     if (msg.indexOf("<> ")>-1 || msg.indexOf(" <>")>-1 || msg.startsWith("CQ_001 ")) return 2;
-    int harde = 35;
+    if (do_avg && qual<0.01 && nharderror>40) return 3;//&& nsnr<-20
+    int harde = 36;
     if (nsnr<-19 && qual<0.08) harde = 18;//0.06
     if (!do_avg && nharderror>harde)
     {
-        if (nsnr<-17 && qual<0.09) return 3;//0.07
-        if (nsnr<-19 && qual<0.17) return 4;//34
+        if (nsnr<-17 && qual<0.09) return 4;//0.07
+        if (nsnr<-19 && qual<0.17) return 5;//34
     }
     harde = 36;
     if (!do_avg && nsnr<-19 && qual<0.16) harde = 19;
-    if ((i3==2 || i3==3 || i3==4) && nsnr<-18 && qual<0.17 && nharderror>harde) return 5;
+    if ((i3==2 || i3==3 || i3==4) && nsnr<-18 && qual<0.17 && nharderror>harde) return 6;
     harde = 34;
     if (!do_avg && nsnr<-18 && qual<0.2) harde = 24;
-    if (nsnr<-12 && qual<0.55 && msg.indexOf('/')>-1 && nharderror>harde) return 6;
+    if (nsnr<-12 && qual<0.55 && msg.indexOf('/')>-1 && nharderror>harde) return 7;
     harde = 34;//30
     if (!do_avg && nsnr<-18 && qual<0.43) harde = 19;//-18
-    if (nsnr<-14 && qual<0.45 && (msg.indexOf("/P")>-1 || msg.indexOf("/R")>-1) && nharderror>harde) return 7;
-    if (nsnr<-17 && qual<0.50 && msg.indexOf(' ')<0 && nharderror>19) return 8;
-    if (nsnr<-13 && qual<0.55 && msg.startsWith("TU; ") && nharderror>18) return 9;
+    if (nsnr<-14 && qual<0.45 && (msg.indexOf("/P")>-1 || msg.indexOf("/R")>-1) && nharderror>harde) return 8;
+    if (nsnr<-13 && qual<0.50 && msg.indexOf(' ')<0 && nharderror>19) return 9;
+    if (nsnr<-13 && qual<0.55 && msg.startsWith("TU; ") && nharderror>18) return 10;
     harde = 18;
     if (nsnr<-18 && qual<0.4) harde = 15;//i3=5 && (n3==5 || n3==7)//5=R+N+Loc 7=N+Loc
-    if (nsnr<-10 && qual<0.55 && msg.startsWith("<...> <...> ") && nharderror>harde) return 10;
+    if (nsnr<-10 && qual<0.55 && msg.startsWith("<...> <...> ") && nharderror>harde) return 11;
     if (nsnr<-13 && qual<0.6)
     {
-        if ((msg.indexOf(" <...> ")>-1 || msg.startsWith("<...> ") || msg.endsWith(" <...>")) && nharderror>18) return 11;
+        if ((msg.indexOf(" <...> ")>-1 || msg.startsWith("<...> ") || msg.endsWith(" <...>")) && nharderror>18) return 12;
         harde = 36;
         if (!do_avg && nsnr<-16 && qual<0.55 && (nsnr<-18 || qual<0.17)) harde = 19;
-        //if (i3==0 && (n3==3 || n3==4) && (nsnr<-18 || qual<0.2) && nharderror>harde) return 12;//0.3 0.4 WA9XYZ KA1ABC R 16A EMA //ARRL Field Day
-        if ((nsnr<-18 || qual<0.3) && msg.indexOf(" R ")>-1 && nharderror>harde) return 12;
+        if ((nsnr<-18 || qual<0.3) && msg.indexOf(" R ")>-1 && nharderror>harde) return 13;
         if ((nsnr<-18 || qual<0.3) && msg.count()>5)
         {
             if (msg.at(msg.count()-5)==' ')
@@ -1821,19 +1745,19 @@ uint8_t DecoderFt2::isFalseDecode(QString msg,int nsnr,double qual,bool do_avg,i
                         break;
                     }
                 }
-                if (fend4D && nharderror>harde) return 13;
+                if (fend4D && nharderror>harde) return 14;
             }
         }
         if (!do_avg && nsnr<-18 && msg.startsWith("CQ "))//CQ RY4UY4T6G
         {
             QString s = msg.mid(3,msg.count()-3);
-            if (s.indexOf(' ')<0 && nharderror>harde) return 14;
+            if (s.indexOf(' ')<0 && nharderror>harde) return 15;
         }//(n3==3 || n3==4) DEC Snr=-20 Qual=0.2450 Msg=1W5DTH 264HKO 21E KS Avg=0 nhrr=28 i3=0 n3=4 iap=0
-        if (i3==0 && n3==4 && nsnr<-19 && nharderror>harde) return 15;
+        if (i3==0 && (n3==3 || n3==4) && nsnr<-19 && nharderror>harde) return 16;//ARRL Field Day
     }
     return 0;
 }
-void DecoderFt2::make_bm_ap(double *dd,double bitmetrics_[3][220],int nQSOProgress,bool lapcqonly,
+void DecoderFt2::make_bm_ap(double *dd,double bitmetrics_[5][220],int nQSOProgress,bool lapcqonly,
                             int ndepth,int cont_type,double f1,double snr,double nfqso,bool doosd,
                             bool dosubtract,double xibest,int &ndecodes,QString *decodes,int maxcand,
                             int &nharderror,bool &f_only_one_color,bool &have_dec,bool do_avg)
@@ -1867,26 +1791,23 @@ void DecoderFt2::make_bm_ap(double *dd,double bitmetrics_[3][220],int nQSOProgre
             //{1,2,0,0},{2,3,0,0},{2,3,0,0},{3,6,0,0},{3,6,0,0},{3,1,2,0}
             {1,2,0,0},{2,3,0,0},{2,3,0,0},{3,4,5,6},{3,4,5,6},{3,1,2,0}//038
         };
-    double scalefac=2.83;  //llr[174]; =2*ND
+    /*double scalefac=2.83;  //llr[174]; =2*ND
     for (int x = 0; x < 58; ++x)
     {
-        llra[x]=bitmetrics_[0][x+8];
-        llra[x+58]=bitmetrics_[0][x+74];
-        llra[x+116]=bitmetrics_[0][x+140];
-        llrb[x]=bitmetrics_[1][x+8];
-        llrb[x+58]=bitmetrics_[1][x+74];
-        llrb[x+116]=bitmetrics_[1][x+140];
-        llrc[x]=bitmetrics_[2][x+8];
-        llrc[x+58]=bitmetrics_[2][x+74];
-        llrc[x+116]=bitmetrics_[2][x+140];
-    }
+        llra[x]=bitmetrics_[0][x+8]*scalefac;
+        llra[x+58]=bitmetrics_[0][x+74]*scalefac;
+        llra[x+116]=bitmetrics_[0][x+140]*scalefac;
+        llrb[x]=bitmetrics_[1][x+8]*scalefac;
+        llrb[x+58]=bitmetrics_[1][x+74]*scalefac;
+        llrb[x+116]=bitmetrics_[1][x+140]*scalefac;
+        llrc[x]=bitmetrics_[2][x+8]*scalefac;
+        llrc[x+58]=bitmetrics_[2][x+74]*scalefac;
+        llrc[x+116]=bitmetrics_[2][x+140]*scalefac;
+    }*/
+    pomFt.SetLlrFt2_4(llra,llrb,llrc,llrd,llre,bitmetrics_,3);
     double maxval_llra_abs = 0.0;
     for (int x = 0; x < 2*ND; ++x)//llr[174]; =2*ND
     {
-        llra[x]=scalefac*llra[x];
-        llrb[x]=scalefac*llrb[x];
-        llrc[x]=scalefac*llrc[x];
-
         double llra_abs = fabs(llra[x]);
         if (llra_abs>maxval_llra_abs) maxval_llra_abs=llra_abs;
     }
@@ -2045,21 +1966,12 @@ void DecoderFt2::make_bm_ap(double *dd,double bitmetrics_[3][220],int nQSOProgre
                 break;
             }
 #if defined DEB_FALSEDEC
-        if (nsnr<-13 && qual<0.6) printf("    DEC Snr=%d Qual=%.4f Msg=%s Avg=%d nhrr=%d i3=%d n3=%d iap=%d\n",nsnr,qual,qPrintable(message),do_avg,nharderror,i3,n3,iaptype);
-#endif            
+            if (nsnr<-13 && qual<0.6) printf("    DEC Snr=%d Qual=%.4f Msg=%s Avg=%d nhrr=%d i3=%d n3=%d iap=%d\n",nsnr,qual,qPrintable(message),do_avg,nharderror,i3,n3,iaptype);
+#endif
             PrintMsg(s_time2,nsnr,xdt,f1,message,iaptype,do_avg,qual,have_dec,f_only_one_color,true);
             break;//exit
         }
     }  //!Sequence estimation
-}
-int DecoderFt2::count_eq_bits(bool *a,int b_a,bool *b,int c)
-{
-    int ns1=0;
-    for (int x = 0; x < c; ++x)
-    {
-    	if (a[x+b_a]==b[x]) ns1++;    	
-   	}
-    return ns1;
 }
 void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double f0b1,double fqso,bool &have_dec)//,int /*npts no need*/)
 {
@@ -2103,7 +2015,7 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
     double complex cd2[NDMAX+100];// pomAll.zero_double_comp_beg_end(cd2,0,NDMAX);
     double complex cb[NDMAX+100];
     double complex cd[4000];//(103*32-1)=3295   //!Complex waveform
-    bool hbits[220];//(2*NN)=206
+    //bool hbits[220];//(2*NN)=206
     double s4_[120][4];
     /*double llr [180];//(2*ND)=174
     double llra[180];//(2*ND)=174
@@ -2114,7 +2026,7 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
     bool apmask[174];//(2*ND)=174
     int iaptype=0;*/
     bool f_only_one_color = true;
-    double bitmetrics_[3][220];//real bitmetrics(2*NN,3)//2*NN = 206
+    double bitmetrics_[5][220];//real bitmetrics(2*NN,3)//2*NN = 206
     bool badsync = false;
 
     int ndecodes=0;
@@ -2126,7 +2038,7 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
     const int NFFT1=1152;//2304;
     const int NH1=NFFT1/2;
     const double df= 12000.0/(double)NFFT1;
-    double sbase[NH1+10];    
+    double sbase[NH1+10];
     if (nutc0=="-1")
     {
         for (int k = 0; k < 2; ++k)
@@ -2188,7 +2100,7 @@ void DecoderFt2::ft2_decode(double *dd,double f0a,double f0b,double f0a1,double 
         {
             dt0[1][jseq_a7][i]=0.0;
             f0[1][jseq_a7][i]=0.0;
-        } 
+        }
         nutc0=s_time2;
     }
     //////////end AP7//////////////////
@@ -2305,8 +2217,8 @@ c10:
 
     if (nagain)
     {
-        nfa = nfqso-70;//50
-        nfb = nfqso+70;//50
+        nfa = nfqso-100;//50
+        nfb = nfqso+100;//50
     }
     nfa=fmax(200,nfa);    	//hv nfa down
     nfa=fmin(5000-10,nfa);  //hv nfa up
@@ -2320,6 +2232,7 @@ c10:
 
     //double nfqso_calc = nfqso;
     if (nfqso<nfa || nfqso>nfb) nfqso = nfa + ((nfb-nfa)/2.0);
+    //qDebug()<<nfa1<<nfb1<<"--"<<nagain<<nfa<<nfqso<<nfb;
 
     //! ndepth=3: 3 passes, bp+osd
     //! ndepth=2: 3 passes, bp only
@@ -2352,7 +2265,7 @@ c10:
     double best_f1_avg=0.0;
     double best_xibest_avg=0.0;//int best_ibest_avg=0; !Sub-sample DT of best candidate this period
     double xibest=0.0;//                    //!Sub-sample ibest (fractional sample)
-    double sm1_sub, sp1_sub, den_sub;   //!Parabolic interpolation temporaries
+    //double sm1_sub, sp1_sub, den_sub;   //!Parabolic interpolation temporaries
     bool got_candidate=false;
     if (f_use_avg) jseq_a = jseqr;//ft2_even_odd(s_time2);//res=0 (even first), or res=1 (odd second)
     /*if (jseq==0) qDebug()<<decid<<"---> s_time2="<<s_time2<<"Even="<<jseq;
@@ -2398,7 +2311,7 @@ c10:
             double xsnr=10*log10(candidate[1][z])-14.0;
             sss.append(QString("%1").arg(xsnr,0,'f',1));
         qDebug()<<z<<sss;
-        } */
+        }*/
         bool dobigfft=true;
         for (int icand = 0; icand < ncand; ++icand)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
         {//do icand=1,ncand
@@ -2422,65 +2335,7 @@ c10:
                 int ibest = -1;
                 double smax=-99.0;
                 double smax1=-99.0;
-                for (int isync = 1; isync <= 2; ++isync)
-                {
-                    int idfmin,idfmax,idfstp,ibmin,ibmax,ibstp;
-                    ibmin = -688;//108;
-                    ibmax = 2024;//565;
-                    if (isync==1)
-                    {
-                        idfmin=-12;//12
-                        idfmax=12; //12
-                        idfstp=3;  //3
-                        //ibmin=-344;
-                        //ibmax=1012;
-                        if (iseg==1)
-                        {
-                            ibmin=216;//108;
-                            ibmax=1120;//565;//560
-                        }
-                        else if (iseg==2)
-                        {
-                            smax1=smax;
-                            ibmin=1120;//555;//560
-                            ibmax=2024;//1012;
-                        }
-                        else if (iseg==3)
-                        {
-                            ibmin=-688;//-344;
-                            ibmax=216;//118;//108
-                        }
-                        ibstp=4;
-                    }
-                    else
-                    {
-                        idfmin=idfbest-4;//-4
-                        idfmax=idfbest+4;//4
-                        idfstp=1;
-                        ibmin=ibest-5;//ibmin=fmax(0,ibest-5);
-                        ibmax=ibest+5;//ibmax=fmin(ibest+5,NDMAX/NDOWN-1);
-                        ibstp=1;
-                    }
-                    //qDebug()<<"m/m"<<isync<<idfmin<<idfmax<<idfbest;
-                    ibest=-1;
-                    smax=-99.0;
-                    idfbest=0;
-                    for (int idf = idfmin; idf <= idfmax; idf+=idfstp)
-                    {//do idf=idfmin,idfmax,idfstp
-                        for (int istart = ibmin; istart <= ibmax; istart+=ibstp)
-                        {//do istart=ibmin,ibmax,ibstp
-                            double sync=-99.0;
-                            sync2d(cd2,istart,ctwk2_ft2_[idf+20],1,sync);//20  sync4d(cd2,istart,ctwk2(:,idf),1,sync)  //!Find sync power
-                            if (sync>smax) //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
-                            {
-                                smax=sync;
-                                ibest=istart;//+ibstp;
-                                idfbest=idf;//+idfstp;
-                            }
-                        }
-                    } //qDebug()<<"iseg"<<smax<<iseg<<f0<<f0+idfbest<<ibest;
-                }
-                if (iseg==1) smax1=smax;
+                sync_dt_df(cd2,iseg,idfbest,ibest,smax,smax1);
                 //if (smax<0.9) continue;//stop 038
                 double smaxthresh=0.60;//0.80;//0.9;//038
                 if (ndepth>=3) smaxthresh=0.50;//0.65;//0.72;//0.65;//0.75;//038
@@ -2518,21 +2373,12 @@ c10:
                     }
                 } //qDebug()<<fmin(NDMAX-1,ibest+NN*NSS-1)-ibest+1<<NN*NSS+2*ibest<<c_cd<<c_cb<<f1;
 
-                get_ft2_bitmetrics(cd,bitmetrics_,badsync,s4_);
+                get_ft2_bitmetrics(cd,bitmetrics_,badsync,s4_,8);
                 if (badsync) continue;
-                //qDebug()<<" 1   ibest="<<ibest;
+
                 //! Sub-sample DT refinement via 3-point parabolic interpolation
                 //! Improves DT accuracy from ±0.75ms (1 sample) to ±0.1ms
-                if (ibest>0 && ibest<NDMAX-1)
-                {
-                    sync2d(cd2,ibest-1,ctwk2_ft2_[idfbest+20],1,sm1_sub);//sync2d(cd2,ibest-1,ctwk2(:,idfbest),1,sm1_sub);
-                    sync2d(cd2,ibest+1,ctwk2_ft2_[idfbest+20],1,sp1_sub);//sync2d(cd2,ibest+1,ctwk2(:,idfbest),1,sp1_sub);
-                    den_sub = sm1_sub - 2.0*smax + sp1_sub;
-                    if (fabs(den_sub) > 1.0e-6) xibest = (double)ibest + 0.5*(sm1_sub - sp1_sub)/den_sub;
-                    else xibest = (double)ibest;
-                }
-                else xibest = (double)ibest;
-                //qDebug()<<" --->2   xibest="<<xibest;
+                xibest = get_xibest(cd2,ibest,idfbest,smax);
 
                 //! Track best candidate near nfqso for multi-period averaging
                 if (f_use_avg && fabs(f1-nfqso)<100.0 && smax>best_sync_avg)
@@ -2547,25 +2393,7 @@ c10:
                     got_candidate=true; //qDebug()<<"   got_candidate"<<got_candidate<<nfqso;
                 }
 
-                //hbits=0 //hbits[206]  //c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
-                //where(bmeta>=0) hbits=1;
-                for (int x = 0; x < 2*NN; ++x)
-                {
-                    if (bitmetrics_[0][x]>=0.0) hbits[x]=1;
-                    else hbits[x]=0;
-                }
-
-                bool ms1[8] = {0,0,0,1,1,0,1,1};//count(hbits(  1:  8)==(/0,0,0,1,1,0,1,1/))
-                int ns1=count_eq_bits(hbits,0,  ms1,8);
-                bool ms2[8] = {0,1,0,0,1,1,1,0};//count(hbits( 67: 74)==(/0,1,0,0,1,1,1,0/))
-                int ns2=count_eq_bits(hbits,66, ms2,8);
-                bool ms3[8] = {1,1,1,0,0,1,0,0};//count(hbits(133:140)==(/1,1,1,0,0,1,0,0/))
-                int ns3=count_eq_bits(hbits,132,ms3,8);
-                bool ms4[8] = {1,0,1,1,0,0,0,1};//count(hbits(199:206)==(/1,0,1,1,0,0,0,1/))
-                int ns4=count_eq_bits(hbits,198,ms4,8);
-                int nsync_qual=ns1+ns2+ns3+ns4;
-                //qDebug()<<"nsync_qual="<<nsync_qual<<ns1<<ns2<<ns3<<ns4<<f1;
-                //if (nsync_qual<15) continue;//stop 038
+                int nsync_qual = pomFt.SyncQualFt2_4(bitmetrics_[0]);//if (nsync_qual<15) continue;//stop 038
                 int nsync_qual_min=13;//15;//038
                 if (ndepth>=3) nsync_qual_min=10;//12;//10;//12;//038
                 if (nsync_qual<nsync_qual_min) continue;//038
@@ -2621,25 +2449,24 @@ c10:
                 }
                 if (!ldupe)
                 {
-					/*decodes[ndecodes]=message;
-            		if (ndecodes < (maxcand-1)) ndecodes++;
-            		int i3=0; int n3=0; int i4tone[120];
-            		for (int i = 0; i < 78; ++i) c77[i]=0;            		
-            		TGenFt2->pack77(message,i3,n3,c77);
-            		TGenFt2->make_c77_i4tone(c77,i4tone);
-            		subtractft2(dd,i4tone,f1,(xdt+0.5));*/
+                    decodes[ndecodes]=message;//HV protect AVG from dupes
+                    if (ndecodes < (maxcand-1)) ndecodes++;
+                    /*int i3=0; int n3=0; int i4tone[120];
+                    for (int i = 0; i < 78; ++i) c77[i]=0;     
+                    TGenFt2->pack77(message,i3,n3,c77);
+                    TGenFt2->make_c77_i4tone(c77,i4tone);
+                    subtractft2(dd,i4tone,f1,(xdt+0.5));*/
                     int nsnr=(int)xsnr;
                     bool fshow = true;
-                    float qual=1.0-((float)nharderrors+(float)dmin)/60.0;
+                    float qual=1.0-((float)nharderrors+(float)dmin)/140.0; //if (qual<0.17) qDebug()<<"----->AP7="<<message<<qual<<dmin<<nharderrors;
                     if (nfa1>f1 || nfb1<f1 || (!s_lapon2 && qual<0.2) || (s_lapon2 && qual<0.02)) fshow = false;
-                    //qDebug()<<"         DEC AP7===="<<xdt<<f1<<message<<dmin<<nharderrors<<qual<<fshow;
                     PrintMsg(s_time2,nsnr,xdt,f1,message,7,false,qual,have_dec,f_only_one_color,fshow);
                 }   //if (ldupe) qDebug()<<"            DUPE DEC AP7===="<<xdt<<f1<<message<<ldupe;
             }
         }
     }
 
-    if (f_use_avg && got_candidate)
+    if (f_use_avg && got_candidate)//qDebug()<<"  f_use_avg=="<<f_use_avg<<best_f1_avg<<ndecodes;
     {
         //jseq = ft2_even_odd(s_time2);
         if (ft2avg[jseq_a].navg_ft2==0 || fabs(best_f1_avg-ft2avg[jseq_a].f_avg)>10.0)

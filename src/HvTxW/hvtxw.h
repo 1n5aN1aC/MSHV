@@ -418,6 +418,7 @@ signals:
     void EmitFreqGlobalToDec(QString);//2.76.5
     void EmitMAMCalls(QStringList);
     void EmitUdpCmdDl(QStringList);
+    void EmitUdpConfigure(int);//2.76.7
     void EmitUdpCmdStop(bool);
     void EmitQrgParms(QString s,bool f);//2.45 
     void EmitQrgQSY(QStringList);//2.46 

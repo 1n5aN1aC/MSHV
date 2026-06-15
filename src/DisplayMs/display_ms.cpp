@@ -384,7 +384,7 @@ void DisplayMs::SetMode(int mode)
         dflimit = 10;//jt65
         if (s_mode==11) dflimit = 60; //50 ft8
         else if (s_mode==13 || s_mode==10) dflimit = 110;//100 ft4 or pi4
-        else if (s_mode==18) dflimit = 160;//ft2 
+        else if (s_mode==18) dflimit = 210;//ft2 
         else if (allq65) dflimit = 50;//q65 limit  10hz
 
         if (mode == 10) vd_rx_freq = 682.8125; //pi4
@@ -2524,7 +2524,7 @@ void DisplayMs::mouseDoubleClickEvent(QMouseEvent *event)
             else if (s_mode==13)//ft4
                 emit EmitVDRxDf(100);
             else if (s_mode==18)//ft2
-                emit EmitVDRxDf(150);
+                emit EmitVDRxDf(200);
             else if (allq65)   //q65? limit 10hz ???
                 emit EmitVDRxDf(50);
             else

@@ -240,26 +240,21 @@ int GenFt4::genft4(QString str_mam,int *t_iwave,double GEN_SAMPLE_RATE,double f_
         }
     }
     //qDebug()<<"0 k1="<<nwave<<s_unpack_msg;
-    
     for (int i = 0; i < nsps; ++i) wave[i]*=(1.0-cos(twopi*(double)i/(2.0*nsps)))/2.0;        
     int k2=(nsym+1)*nsps+1; //=2047 before stop
     for (int i = 0; i < nsps; ++i) wave[i+k2]*=(1.0+cos(twopi*(double)i/(2.0*nsps)))/2.0;//i+k1-nsps        
 	//qDebug()<<"nsamp="<<k2+nsps-1<<k1;
     if (nslots<1) nslots=1;// no div by zero      
-
     for (int z = 0; z < k1; ++z) t_iwave[z]=(int)(8380000.0*(wave[z]/(double)nslots));//2.70 8380000.0 full=8388607
-        
     delete [] wave;
     delete [] dphi;
     //delete c77;
     //////////////////////// END GFSK MODULATOR ////////////////////////////////////////////
-
     for (int z = 0; z < 144000 ; ++z)  //+3s duration=5.04s   duration=4.48s
     {
         t_iwave[k1] = 0;
         k1++;
     }
-    //nwave = k1;//k;//k;//omly one msg 100050;*/
     return k1;
 }
 

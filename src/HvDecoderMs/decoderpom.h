@@ -86,9 +86,12 @@ public:
     void normalizebmet(double *bmet,int n);
     void normalizebmetvar(double *bmet,int n); 
     void twkfreq1(double complex *ca,int npts,double fsample,double *a,double complex *cb);
+    //int count_eq_bits(bool *a,int b_a,const bool *b,int c);
+    void SetLlrFt2_4(double *,double *,double *,double *,double *,double bitmetrics_[5][220],uint8_t to);
+    int SyncQualFt2_4(double *bitmetrics);
     void SetApFt2_4(double *,double *,bool *,int *,int *,int *,int *,double,int,int);
     bool SetAp7Msg(QString call_1,bool std_1,QString call_2,bool std_2,QString grid4,int i,QString &msg,int &count_msg);
-    //void TryDecAp7(double *,double *,double *,double *,bool *,double *,int,QString,double,double &,QString &,double &,int &);
+	void TryDecAp7(double *,double *,double *,double *,bool *,double *,int,QString,double,double &,QString &,double &,int &);
 	void bpdecode174_91var(double *llr,bool *apmask,bool *message77,bool *cw,int &nharderror);
     void decode174_91(double *llr,int maxosd,int norder,bool *apmask,bool *message91,bool *cw,int &nharderror,double &dmin);//ntype,//int Keff,
     void osd174_91_1(double *llr,/*int Keff=91*/bool *apmask,int ndeep,bool *message91,bool *cw,int &nhardmin,double &dmin,bool var=false);
@@ -101,8 +104,9 @@ private:
     double twopi;
     double pi;
     short crc14(unsigned char const * data, int length);
-    void platanh(double x, double &y);
+    int count_eq_bits(bool *a,int b_a,const bool *b,int c);
     void chkcrc14a(bool *decoded,int &nbadcrc);
+    void platanh(double x, double &y);
     int indexes_ft8_2_[2][5020];//5000+20
     int fp_ft8_2[525020];//525000+20
     int np_ft8_2[5020];//5000+20

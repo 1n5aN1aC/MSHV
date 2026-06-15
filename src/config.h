@@ -1,12 +1,10 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-//-------------------------Semantic Versioning 2.0.0---------------------------------------//
 #define VERSION_MAJOR 1337  //version when you make incompatible API changes
 #define VERSION_MINOR 76 //version when you add functionality in a backward compatible manner
-#define VERSION_PATCH 6  //version when you make backward compatible bug fixes
+#define VERSION_PATCH 7  //version when you make backward compatible bug fixes
 #define VERSION_REVISION 1
-//--------------------END--Semantic Versioning 2.0.0--END----------------------------------//
 
 #define STR0(x) #x
 #define TOSTR0(x) STR0(x)

@@ -244,7 +244,7 @@ void MessageClient::impl::parse_message(QByteArray const& msg)
             break;
         case NetworkMessage::Configure:
             {
-                /*QByteArray mode;
+                QByteArray mode;
                 quint32 frequency_tolerance;
                 QByteArray submode;
                 bool fast_mode {false};
@@ -255,21 +255,19 @@ void MessageClient::impl::parse_message(QByteArray const& msg)
                 bool generate_messages {false};
                 in >> mode >> frequency_tolerance >> submode >> fast_mode >> tr_period >> rx_df
                 >> dx_call >> dx_grid >> generate_messages;
-
                 //qDebug()<<"Configure mode:"<<mode<<"frequency tolerance:"<< frequency_tolerance << "submode:" <<
-                // 		submode << "fast mode:" << fast_mode << "T/R period:" << tr_period << "rx df:" << rx_df <<
-                // 		"dx call:" << dx_call << "dx grid:" << dx_grid << "generate messages:" << generate_messages;
-                 		
+                //submode << "fast mode:" << fast_mode << "T/R period:" << tr_period << "rx df:" << rx_df <<
+                //"dx call:" << dx_call << "dx grid:" << dx_grid << "generate messages:" << generate_messages;
                 if (check_status (in) != Fail)
                 {
                     //Q_EMIT self_->configure (QString::fromUtf8 (mode), frequency_tolerance
                     //                         , QString::fromUtf8 (submode), fast_mode, tr_period, rx_df
                     //                         , QString::fromUtf8 (dx_call), QString::fromUtf8 (dx_grid)
                     //                         , generate_messages);
-                    QStringList list;
-                    list<<QString::fromUtf8(mode)<<QString::fromUtf8(submode)<<QString::fromUtf8(dx_call)<<QString::fromUtf8(dx_grid);
-                    Q_EMIT self_->configure(list,generate_messages);                
-                }*/
+                    QStringList list; //mode = mode.toUpper(); submode = submode.toUpper();
+                    list<<QString::fromUtf8(mode)<<QString::fromUtf8(submode);//<<QString::fromUtf8(dx_call)<<QString::fromUtf8(dx_grid);
+                    Q_EMIT self_->configure(list);//,generate_messages);                
+                }
             }
             break;
         case NetworkMessage::AnnotationInfo:
