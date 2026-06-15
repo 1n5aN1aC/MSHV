@@ -770,6 +770,7 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(THvTxW, SIGNAL(EmitUdpCmdDl(QStringList)), TDecodeList1, SLOT(SetUdpCmdDl(QStringList)));//2.22
     connect(THvTxW, SIGNAL(EmitUdpCmdDl(QStringList)), TDecodeList2, SLOT(SetUdpCmdDl(QStringList)));//2.22
     connect(THvTxW, SIGNAL(EmitUdpCmdStop(bool)), this, SLOT(SetUdpCmdStop(bool)));//2.22
+    connect(THvTxW, SIGNAL(EmitUdpConfigure(int)),this,SLOT(SetUdpConfigure(int)));//2.76.7
     connect(TDecodeList1, SIGNAL(EmitUdpDecClr()), THvTxW, SLOT(SetUdpDecClr()));//2.22
 
     connect(TDecodeList1, SIGNAL(EmitDetectTextInMsg(QString,QString &)), THvTxW, SLOT(DlDetectTextInMsg(QString,QString &)));//for tooltip 2.27
@@ -3454,6 +3455,24 @@ void Main_Ms::SetModeDecodeListS(bool f,bool f0,bool f1,bool f2,bool f3)//bool f
         pb_clar_list2->setHidden(true);
         pb_clar_list1->setText(tr("CLEAR MESSAGES"));
     }
+}
+void Main_Ms::SetUdpConfigure(int imode)//2.76.7
+{
+	if (imode == s_mode || f_tx_busy) return;//!Mode_m->isEnabled()
+	//if (!TMsPlayerHV->Is_RealStop() || THvTxW->GetAutoIsOn()) StopTxGlobal();
+    rb_mode[imode]->setChecked(true);
+	/*int imode = -1; 
+	QString s = ls.at(0);
+    for (int i = 0; i < COUNT_MODE; ++i)
+    {
+    	if (s==ModeStr(i))
+    	{
+    		imode=i;
+    		break;
+   		}
+    }//qDebug()<<ls<<"---"<<s<<imode;
+    if (imode == s_mode || imode<0) return;
+    rb_mode[imode]->setChecked(true);*/    
 }
 void Main_Ms::ModBtSwClicked(int i)
 {

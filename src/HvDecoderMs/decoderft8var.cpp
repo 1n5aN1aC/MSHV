@@ -4210,7 +4210,11 @@ c128:
         scoreratio=scoreratio1+scoreratio2+scoreratio3;
         //! hard sync sum - max is 21
         nsync=is1+is2+is3; //qDebug()<<"nsync="<<is1<<is2<<is3<<lcqcand;
-        //! bail out
+        /*if (nsync <= 8)
+        {
+        	nbadcrc=1;
+        	return;//! bail out        	
+       	}*/
         rscq=0.0;
         if (lcqcand)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
         {
@@ -4272,7 +4276,7 @@ c128:
         }
         else
         {
-            if (nsync<7)//if (nsync<=8)
+        	if (nsync<8)//2.76.7 org = if (nsync<7)            
             {
                 nbadcrc=1;
                 return;//goto end;
@@ -5002,7 +5006,7 @@ c8:
                             double max1v=0.0;
                             for (int zz = 0; zz < nt; ++zz)
                             {
-                                if (one_ft8_2[ibmax-ib][zz]==true)
+                                if (one_ft8_2[ibmax-ib][zz])
                                 {
                                     double tmax1v=s2[zz];
                                     if (tmax1v>max1v) max1v=tmax1v;
@@ -5011,7 +5015,7 @@ c8:
                             double max2v=0.0;
                             for (int zz = 0; zz < nt; ++zz)
                             {
-                                if (one_ft8_2[ibmax-ib][zz]==false)
+                                if (!one_ft8_2[ibmax-ib][zz])
                                 {
                                     double tmax2v=s2[zz];
                                     if (tmax2v>max2v) max2v=tmax2v;
@@ -6819,14 +6823,14 @@ c2:
         else
         {
             if (xsnr<-24.0) xsnr=-24.0;
-        }
+        } //if (lft8s || lft8sd || qual<0.3) qDebug()<<"SD OUT="<<msg37<<" -> "<<iaptype2<<lft8s<<lft8sd<<xsnr<<qual<<nharderrors;
         if (lft8s || lft8sd)
         {
             if (xsnr<-22.0) xsnr=xsnrs-1.0; //! correction offset
             if (xsnr<-26.0) xsnr=-26.0;
             ///! -26  0.1 1477 ~ AC1MX AC1MX R-17          ^
             //if(len_trim(mycall).gt.3 .and. index(msg37,' '//trim(mycall)//' ').gt.1) msg37=''
-            if (s_MyCall8.count()>3 && msg37.indexOf(" "+s_MyCall8+" ")>-1)
+            if (s_MyCall8.count()>2 && msg37.indexOf(" "+s_MyCall8+" ")>-1)
             {
                 msg37="";
                 return;//goto end;//return;
@@ -7245,7 +7249,7 @@ c4:
                 if (msg37.mid(0,mycalllen1+1)!=s_MyCall8+" " && msg37.indexOf(" "+s_HisCall8+" ")>-1) lrepliedother=true;
             }
         }
-        if (s_HisCall8.count()>3 && !lqsomsgdcd)//if(msg37(1:msgrootlen+1).eq.trim(msgroot)//' ') then
+        if (s_HisCall8.count()>2 && !lqsomsgdcd)//if(msg37(1:msgrootlen+1).eq.trim(msgroot)//' ') then
         {
             if (msg37.mid(0,msgroot.count()+1)==msgroot+" ") lqsomsgdcd=true;
         }
@@ -7599,13 +7603,23 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
     int nthr = 2;//threads count ??
     int nallocthr=0;
     int nft8rxfsens=3;//1,2,3 QSO RX freq Sensitivity
-    lqsomsgdcd=false;//HV if no early decode period, make only if full period
     int ncandthin = 100;//100;//98;//??
     int ndtcenter = 0;//??
     bool lhiscallstd=s_lhiscallstd;
-    bool lmycallstd=s_lmycallstd;
-    msgroot=s_MyCall8+" "+s_HisCall8;
-
+    bool lmycallstd=s_lmycallstd;    
+    /*lqsomsgdcd=false;//HV if not early decode period, make only if full period
+    msgroot=s_MyCall8+" "+s_HisCall8; //qDebug()<<decid<<"     s_ndecodes="<<s_ndecodes;    
+    if (s_ndecodes>0 && s_HisCall8.count()>2)////2.76.7 protect 3stage decoding cicle
+    {
+        for (int id = 0; id < s_ndecodes; ++id)
+        {
+           if (allmessages[id].startsWith(msgroot+" "))
+           {
+               lqsomsgdcd=true; //qDebug()<<decid<<" 1--->"<<"TRUE";
+               break;
+           }
+        }    	
+   	}*/   	
     double candidate[4][512];//double (*candidate)[500] = new double[4][500];//
     bool stophint = false;
 
@@ -7723,7 +7737,7 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
 	//agccft8(nfa,nfb); qDebug()<<"-----------------------"<<lagccbail;
     ft8apsetvar(s_lmycallstd,s_lhiscallstd);
 
-    double syncmin=1.33;//1.3 ws300rc1 //qDebug()<<"-->"<<s_MyCall8<<s_lmycallstd<<s_HisCall8<<s_lhiscallstd<<nQSOProgress;
+    double syncmin=1.35;//1.3 ws300rc1 //qDebug()<<"-->"<<s_MyCall8<<s_lmycallstd<<s_HisCall8<<s_lhiscallstd<<nQSOProgress;
     for (int ipass = 1; ipass <= npass; ++ipass)//do ipass=1,npass
     {
         bool newdat1=true;
@@ -7735,7 +7749,7 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
         }
         else if (ipass==2 || ipass==5 || ipass==8)
         {
-            if (lft8lowth) syncmin=1.33;//1.3 ws300rc1
+            if (lft8lowth) syncmin=1.35;//1.3 ws300rc1
         }
         else if (ipass==3 || ipass==6 || ipass==9)
         {
@@ -7810,7 +7824,7 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
             QString msg37="";
             int i3=16;
             //int n3=16;
-            double xsnr=0.0;
+            double xsnr=0.0;//bool s_lqsomsgdcd = lqsomsgdcd;
             int nbadcrc=0;  //qDebug()<<"In="<<decid<<ipass<<icand<<ncand<<"---"<<sync<<xdt<<f1;
             ft8bvar(newdat1,nQSOProgress,nfqso,s_nftx8,lsubtract,nagainfil,f1,xdt,nbadcrc,msg37,xsnr,
                     stophint,lFreeText,ipass,lft8subpass,lspecial,lcqcand,npass,lmycallstd,lhiscallstd,
@@ -7829,7 +7843,7 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
                 {//do k=1,nspecial
                     //!ft8md  if(k.eq.2) msg37=msg37_2  ! this splits DXpedition mode msg into 2 lines
                     bool ldupe=false;
-                    if (msg37.mid(0,6)=="      ") ldupe=true;
+                    if (msg37.mid(0,6)=="      ") ldupe=true; //qDebug()<<decid<<" 2--->"<<s_lqsomsgdcd<<lqsomsgdcd;
                     for (int idec = 0; idec < s_ndecodes; ++idec)//c++   ==.EQ. !=.NE. >.GT. <.LT. >=.GE. <=.LE.
                     {
                         if (msg37==allmessages[idec])//2.48 problem 2xRR73 no end QSO && nsnr<=allsnrs[id]
@@ -7860,8 +7874,8 @@ void DecoderFt8::ft8_decodevar(double *dd,int c_dd,double nfa,double nfb,double 
                             calldtodd[0].call2=call2;
                             calldtodd[0].dt=xdt;
                         }
-                        QString msg26=msg37; //qDebug()<<"OUT="<<msg26<<sync;
-                        PrintMsg(s_time8,nsnr,xdt,f1,msg26,iaptype2,(float)qual,(float)qual,have_dec,true,true);
+                        QString msg26=msg37; //qDebug()<<"SD OUT="<<msg37<<" -> "<<iaptype2<<xsnr<<qual<<msgroot<<lqsomsgdcd;
+                        PrintMsg(s_time8,nsnr,xdt,f1,msg26,iaptype2,(float)qual,(float)qual,have_dec,true,true,true);
                         if (msg37.mid(0,3)=="CQ " && nmsgcq<numdeccq)
                         {
                             double xdtr=xdt+0.5;

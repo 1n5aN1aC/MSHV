@@ -288,7 +288,7 @@ private:
     void sync8(double *dd,double nfa,double nfb,double syncmin,double nfqso,double s_[402][1970],double candidate[2][620],int &ncand,double *sbase);
     void ft8apset(QString mycall12,QString hiscall12,int *apsym2);//int &iaptype ,QString hisgrid6,bool bcontest,QString mygrid6,
 
-    void PrintMsg(QString,int,double,double,QString,int,float,float,bool &,bool,bool qual_eq_dmin);
+    void PrintMsg(QString,int,double,double,QString,int,float,float,bool &,bool,bool,bool);
     QString nutc0;
     int c_zerop;
     QString msg0[2][2][MAXDEC+50];
@@ -539,11 +539,9 @@ private:
     double complex cw_subsft4[72800];//72576   =62208
     void subtractft4(double *dd,int *itone,double f0,double dt);
 
-    int count_eq_bits(bool *a,int b_a,bool *b,int c);
-
     bool first_ft4bm;
     bool one_ft4_2[8][256];//(0:255,0:7)
-    void get_ft4_bitmetrics(double complex *cd,double bitmetrics_[5][220],bool &badsync,double s4_[120][4],int);//2*NN=206
+    void get_ft4_bitmetrics(double complex *cd,double bitmetrics_[5][220],bool &badsync,double s4_[120][4],int,int);//2*NN=206
 
     bool first_ft4d;
     int mrrr_ft4[19];
@@ -564,8 +562,12 @@ private:
     int apbits_ft4[174];//174
     int apmy_ru_ft4[28];
     int aphis_fd_ft4[28];
-    //////////AP7//////////////////
     int ft4_even_odd(QString s);
+    void sync_dt_df(double complex *cd2,int iseg,int &idfbest,int &ibest,double &smax,double &smax1);
+    //int count_eq_bits(bool *a,int b_a,bool *b,int c);
+    //int sync_qual(double *bitmetrics);
+    double get_xibest(double complex *cd2,int ibest,int idfbest,double smax);
+    //////////AP7//////////////////
     int jseq_a7;
     QString nutc0;
     int c_zerop;
@@ -648,7 +650,7 @@ private:
 	void ft2_channel_est(double complex *cd,double complex *cd_eq,double *ch_snr);
     bool first_ft2bm;
     bool one_ft2_2[8][256];//(0:255,0:7)
-    void get_ft2_bitmetrics(double complex *cd,double bitmetrics_[3][220],bool &badsync,double s4_[120][4]);//2*NN=206
+    void get_ft2_bitmetrics(double complex *cd,double bitmetrics_[5][220],bool &badsync,double s4_[120][4],int);//2*NN=206
 
     bool first_ft2d;
     int mrrr_ft2[19];
@@ -680,6 +682,10 @@ private:
     sft2avg ft2avg[2];
     void ft2_clravg(int);	
     int ft2_even_odd(QString s);
+    void sync_dt_df(double complex *cd2,int iseg,int &idfbest,int &ibest,double &smax,double &smax1);
+    //int count_eq_bits(bool *a,int b_a,bool *b,int c);
+    //int sync_qual(double *bitmetrics);
+    double get_xibest(double complex *cd2,int ibest,int idfbest,double smax);
     //////////AP7//////////////////
     int jseq_a7;
 	QString nutc0;
@@ -694,9 +700,8 @@ private:
 	//////////end AP7//////////////////	
     void PrintMsg(QString,int nsnr,double xdt,double f1,QString message,int iaptype,bool,float,bool &have_dec,bool &f_only_one_color,bool);
     uint8_t isFalseDecode(QString,int,double,bool,int,int,int);
-	void make_bm_ap(double *,double bitmetrics_[3][220],int,bool,int,int,double,double,double,bool,
-							bool,double,int &,QString *,int,int &,bool &,bool &,bool);
-	int count_eq_bits(bool *a,int b_a,bool *b,int c);					
+	void make_bm_ap(double *,double bitmetrics_[5][220],int,bool,int,int,double,double,double,bool,
+							bool,double,int &,QString *,int,int &,bool &,bool &,bool);					
 };
 
 

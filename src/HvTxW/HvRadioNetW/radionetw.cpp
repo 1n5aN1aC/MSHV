@@ -1617,6 +1617,7 @@ RadioAndNetW::RadioAndNetW(QString inst,QString path,bool indsty,int x,int y,QWi
     connect(m_messageClientBroad, SIGNAL(error(QString)), this, SLOT(networkErrorUDPBrodcast(QString)));
     connect(m_messageClientBroad, SIGNAL(replay()), this, SLOT(replayDecodes()));
     connect(m_messageClientBroad, SIGNAL(reply_clr(QStringList)), this, SLOT(set_reply_clr(QStringList)));
+    connect(m_messageClientBroad, SIGNAL(configure(QStringList)), this, SLOT(set_configure(QStringList)));
     connect(m_messageClientBroad, SIGNAL(halt_tx(bool)), this, SLOT(set_halt_tx(bool)));
     connect(m_messageClientBroad, SIGNAL(ConectionInfo(QString)), this, SLOT(ConectionInfoBroad(QString)));
     connect(cb_udp_broad_log_qso, SIGNAL(toggled(bool)), this, SLOT(StartStopUdpBroad(bool)));
@@ -3204,7 +3205,7 @@ void RadioAndNetW::SetModeForFreqFromMode(int i)
     s_mode_str_for_ferq = mode;
     if (s_mode=="FT8" || s_mode=="FT4" || s_mode=="FT2" || s_mode=="MSK144" || s_mode=="MSKMS") f_mods_accept_cmd = true;
     else f_mods_accept_cmd = false;
-    SendStatus(8);//qDebug()<<"Mode=8"<<s<<s_smode<<mode<<f_mods_accept_cmd;
+    SendStatus(8); //qDebug()<<"Mode=8"<<s<<s_smode<<mode<<f_mods_accept_cmd<<s_mode;
     if (cb_wr_status->isChecked()) write_status_timer->start(400);
 }
 void RadioAndNetW::SetFreqGlobal(QString s)
@@ -3534,6 +3535,38 @@ void RadioAndNetW::set_reply_clr(QStringList l)
     //qDebug()<<"f_mods_accept_cmd"<<f_mods_accept_cmd<<l;
     if (f_mods_accept_cmd || l.at(0)=="CLR") emit EmitUdpCmdDl(l);
 }
+void RadioAndNetW::set_configure(QStringList l)//2.76.7
+{
+	int imode = -1;
+	QString s = "";
+	QString m = l.at(0);
+	QString sm = l.at(1); //qDebug()<<" IN="<<m<<sm;
+	if (m.isEmpty() && sm.isEmpty()) return;
+	m = m.toUpper(); sm = sm.toUpper();	
+	if (m.startsWith("ISCAT") && m.indexOf('-')!=5) m.insert(5,'-');
+	if ((m=="JT65" || m=="Q65" || m=="ISCAT-") && sm.isEmpty())
+	{
+		if (s_smode.isEmpty()) s = m+"B";//l.replace(0,m+"B"); 
+		else s = m+s_smode;//l.replace(0,m+s_smode);			
+	}
+	else if (!m.isEmpty() && !sm.isEmpty()) s = m+sm;//l.replace(0,m+sm);
+	else s = m;//l.replace(0,m);
+	if (m.isEmpty()) 
+	{
+		if (s_mode=="ISCAT") s = s_mode+"-"+sm;//l.replace(0,s_mode+"-"+sm); 
+		else s = s_mode+sm;//l.replace(0,s_mode+sm);   
+	}
+	for (int i = 0; i < COUNT_MODE; ++i)
+    {
+    	if (s==ModeStr(i))
+    	{
+    		imode=i;
+    		break;
+   		}
+    } 
+    if (imode<0) return;  //qDebug()<<" OUT="<<imode<<" - "<<m<<sm;	qDebug()<<"-----------------";
+	emit EmitUdpConfigure(imode);
+}
 void RadioAndNetW::set_halt_tx(bool f)
 {
     //if (f_mods_accept_cmd)
@@ -3606,7 +3639,7 @@ void RadioAndNetW::DecodUpdTimer()
         bool fdec = false;
         if (pos_dec > 0) fdec = true; //2.61
         //if (id_activ_upd != 1 && pos_dec > 0)  qDebug()<<"error";
-        //qDebug()<<"START Status----------------------->"<<id_activ_upd<<s_dx_call<<s_dx_grid;
+        //qDebug()<<"START Status----------------------->"<<id_activ_upd<<s_dx_call<<s_dx_grid<<s_mode;
         quint64 frq = FREQ_GLOBAL.toLongLong();
         m_messageClientBroad->statusUPD(frq,s_mode,s_dx_call,s_report,s_mode,s_myCall,s_myLoc,s_dx_grid,fdec,s_smode,
                                         s_auto,s_tx,s_tx_msg);

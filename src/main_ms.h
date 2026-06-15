@@ -91,6 +91,7 @@ private slots:
     void SetAvgQ65CountToButtonTxt(int,int);
     void SetButtonDecodeAll65();
     void SetUdpCmdStop(bool);
+    void SetUdpConfigure(int);//2.76.7
     void SetDLogQso(bool);
     void SetPLogQso(bool);
     void SetQrgQSY(QStringList);//2.46 

@@ -289,6 +289,7 @@ signals:
     void FindLocFromDB(QString);
     void EmitUdpBroadLoggedAll(bool,bool);
     void EmitUdpCmdDl(QStringList);
+    void EmitUdpConfigure(int);//2.76.7
     void EmitUdpCmdStop(bool);
     void EmitOpenRadNetWToRecon();
     void EmitUploadClubLogInfo(QString);
@@ -518,6 +519,7 @@ private slots:
     void ResetDefaultFreqsBut();
     void SetDefaultFreqs(bool f);
     void set_reply_clr(QStringList);
+    void set_configure(QStringList);
     void set_halt_tx(bool);
     //void connected_clublog();
     //void disconnected_clublog();

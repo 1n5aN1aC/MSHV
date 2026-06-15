@@ -2498,7 +2498,7 @@ void DecoderMs::SETftBuff()
         is_ftBuff = false; //qDebug()<<"STOP TIMM";
     }
 } 
-void DecoderMs::SetDecode(int *raw,int count_q,QString time, int t_istart,int mousebutton,bool f_rtd,bool end_rtd,bool ffopen)//1.27 psk rep   fopen bool true    false no file open
+void DecoderMs::SetDecode(int *raw,int count_q,QString time,int t_istart,int mousebutton,bool f_rtd,bool end_rtd,bool ffopen)//1.27 psk rep   fopen bool true    false no file open
 {
 	//int raw[200000];
 	//for (int i = 0; i<count_q; ++i) raw[i]=0;    		

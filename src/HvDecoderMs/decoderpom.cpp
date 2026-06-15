@@ -643,10 +643,8 @@ void PomAll::zero_double_comp_beg_end(double complex*d,int begin,int end)
 }
 double PomAll::ps_hv(double complex z)
 {
-    //(real(c(i))**2 + aimag(c(i))**2)
-    double d;
-    d = creal(z)*creal(z) + cimag(z)*cimag(z);
-    //d = pow(creal(z),2) + pow(cimag(z),2);
+    double d;//(real(c(i))**2 + aimag(c(i))**2)
+    d = creal(z)*creal(z) + cimag(z)*cimag(z);//d = pow(creal(z),2) + pow(cimag(z),2);
     return d;
 }
 /*double PomAll::ps_hv001(double complex z)
@@ -1052,6 +1050,74 @@ void PomFt::twkfreq1(double complex *ca,int npts,double fsample,double *a,double
         cb[i]=w*ca[i];
     }
 }
+void PomFt::SetLlrFt2_4(double *llra,double *llrb,double *llrc,double *llrd,double *llre,double bitmetrics_[5][220],uint8_t to)
+{
+    const double scalefac=2.83;//0->to=ALL 3->to=C 4->to=D
+    for (int x = 0; x < 58; ++x)
+    {
+        llra[x]=bitmetrics_[0][x+8]*scalefac;
+        llra[x+58]=bitmetrics_[0][x+74]*scalefac;
+        llra[x+116]=bitmetrics_[0][x+140]*scalefac;
+        llrb[x]=bitmetrics_[1][x+8]*scalefac;
+        llrb[x+58]=bitmetrics_[1][x+74]*scalefac;
+        llrb[x+116]=bitmetrics_[1][x+140]*scalefac;
+        llrc[x]=bitmetrics_[2][x+8]*scalefac;
+        llrc[x+58]=bitmetrics_[2][x+74]*scalefac;
+        llrc[x+116]=bitmetrics_[2][x+140]*scalefac;
+        if (to==3) continue;
+        llrd[x]=bitmetrics_[3][x+8]*scalefac;
+        llrd[x+58]=bitmetrics_[3][x+74]*scalefac;
+        llrd[x+116]=bitmetrics_[3][x+140]*scalefac;
+        if (to==4) continue;
+        llre[x]=bitmetrics_[4][x+8]*scalefac;
+        llre[x+58]=bitmetrics_[4][x+74]*scalefac;
+        llre[x+116]=bitmetrics_[4][x+140]*scalefac;
+    }
+}
+int PomFt::count_eq_bits(bool *a,int b_a,const bool *b,int c)
+{
+    int ns1=0;
+    for (int x = 0; x < c; ++x)
+    {
+        if (a[x+b_a]==b[x]) ns1++;
+    }
+    return ns1;
+}
+int PomFt::SyncQualFt2_4(double *bitmetrics)
+{
+    const int ND=87;
+    const int NS=16;
+    const int NN=NS+ND;
+    const bool ms1[8] =
+        {
+            0,0,0,1,1,0,1,1
+        };
+    const bool ms2[8] =
+        {
+            0,1,0,0,1,1,1,0
+        };
+    const bool ms3[8] =
+        {
+            1,1,1,0,0,1,0,0
+        };
+    const bool ms4[8] =
+        {
+            1,0,1,1,0,0,0,1
+        };
+    int nsync_qual=0;
+    bool hbits[220];
+    for (int x = 0; x < 2*NN; ++x)
+    {
+        if (bitmetrics[x]>=0.0) hbits[x]=1;
+        else hbits[x]=0;
+    }
+    int ns1=count_eq_bits(hbits,0,  ms1,8);
+    int ns2=count_eq_bits(hbits,66, ms2,8);
+    int ns3=count_eq_bits(hbits,132,ms3,8);
+    int ns4=count_eq_bits(hbits,198,ms4,8);
+    nsync_qual=ns1+ns2+ns3+ns4;
+    return nsync_qual;
+}
 void PomFt::SetApFt2_4(double *llr,double *llr_c,bool *apmask,int *apbits,int *mcq,int *apmy_ru,int *aphis_fd,double apmag,int iaptype,int cont_type)
 {
     // Activity Type                id	type	dec-id       dec-type	dec-cq
@@ -1232,8 +1298,8 @@ bool PomFt::SetAp7Msg(QString call_1,bool std_1,QString call_2,bool std_2,QStrin
     }
     return false;
 }
-/*void PomFt::TryDecAp7(double *llra,double *llrb,double *llrc,double *llrd,bool *cw,double *dmm,int i,
-               QString msgsent,double pow0,double &dmin,QString &msgbest,double &pbest,int &nharderrors)
+void PomFt::TryDecAp7(double *llra,double *llrb,double *llrc,double *llrd,bool *cw,double *dmm,int i,
+                      QString msgsent,double pow0,double &dmin,QString &msgbest,double &pbest,int &nharderrors)
 {
     bool hdec[178];
     bool nxor[178];
@@ -1260,7 +1326,6 @@ bool PomFt::SetAp7Msg(QString call_1,bool std_1,QString call_2,bool std_2,QStrin
         nxor[z]=hdec[z] ^ cw[z];
         dd+=(double)nxor[z]*fabs(llrd[z]);
     }
-
     double dm = da;
     if (dbb<dm) dm=dbb;
     if (dc<dm)  dm=dc;
@@ -1301,7 +1366,7 @@ bool PomFt::SetAp7Msg(QString call_1,bool std_1,QString call_2,bool std_2,QStrin
             }
         }
     }
-}*/
+}
 /*void PomFt::twkfreq2(double complex *c3,double complex *c4,int npts,double fsample,double fshift)
 {
     //! Adjust frequency of complex waveform
@@ -1581,7 +1646,11 @@ void PomFt::get_crc14(bool *mc,int len,int &ncrc)
     //! 2. To check a received CRC, mc(1:len is the received message plus CRC.
     //!    ncrc will be zero if the received message/CRC are consistent
     bool r[15+5];
-    const bool p[15]={1,1,0,0,1,1,1,0,1,0,1,0,1,1,1};//=26455
+    const bool p[15]=
+        {
+            1,1,0,0,1,1,1,0,1,0,1,0,1,1,1
+        }
+        ;//=26455
     //bool p[15]={1,1,0,0,1,1,1,0,1,0,1,0,1,1,1};
 
     //! divide by polynomial
