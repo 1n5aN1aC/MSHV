@@ -116,6 +116,7 @@ public slots:
     //void SetButtonVDDecodeAllToSecondDsp65();//1.49
     void SetVDMouseDrawLines(bool);//1.49
     //void SetVDMouseDecodeSecondDisp2(int mousebutton);
+    void SetDfTolAllMode(bool);
     void SetVDdf(int,int);
     void SetZeroDfVScale(bool);
     void SetCustomPalette(QPixmap,QColor,QColor);
@@ -138,6 +139,7 @@ private:
 	uint8_t id_mshf;
 	bool dsty;
 	bool allq65;
+    bool s_dftol_all;
     //bool ft_df1500;
     bool f_is_decodet3int;
     bool s_3intFt_d_;//2.39 remm

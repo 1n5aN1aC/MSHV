@@ -76,6 +76,8 @@ HvTxtColor::HvTxtColor(bool f,QWidget *parent )
     cb[27]->setChecked(true);
     cb[28] = new QCheckBox(tr("Calls"));
     cb[28]->setChecked(true);
+    cb[29] = new QCheckBox(tr("Grey out duplicate contacts"));
+    cb[29]->setChecked(false);
     le_cals_msg = new HvLeWithSpace();
     le_cals_msg->setMaxLength(150);
     le_cals_msg->setToolTip("LZ2HV,K1ABC  "+tr("(Call: Minimum 3 Characters)"));//Maximum 150 Characters
@@ -85,6 +87,7 @@ HvTxtColor::HvTxtColor(bool f,QWidget *parent )
 	connect(cb[26], SIGNAL(toggled(bool)), this, SLOT(TxTextMarkChanged(bool)));
 	connect(cb[27], SIGNAL(toggled(bool)), this, SLOT(TxTextMarkChanged(bool)));
 	connect(cb[28], SIGNAL(toggled(bool)), this, SLOT(TextMarkChanged(bool)));
+    connect(cb[29], SIGNAL(toggled(bool)), this, SLOT(TextMarkChanged(bool)));
 
     QVBoxLayout *V_l0m = new QVBoxLayout();
     V_l0m->setContentsMargins (0, 0, 0, 0);
@@ -173,6 +176,11 @@ HvTxtColor::HvTxtColor(bool f,QWidget *parent )
     H_h2->addWidget(cb[21]);
     H_h2->addWidget(b_[1]);
 
+    QHBoxLayout *H_h2g = new QHBoxLayout();
+    H_h2g->setContentsMargins (0, 0, 0, 0);
+    H_h2g->setSpacing(4);
+    H_h2g->addWidget(cb[29]);
+
     QHBoxLayout *H_h3 = new QHBoxLayout();
     H_h3->setContentsMargins (0, 0, 0, 0);
     H_h3->setSpacing(4);
@@ -198,6 +206,7 @@ HvTxtColor::HvTxtColor(bool f,QWidget *parent )
     V_l2->setContentsMargins (1, 1, 1, 1);
     V_l2->setSpacing(3);
     V_l2->addLayout(H_h2);
+    V_l2->addLayout(H_h2g);
     V_l2->addLayout(H_h3);
     V_l2->addLayout(H_ht);
     V_l2->addLayout(H_hq);
@@ -382,7 +391,7 @@ QString HvTxtColor::GetTextMark()
 		if (cb[i]->isChecked()) res.append("1#");
     	else res.append("0#");
 	}     
-    res.append(le_cals_msg->text());//29      
+    res.append(le_cals_msg->text());//30
     return res;
 }
 QString HvTxtColor::CorrectSyntax(QString txt ,bool cordot)
@@ -426,9 +435,13 @@ void HvTxtColor::SetTextMark(QString s)
 		if (!ls.at(i).isEmpty() && ls.at(i)=="1") cb[i]->setChecked(true);
         else cb[i]->setChecked(false);
 	}    
-    if (!ls.at(29).isEmpty()) 
+    QString calls_field = "";
+    if (ls.count()>30 && (ls.at(29)=="0" || ls.at(29)=="1")) calls_field = ls.at(30);
+    else if (ls.count()>29) calls_field = ls.at(29);
+
+    if (!calls_field.isEmpty()) 
     {
-    	if (ls.at(29)!="1") le_cals_msg->setText(ls.at(29));//le_cals_msg->setText(CorrectSyntax(ls.at(29),true));    	
+	    if (calls_field!="1") le_cals_msg->setText(calls_field);//le_cals_msg->setText(CorrectSyntax(calls_field,true));
    	}
   	TextMarkChanged(true);//refresh
 }

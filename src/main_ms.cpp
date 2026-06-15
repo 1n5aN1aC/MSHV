@@ -312,8 +312,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     TDecodeList1 = new DecodeList(1,dsty);
     TDecodeList2 = new DecodeList(2,dsty);
     FilterDialog = new HvFilterDialog(dsty,this);//(0) and open() no modal
-    connect(FilterDialog, SIGNAL(EmitSetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)),
-            TDecodeList1, SLOT(SetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)));
+        connect(FilterDialog, SIGNAL(EmitSetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)),
+            TDecodeList1, SLOT(SetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList,QStringList)));
     FilterDialog->SetCountries(TDecodeList1->GetCountries());
 
     FontDialog = new HvFontDialog(App_Path,this);
@@ -377,6 +377,19 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     //qDebug()<<"MinDisply="<<screenWidth<<screenHeight<<"Full="<<desktop->width()<<desktop->height();
 
     THvTxW = new HvTxW(InstName,App_Path,lid,dsty,x,y);
+    TPounceSettings = new HvPounceSettings(dsty,this);
+    connect(TPounceSettings,SIGNAL(EmitRespondDirectedChanged(bool)),this,SLOT(PounceRespondDirectedChanged(bool)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqKeywordChanged(bool)),this,SLOT(PounceRespondCqKeywordChanged(bool)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqKeywordsChanged(QString)),this,SLOT(PounceRespondCqKeywordsChanged(QString)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqGridChanged(bool)),this,SLOT(PounceRespondCqGridChanged(bool)));
+    connect(TPounceSettings,SIGNAL(EmitRespondCqGridsChanged(QString)),this,SLOT(PounceRespondCqGridsChanged(QString)));
+    connect(TPounceSettings,SIGNAL(EmitResponseModeChanged(int)),this,SLOT(PounceResponseModeChanged(int)));
+    THvTxW->SetPounceRespondDirected(TPounceSettings->RespondDirectedEnabled());
+    THvTxW->SetPounceRespondCqKeyword(TPounceSettings->RespondCqKeywordEnabled());
+    THvTxW->SetPounceRespondCqKeywords(TPounceSettings->RespondCqKeywords());
+    THvTxW->SetPounceRespondCqGrid(TPounceSettings->RespondCqGridEnabled());
+    THvTxW->SetPounceRespondCqGrids(TPounceSettings->RespondCqGrids());
+    THvTxW->SetPounceResponseMode(TPounceSettings->ResponseMode());
 
     connect(THvTxW, SIGNAL(EmitDistUnit(bool)),TDecodeList1,SLOT(SetDistUnit(bool)));
     connect(THvTxW, SIGNAL(EmitDistUnit(bool)),TDecodeList2,SLOT(SetDistUnit(bool)));
@@ -392,6 +405,7 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(THvTxW,SIGNAL(EmitOtpVerif(QString,uint8_t)),TDecodeList1,SLOT(SetOtpVerif(QString,uint8_t)));//2.76sf only to list 1
     //connect(THvTxW,SIGNAL(EmitSFoxVerif(QString)),TDecodeList2,SLOT(SetSFoxVerif(QString)));//2.76sf
     connect(THvTxW,SIGNAL(EmitOffsetDt(int)),this,SLOT(SetOffsetDt(int)));//2.76sf
+    connect(THvTxW,SIGNAL(EmitPounceCNSChanged(bool)),this,SLOT(PounceCNSChanged(bool)));
 
     QMenuBar *Min_Menu = new QMenuBar();
 
@@ -418,6 +432,7 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
 
     QMenu *Option_m = new QMenu(tr("Options"));
     Option_m->addAction(QPixmap(":pic/settings.png"),ShKey[lid][4][1], TSettingsMs, SLOT(exec()),QKeySequence(tr(ShKey[lid][4][0],ShKey[lid][4][1])));
+    Option_m->addAction(QPixmap(":pic/settings.png"),tr("Pounce Settings"), TPounceSettings, SLOT(exec()));
     Option_m->addAction(QPixmap(":pic/com_p.png"),ShKey[lid][5][1], THvRigControl, SLOT(exec()),QKeySequence(tr(ShKey[lid][5][0],ShKey[lid][5][1])));
     Option_m->addAction(QPixmap(":pic/macro.png"),ShKey[lid][6][1], THvTxW, SLOT(Macros_exec()),QKeySequence(tr(ShKey[lid][6][0],ShKey[lid][6][1])));
 
@@ -729,6 +744,10 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(THvTxW, SIGNAL(EmitQrgQSY(QStringList)), this, SLOT(SetQrgQSY(QStringList)));//2.46
 
     connect(TDecodeList1, SIGNAL(EmitRxTextForAutoSeq(QStringList)), THvTxW, SLOT(SetTextForAutoSeq(QStringList)));
+    connect(TDecodeList1, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
+    connect(TDecodeList2, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
+    connect(TDecodeList1, SIGNAL(EmitBlacklistCall(QString)), FilterDialog, SLOT(AddBlacklistCall(QString)));
+    connect(TDecodeList2, SIGNAL(EmitBlacklistCall(QString)), FilterDialog, SLOT(AddBlacklistCall(QString)));
 
     //connect(THvTxW, SIGNAL(EmitRemoteStation(QString,QString,int,QString,int,int)),
     //TRadioAndNetW, SLOT(AddRemoteStation(QString,QString,int,QString,int,int)));
@@ -1259,6 +1278,15 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     pb_stop_tx->setFixedHeight(but_height);
     connect(pb_stop_tx, SIGNAL(clicked(bool)), this, SLOT(StopTxGlobal()));
 
+    pb_pounce = new QPushButton(tr("Pounce"));
+    pb_pounce->setFixedHeight(but_height);
+    pb_pounce->setCheckable(true);
+    pb_pounce->setHidden(true);
+    pb_pounce->setToolTip(tr("Wait for directed calls and pounce automatically\nRight-click to open Pounce Settings"));
+    pb_pounce->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(pb_pounce, SIGNAL(clicked(bool)), this, SLOT(PounceButtonClicked()));
+    connect(pb_pounce, SIGNAL(customContextMenuRequested(QPoint)), TPounceSettings, SLOT(exec()));
+
     pb_clar_list1 = new QPushButton(tr("CLEAR MESSAGES"));
     pb_clar_list1->setFixedHeight(but_height);
     //pb_clar_list->setFont(b_font);
@@ -1318,6 +1346,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
 
     //QPushButton *pb_fltr = new QPushButton(tr("FLTR IS OFF"));
     FilterDialog->pb_fltrOnOff->setFixedHeight(but_height);
+    FilterDialog->pb_fltrOnOff->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(FilterDialog->pb_fltrOnOff, SIGNAL(customContextMenuRequested(QPoint)), FilterDialog, SLOT(exec()));
     //FilterDialog->SetHidFLBtOnOff(true);//FilterDialog->pb_fltrOnOff->setHidden(true);
 
     QHBoxLayout *H_butons = new QHBoxLayout();
@@ -1332,6 +1362,7 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     H_butons->addWidget(pb_dec_65);
     H_butons->addWidget(pb_rst_qso);
     H_butons->addWidget(FilterDialog->pb_fltrOnOff);
+    H_butons->addWidget(pb_pounce);
     H_butons->addWidget(pb_stop_tx);
     H_butons->addWidget(pb_tune);
 
@@ -1350,6 +1381,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(MainDisplay, SIGNAL(EmitVDRxFreqF0F1(double,double,double)), TDecoderMs, SLOT(SetRxFreqF0F1(double,double,double)));
     connect(THvTxW, SIGNAL(EmitDfSdbChanged(int,int)), TDecoderMs, SLOT(SetDfSdb(int,int)));
     connect(THvTxW, SIGNAL(EmitDfChanged(int,int)), MainDisplay, SLOT(SetVDdf(int,int)));
+    connect(THvTxW, SIGNAL(EmitDfTolAllChanged(bool)), MainDisplay, SLOT(SetDfTolAllMode(bool)));
+    connect(THvTxW, SIGNAL(EmitDfTolAllChanged(bool)), SecondDisplay, SLOT(SetDfTolAllMode(bool)));
     connect(MainDisplay, SIGNAL(EmitVDRxDf(int)), THvTxW, SLOT(SetRxDf(int)));
 
     //connect(THvTxW, SIGNAL(EmitShOptChenged(bool)), this, SLOT(SetShOpt(bool)));
@@ -1920,6 +1953,12 @@ void Main_Ms::SetMultiAnswerMod(bool f)
     if (Multi_answer_mod->isChecked()) TDecoderMs->SetMultiAnswerMod(true);
     else TDecoderMs->SetMultiAnswerMod(false);
     THvTxW->SetMultiAnswerMod(Multi_answer_mod->isChecked(),Multi_answer_mod_std->isChecked());
+    if (THvTxW->GetWaitAndPounce() && !Multi_answer_mod_std->isChecked())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
     RefreshWindowTitle();
     RefreshCbCfm73();
 }
@@ -1929,8 +1968,108 @@ void Main_Ms::SetMultiAnswerModStd(bool f)
     if (Multi_answer_mod->isChecked()) TDecoderMs->SetMultiAnswerMod(true);
     else TDecoderMs->SetMultiAnswerMod(false);
     THvTxW->SetMultiAnswerMod(Multi_answer_mod->isChecked(),Multi_answer_mod_std->isChecked());
+    if (THvTxW->GetWaitAndPounce() && !Multi_answer_mod_std->isChecked())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
     RefreshWindowTitle();
     RefreshCbCfm73();
+}
+void Main_Ms::PounceButtonClicked()
+{
+    bool to_enable = !THvTxW->GetWaitAndPounce();
+    if (to_enable)
+    {
+        if (!(s_mode==11 || s_mode==13 || s_mode==18))
+        {
+            QMessageBox::warning(this, "MSHV", tr("Pounce is available only in FT8, FT4, and FT2 modes."), QMessageBox::Ok);
+            pb_pounce->setChecked(false);
+            return;
+        }
+        if (!Multi_answer_mod_std->isChecked())
+        {
+            QMessageBox::warning(this, "MSHV", tr("Pounce requires MASTD mode to be enabled."), QMessageBox::Ok);
+            pb_pounce->setChecked(false);
+            return;
+        }
+        if (THvTxW->GetCNS())
+        {
+            THvTxW->SetCNS(false);
+        }
+        if (!TPounceSettings->RespondDirectedEnabled() &&
+            !TPounceSettings->RespondCqKeywordEnabled() &&
+            !TPounceSettings->RespondCqGridEnabled())
+        {
+            QMessageBox::warning(this, "MSHV", tr("Enable at least one Pounce trigger in Pounce Settings first."), QMessageBox::Ok);
+            pb_pounce->setChecked(false);
+            return;
+        }
+    }
+
+    THvTxW->SetWaitAndPounce(to_enable);
+    pb_pounce->setChecked(to_enable);
+    if (to_enable)
+    {
+        if (dsty) pb_pounce->setStyleSheet("QPushButton{background-color:rgb(0,115,0);}");
+        else pb_pounce->setStyleSheet("QPushButton{background-color:rgb(140,255,140);}");
+    }
+    else
+    {
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceCNSChanged(bool f)
+{
+    if (f && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceRespondDirectedChanged(bool f)
+{
+    THvTxW->SetPounceRespondDirected(f);
+    if (!f && !TPounceSettings->RespondCqKeywordEnabled() && !TPounceSettings->RespondCqGridEnabled() && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceRespondCqKeywordChanged(bool f)
+{
+    THvTxW->SetPounceRespondCqKeyword(f);
+    if (!f && !TPounceSettings->RespondDirectedEnabled() && !TPounceSettings->RespondCqGridEnabled() && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceRespondCqKeywordsChanged(QString s)
+{
+    THvTxW->SetPounceRespondCqKeywords(s);
+}
+void Main_Ms::PounceRespondCqGridChanged(bool f)
+{
+    THvTxW->SetPounceRespondCqGrid(f);
+    if (!f && !TPounceSettings->RespondDirectedEnabled() && !TPounceSettings->RespondCqKeywordEnabled() && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+}
+void Main_Ms::PounceRespondCqGridsChanged(QString s)
+{
+    THvTxW->SetPounceRespondCqGrids(s);
+}
+void Main_Ms::PounceResponseModeChanged(int mode)
+{
+    THvTxW->SetPounceResponseMode(mode);
 }
 void Main_Ms::SetMacros(int contest_id,QString trmN_stdC)//2.15
 {
@@ -1944,7 +2083,19 @@ void Main_Ms::SetMacros(int contest_id,QString trmN_stdC)//2.15
             Multi_answer_mod_std->setEnabled(true);
         }
     }
-    else//for future if(contest_id == 2 || contest_id == 3 || contest_id == 4 || contest_id == 5)
+    else if (contest_id == 4)//ARRL Field Day: allow MASTD only (no MADX)
+    {
+        if (!g_ub_m_k)
+        {
+            g_block_mam = false;
+            MA_man_adding->setEnabled(false);
+            Multi_answer_mod->setEnabled(false);
+            Multi_answer_mod->setChecked(false);
+            if (allq65 || s_mode==11 || s_mode==13 || s_mode==18)
+                Multi_answer_mod_std->setEnabled(true);
+        }
+    }
+    else//for future if(contest_id == 2 || contest_id == 3 || contest_id == 5)
     {
         if (!g_ub_m_k)
         {
@@ -3561,6 +3712,7 @@ void Main_Ms::ModeChanged(bool fg)
     cb_dec_aft_eme_delay->setEnabled(false);
     pb_clear_avgQ65->setHidden(true);
     FilterDialog->SetHidFLBtOnOff(true);
+    pb_pounce->setHidden(true);
     vd_bw_lines_draw[0]->setEnabled(false);
     vd_bw_lines_draw[1]->setEnabled(false);
     vd_bw_lines_draw[2]->setEnabled(false);
@@ -3743,6 +3895,7 @@ void Main_Ms::ModeChanged(bool fg)
         ac_filter_list->setEnabled(true);
         ac_areset_qso->setEnabled(true);
         FilterDialog->SetHidFLBtOnOff(false);
+        pb_pounce->setHidden(false);
         ac_show_timec->setEnabled(true);
         ac_show_counc->setEnabled(true);
         ac_show_distc->setEnabled(true);
@@ -3775,6 +3928,7 @@ void Main_Ms::ModeChanged(bool fg)
         ac_filter_list->setEnabled(true);
         ac_areset_qso->setEnabled(true);
         FilterDialog->SetHidFLBtOnOff(false);
+        pb_pounce->setHidden(false);
         ac_show_timec->setEnabled(true);
         ac_show_counc->setEnabled(true);
         ac_show_distc->setEnabled(true);
@@ -3808,6 +3962,7 @@ void Main_Ms::ModeChanged(bool fg)
         ac_filter_list->setEnabled(true);
         ac_areset_qso->setEnabled(true);
         FilterDialog->SetHidFLBtOnOff(false);
+        pb_pounce->setHidden(false);
         ac_show_timec->setEnabled(true);
         ac_show_counc->setEnabled(true);
         ac_show_distc->setEnabled(true);
@@ -3850,6 +4005,23 @@ void Main_Ms::ModeChanged(bool fg)
     }
     rb_thr[thr_all[s_mode]-1]->setChecked(true); //2.69
     THvRigControl->SetMode(s_mode);//2.16
+
+    if (!(s_mode==11 || s_mode==13 || s_mode==18) && THvTxW->GetWaitAndPounce())
+    {
+        THvTxW->SetWaitAndPounce(false);
+    }
+    if (THvTxW->GetWaitAndPounce())
+    {
+        pb_pounce->setChecked(true);
+        if (dsty) pb_pounce->setStyleSheet("QPushButton{background-color:rgb(0,115,0);}");
+        else pb_pounce->setStyleSheet("QPushButton{background-color:rgb(140,255,140);}");
+    }
+    else
+    {
+        pb_pounce->setChecked(false);
+        pb_pounce->setStyleSheet("QPushButton{background-color:palette(Button);}");
+    }
+
     cb_ap_decode->setChecked(decoder_ap_all[s_mode]);
     SetDecodeDeeptFromMod(s_mode);
     SB_VDispSpeed->setValue(s_vdisp_all_speed[s_mode]);
@@ -4010,7 +4182,7 @@ void Main_Ms::SetQActionCb(QString s, bool idp, QAction *ac)//idp priority of pr
 }
 void Main_Ms::Read_Settings(QString path)
 {
-    const int c_st_id = 110;//92  89
+    const int c_st_id = 113;//92  89
     //dopalva se tuk v kraia
     const QString st_id[c_st_id]=
         {
@@ -4037,7 +4209,7 @@ void Main_Ms::Read_Settings(QString path)
             "def_filter_list4","def_filter_list5","def_adle_vdsp","def_areset_qso","def_1_dec_sig_q65",
             "def_auto_clr_avg_afdec","def_dec_aft_eme_delay","def_max_drift","def_use_queue_cont","def_filter_list6",
             "use_aseq_max_dist","def_mod_bt_sw","def_show_lcols","vd_bw_lines_draw","def_band_bt_sw",
-            "def_show_hide_wf_tx","def_var_dec_parr"
+            "def_show_hide_wf_tx","def_var_dec_parr","def_dftol_all_mode","def_filter_list7","def_pounce_settings"
         };
 
     QString st_res[c_st_id];
@@ -4293,6 +4465,7 @@ void Main_Ms::Read_Settings(QString path)
 
     if (!st_res[26].isEmpty()) THvTxW->SetMinsigndb(st_res[26]);
     if (!st_res[27].isEmpty()) THvTxW->SetDftolerance(st_res[27]);
+    if (!st_res[110].isEmpty()) THvTxW->SetDfTolAllMode(st_res[110]);
     if (!st_res[28].isEmpty()) THvTxW->SetZap(st_res[28]);
 
     //1.61= CAT ot tuk se refre6va CAT only ont time
@@ -4413,12 +4586,51 @@ void Main_Ms::Read_Settings(QString path)
     }
 
     if (!st_res[89].isEmpty()) FilterDialog->SetSettings0(st_res[89]);//2.44
+    if (!st_res[112].isEmpty())
+    {
+        QStringList lp = st_res[112].split("#");
+        if (lp.count()>0)
+        {
+            bool f_dir = (lp.at(0)!="0");
+            TPounceSettings->SetRespondDirectedEnabled(f_dir);
+            THvTxW->SetPounceRespondDirected(f_dir);
+            if (lp.count()>1)
+            {
+                bool f_cq_kw = (lp.at(1)!="0");
+                TPounceSettings->SetRespondCqKeywordEnabled(f_cq_kw);
+                THvTxW->SetPounceRespondCqKeyword(f_cq_kw);
+            }
+            if (lp.count()>2)
+            {
+                TPounceSettings->SetRespondCqKeywords(lp.at(2));
+                THvTxW->SetPounceRespondCqKeywords(lp.at(2));
+            }
+            if (lp.count()>3)
+            {
+                bool f_cq_grid = (lp.at(3)!="0");
+                TPounceSettings->SetRespondCqGridEnabled(f_cq_grid);
+                THvTxW->SetPounceRespondCqGrid(f_cq_grid);
+            }
+            if (lp.count()>4)
+            {
+                TPounceSettings->SetRespondCqGrids(lp.at(4));
+                THvTxW->SetPounceRespondCqGrids(lp.at(4));
+            }
+            if (lp.count()>5)
+            {
+                int pounce_mode = lp.at(5).toInt();
+                TPounceSettings->SetResponseMode(pounce_mode);
+                THvTxW->SetPounceResponseMode(TPounceSettings->ResponseMode());
+            }
+        }
+    }
     if (!st_res[90].isEmpty()) FilterDialog->SetSettings1(st_res[90]);//2.44
     if (!st_res[91].isEmpty()) FilterDialog->SetSettings2(st_res[91]);//2.44
     if (!st_res[92].isEmpty()) FilterDialog->SetSettings3(st_res[92]);//2.44
     if (!st_res[93].isEmpty()) FilterDialog->SetSettings4(st_res[93]);//2.44
     if (!st_res[94].isEmpty()) FilterDialog->SetSettings5(st_res[94]);//2.44
     if (!st_res[102].isEmpty()) FilterDialog->SetSettings6(st_res[102]);//2.62
+    if (!st_res[111].isEmpty()) FilterDialog->SetSettings7(st_res[111]);
     if (!st_res[88].isEmpty()) FilterDialog->SetSettings(st_res[88]);//2.43
 
     if (!st_res[75].isEmpty())//static_tx_parms
@@ -4555,6 +4767,7 @@ void Main_Ms::Save_Settings(QString path)
 
     out << "signdb_all=" << THvTxW->getsigndb() << "\n";
     out << "getdftol_all=" << THvTxW->getdftol() << "\n";
+    out << "def_dftol_all_mode=" << THvTxW->getdftolallmode() << "\n";
     out << "defaut_zap=" << THvTxW->getzap() << "\n";
     out << "default_in_lev_cor=" << THvTxW->default_in_lev_cor() << "\n";
     out << "default_out_lev_cor=" << THvTxW->default_out_lev_cor() << "\n";
@@ -4678,6 +4891,7 @@ void Main_Ms::Save_Settings(QString path)
     out << "def_max_drift=" << QString("%1").arg(cb_max_drift->isChecked()) << "\n";
     out << "def_use_queue_cont=" << QString("%1").arg(ac_use_queue_cont->isChecked()) << "\n";
     out << "def_filter_list6=" << FilterDialog->GetSettings6() << "\n";
+    out << "def_filter_list7=" << FilterDialog->GetSettings7() << "\n";
     out << "use_aseq_max_dist=" << QString("%1").arg(ac_aseq_max_dist->isChecked()) << "\n";
     out << "def_mod_bt_sw=" << W_mod_bt_sw->GetSettings() << "\n";
     dd.clear();
@@ -4717,6 +4931,13 @@ void Main_Ms::Save_Settings(QString path)
         }
     }
     out << "def_var_dec_parr=" << dd << "\n";
+    out << "def_pounce_settings="
+    << QString("%1").arg(TPounceSettings->RespondDirectedEnabled()) << "#"
+    << QString("%1").arg(TPounceSettings->RespondCqKeywordEnabled()) << "#"
+    << TPounceSettings->RespondCqKeywords() << "#"
+    << QString("%1").arg(TPounceSettings->RespondCqGridEnabled()) << "#"
+    << TPounceSettings->RespondCqGrids() << "#"
+    << QString("%1").arg(TPounceSettings->ResponseMode()) << "\n";
 
     file.close();
 }

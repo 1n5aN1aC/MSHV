@@ -21,6 +21,7 @@ HEADERS = src/main_ms.h \
  src/HvStylePlastique/hvfontdialog.h \
  src/HvMsCore/mscore.h \
  src/SettingsMs/settings_ms.h \
+ src/HvPounce/pouncesettings.h \
  src/HvSMeter/hvsmeter_h.h \
  src/HvMsPlayer/msplayerhv.h \
  src/HvMsPlayer/libsound/config.h \
@@ -120,6 +121,7 @@ SOURCES = src/main.cpp \
  src/HvMsCore/mscore.cpp \
  src/HvMsCore/winsound_in.cpp \
  src/SettingsMs/settings_ms.cpp \
+ src/HvPounce/pouncesettings.cpp \
  src/HvSMeter/hvsmeter_h.cpp \
  src/HvMsPlayer/msplayerhv.cpp \
  src/HvMsPlayer/libsound/fileinput.cpp \

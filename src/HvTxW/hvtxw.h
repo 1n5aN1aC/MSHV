@@ -166,6 +166,7 @@ public:
     void SetZap(QString);
     void SetMinsigndb(QString);
     void SetDftolerance(QString);
+    void SetDfTolAllMode(QString);
     void SetDataTime(QDateTime);
     void SetGUbMK(bool);
     void GetCurrentMsg();
@@ -181,6 +182,22 @@ public:
     bool GetAutoIsOn()
     {
         return f_auto_on;
+    };
+    bool GetWaitAndPounce() const
+    {
+        return f_wait_and_pounce;
+    };
+    bool GetPounceRespondDirected() const
+    {
+        return f_pounce_respond_directed;
+    };
+    bool GetCNS() const
+    {
+        return MultiAnswerMod->GetCNS();
+    };
+    void SetCNS(bool f)
+    {
+        MultiAnswerMod->SetCNS(f);
     };
     bool GetTxFi()
     {
@@ -211,6 +228,10 @@ public:
     QString getdftol()
     {
         return SB_DfTolerance1->def_df_all_modes();
+    };
+    QString getdftolallmode()
+    {
+        return QString("%1").arg((int)cb_dftol_all->isChecked());
     };
     QString getzap()
     {
@@ -280,6 +301,13 @@ public:
     //void SetMacros(QStringList,int,QString,QString); //2.32
     void SetDPLogQso(bool,bool);
     void SetMultiAnswerMod(bool,bool);
+    void SetWaitAndPounce(bool f);
+    void SetPounceRespondDirected(bool f);
+    void SetPounceRespondCqKeyword(bool f);
+    void SetPounceRespondCqKeywords(QString s);
+    void SetPounceRespondCqGrid(bool f);
+    void SetPounceRespondCqGrids(QString s);
+    void SetPounceResponseMode(int mode);
     void SetStartQsoDateTime(); //2.49
     void SetTxMessage(int); //2.49
     void ReadEDILog();//2.57
@@ -331,6 +359,7 @@ public slots:
     void SetRxDf(int);
 
     void SetTextForAutoSeq(QStringList);
+    void RespondNowFromDecodeList(QString,QString,QString,QString,QString);
     void SetInfoDupeQso(bool);
     void Macros_exec();
     void NetW_exec();
@@ -352,6 +381,7 @@ public slots:
     void SetMaManAdding(bool);
     void CBEnableAliChanged(bool);//2.75
     void SetAutoLogInfo();//2.75
+    void StartPounceAuto(QString pounce_freq, QString pounce_time);
 
 signals:
 	void EmitMacros(int,QString);
@@ -367,6 +397,7 @@ signals:
     void EmitFileNameChenged();
     void EmitDfSdbChanged(int,int);
     void EmitDfChanged(int,int);
+    void EmitDfTolAllChanged(bool);
     void EmitWords(QStringList,int,int);
     void EmitZap(bool);
     void StndInLevel(int);
@@ -399,6 +430,7 @@ signals:
     void EmitOtpRxMsg(bool);//2.76
     void EmitOtpVerif(QString,uint8_t);//2.76
     void EmitOffsetDt(int);//2.76.5
+    void EmitPounceCNSChanged(bool);
  
 private slots:
     void SetRptRsq(bool);
@@ -412,6 +444,7 @@ private slots:
     void BReleased(int,QString);
     void SetTxSnV2(int);
     void DfSdbChanged(int);
+    void DfTolAllChanged(bool);
     void Check(QString);
     void CheckBD();
     void AddDb();
@@ -432,6 +465,12 @@ private slots:
     void SetQrgActiveId(int);//2.60
     void SetHisCalls(QStringList);
     void MshfChanget(bool);//2.76
+    // Idle autorespond slots
+    void IdleArEnableChanged(bool);
+    void IdleArTimeoutChanged(int);
+    void IdleArCandidateSecondsChanged(int);
+    void IdleArCatChanged(bool);
+    void IdleArContestCallChanged(QString);
 
 private:
 	uint8_t id_mshf;//2.76
@@ -470,9 +509,22 @@ private:
     //bool DialogIsCallDupeInLog(QString hisCall_inmsg);
     bool f_multi_answer_mod;
     bool f_multi_answer_mod_std;
+    bool f_wait_and_pounce;
+    bool f_pounce_respond_directed;
+    bool f_pounce_respond_cq_keyword;
+    bool f_pounce_respond_cq_grid;
+    int s_pounce_response_mode;
     MultiAnswerModW *MultiAnswerMod;
     void SetTxTextsHiden(bool f);
     void RefreshMultiAnswerModAndASeq();
+    // Idle autorespond UI
+    QFrame *Box_idle_ar;
+    QCheckBox *cb_idle_ar_enable;
+    QSpinBox *sb_idle_ar_timeout;
+    QSpinBox *sb_idle_ar_candidate_seconds;
+    QCheckBox *cb_idle_cat[4]; // CQ, CQ Other, RR73, 73
+    QLineEdit *le_idle_contest_call;
+    void RefreshIdleArPane();
     
     bool s_2click_list_autu_on;
     bool log_qso_startdt_eq_enddt;
@@ -570,6 +622,7 @@ private:
     //int s_dftolerance[COUNT_MODE];
     int s_mode; 
     bool f_nosave;
+    bool f_block_settings_save;
 
     void CalcDistance();
     HvQthLoc THvQthLoc;
@@ -593,6 +646,7 @@ private:
     bool f_makros_ready;
     int s_b_identif;
     HvQrg *le_qrg;
+    QCheckBox *cb_dftol_all;
     QCheckBox *cb_zap;
     QCheckBox *cb_sh_rpt;
     QCheckBox *cb_swl;

@@ -44,6 +44,7 @@ typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO);
 #include "CpuWidget/cpuwudget.h"
 #include "HvMsProc/hvmsproc.h"
 #include "HvDecodeList/hvfilterdialog.h"
+#include "HvPounce/pouncesettings.h"
 void _ReadSSAndSet_();
 
 #include "config_str_sk.h" 
@@ -142,6 +143,14 @@ private slots:
     void BandBtSwClicked(int);
     void SetMshf(uint8_t);//2.76
     void SetOffsetDt(int);//2.76.5
+    void PounceButtonClicked();
+    void PounceCNSChanged(bool);
+    void PounceRespondDirectedChanged(bool);
+    void PounceRespondCqKeywordChanged(bool);
+    void PounceRespondCqKeywordsChanged(QString);
+    void PounceRespondCqGridChanged(bool);
+    void PounceRespondCqGridsChanged(QString);
+    void PounceResponseModeChanged(int);
     
 private:
 	int s_offset_dt;//2.76.5
@@ -250,6 +259,7 @@ private:
     QPushButton *pb_clar_list1;
     QPushButton *pb_clar_list2;
     QPushButton *pb_start_rx;
+    QPushButton *pb_pounce;
     QPushButton *pb_tune;
     QPushButton *pb_clear_avg65;
     QPushButton *pb_dec_65;
@@ -383,6 +393,7 @@ private:
     //// END 2/1 Display //////////
 
     bool g_block_from_close_app_is_active_astro_w;
+    HvPounceSettings *TPounceSettings;
 
 	//// Translation ////
     QAction *ac_l[COUNT_LANGS]; 

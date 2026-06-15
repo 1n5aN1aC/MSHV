@@ -140,6 +140,8 @@ DecodeList::DecodeList(int ident,bool f,QWidget *parent)
     list_pfxf.clear();
     hide_cnyf_list = false;
     list_hidcnyf.clear();
+    hide_call_list = false;
+    list_hidecalls.clear();
     list_b4qso.clear();
     //f_show_timec = true;
     s_show_timec = true;
@@ -170,6 +172,7 @@ DecodeList::DecodeList(int ident,bool f,QWidget *parent)
     c_mark_txt[6] = QColor(100,210,255);//2.63 his call
     f_mark_tx = true;
     f_mark_qsy = true;
+    s_gray_dup_contacts = false;
     f_mark_txqsy = false;//tx=0 qsy=1;
     id_mark_otp_verif = 0;
     s_list_ident = ident;
@@ -179,7 +182,13 @@ DecodeList::DecodeList(int ident,bool f,QWidget *parent)
     m_spot = new QMenu(this);
     QAction *ac_spot = new QAction(QPixmap(":pic/spot_dx.png"),tr("Spot Receiving Text"), this);//"Spot DX Cluster" Spot Receiving Text
     m_spot->addAction(ac_spot);
+    m_respond_now = new QAction(tr("Respond to this message NOW"), this);
+    m_spot->addAction(m_respond_now);
+    m_blacklist_call = new QAction(tr("BLACKLIST this callsign"), this);
+    m_spot->addAction(m_blacklist_call);
     connect(ac_spot, SIGNAL(triggered()), this, SLOT(ac_spot()));
+    connect(m_respond_now, SIGNAL(triggered()), this, SLOT(ac_respond_now()));
+    connect(m_blacklist_call, SIGNAL(triggered()), this, SLOT(ac_blacklist_call()));
 
     //f_resize_event = false;
     s_mark_txt.clear();
@@ -616,9 +625,9 @@ void DecodeList::SetTimeElapsed(float ts)
         model.setHeaderData(msg_column,Qt::Horizontal,tr("Message")+" "+QString("%1").arg(count_dec)+" / "+QString("%1").arg(ts,0,'f',1)+"s");
 }
 //#include <QToolTip>
-void DecodeList::RefreshFiltHeadColor(bool f1,bool f2,bool f3,bool f4,bool f5,bool f6,bool f7,bool f8,bool f9)
+void DecodeList::RefreshFiltHeadColor(bool f1,bool f2,bool f3,bool f4,bool f5,bool f6,bool f7,bool f8,bool f9,bool f10)
 {
-    if ((s_mode==11 || s_mode==13 || s_mode==18) && (f1 || f2 || f3 || f4 || f5 || f6 || f7 || f8 || f9))//ft8 ft4
+    if ((s_mode==11 || s_mode==13 || s_mode==18) && (f1 || f2 || f3 || f4 || f5 || f6 || f7 || f8 || f9 || f10))//ft8 ft4
     {
         is_filters_active = true;
         if (dsty) header()->setStyleSheet("QHeaderView::section{background-color:rgb(155,90,90);}");
@@ -633,7 +642,7 @@ void DecodeList::RefreshFiltHeadColor(bool f1,bool f2,bool f3,bool f4,bool f5,bo
             if (f_row_color) emit EmitLstNexColor(true);
             else emit EmitLstNexColor(false);
         }
-        if (f1 && !f2 && !f3 && !f4 && !f5 && !f6 && !f7 && !f8 && !f9) is_only_cqrr73_active = true;
+        if (f1 && !f2 && !f3 && !f4 && !f5 && !f6 && !f7 && !f8 && !f9 && !f10) is_only_cqrr73_active = true;
         else is_only_cqrr73_active = false;
         /*QPoint post = mapToGlobal(QPoint(0,0));
         post+=QPoint(width()/2,-10);
@@ -984,7 +993,7 @@ void DecodeList::SetMode(int mode,bool flag_two,bool f0,bool f1,bool f2,bool f3)
     {
         RefreshFastDcml();
         RefreshFiltHeadColor(show_filter_list,hide_filter_list,show_customf_list,show_cufspec_list,
-                             show_cufend_list,show_cnyf_list,show_pfxf_list,hide_cnyf_list,f_hide_c[8]);
+                             show_cufend_list,show_cnyf_list,show_pfxf_list,hide_cnyf_list,f_hide_c[8],hide_call_list);
     }
 }
 void DecodeList::SetActivityId(QString myloc)
@@ -1227,7 +1236,7 @@ void DecodeList::SetFilterParms(QStringList l,QStringList &lc,bool &f)
     }
 }
 void DecodeList::SetFilter(QStringList lc,bool *fh,QStringList lc0,QStringList lc1,QStringList lc2,
-                           QStringList lc3,QStringList lc4,QStringList lc5)
+                           QStringList lc3,QStringList lc4,QStringList lc5,QStringList lc6)
 {
     //if (s_list_ident!=1) return; //2.66 no needed for the moment
     f_hide_c[0]=fh[0];
@@ -1250,9 +1259,10 @@ void DecodeList::SetFilter(QStringList lc,bool *fh,QStringList lc0,QStringList l
     SetFilterParms(lc3,list_cnyf,   show_cnyf_list);
     SetFilterParms(lc4,list_pfxf,   show_pfxf_list);
     SetFilterParms(lc5,list_hidcnyf,hide_cnyf_list);
+    SetFilterParms(lc6,list_hidecalls,hide_call_list);
 
     RefreshFiltHeadColor(show_filter_list,hide_filter_list,show_customf_list,show_cufspec_list,
-                         show_cufend_list,show_cnyf_list,show_pfxf_list,hide_cnyf_list,f_hide_c[8]);
+                         show_cufend_list,show_cnyf_list,show_pfxf_list,hide_cnyf_list,f_hide_c[8],hide_call_list);
     /*qDebug()<<is_filters_active<<"F="<<f_hide_c[0]<<f_hide_c[1]<<f_hide_c[2]<<f_hide_c[3]<<f_hide_c[4]<<f_hide_c[5]<<
     f_hide_c[6]<<list_filter<<list_cnyf<<list_pfxf<<list_cufend<<list_customf<<list_cufspec<<f_hide_c[7];*/
     //qDebug()<<"f_hide_c[9]"<<f_hide_c[9];
@@ -1414,6 +1424,19 @@ bool DecodeList::ShowCSDecode(QString call)
     }
     return res;
 }
+bool DecodeList::HideByCall(QString call)
+{
+    if (call.isEmpty()) return true;
+    call = call.trimmed().toUpper();
+    for (int i = 0; i<list_hidecalls.count(); ++i)
+    {
+        if (call==list_hidecalls.at(i).trimmed().toUpper())
+        {
+            return false;
+        }
+    }
+    return true;
+}
 bool DecodeList::HideB4Qso(QString call)
 {
     if (call.isEmpty()) return true;
@@ -1520,7 +1543,7 @@ void DecodeList::InsertItem_hv(QStringList list,bool ffopen,bool forme)
             bool f_b4qso = false;
             if (f_hide_c[8] && !list_b4qso.isEmpty()) f_b4qso = true; //qDebug()<<"f_b4qso="<<f_b4qso;//2.69
             if (hide_filter_list || show_customf_list || show_cufspec_list || show_cnyf_list ||
-                    show_pfxf_list || hide_cnyf_list || f_b4qso) call = FindHisCall(list.at(4));
+                    show_pfxf_list || hide_cnyf_list || f_b4qso || hide_call_list) call = FindHisCall(list.at(4));
 
             QString pfx,coy,cot;
             bool ispfx  = false;
@@ -1561,11 +1584,17 @@ void DecodeList::InsertItem_hv(QStringList list,bool ffopen,bool forme)
                 if (hide_filter_list && f_sho0) f_sho0 = THvCty->HideContinent(call,f_hide_c,ispfx,cot);//Hide Continent
                 if (hide_cnyf_list && f_sho0) f_sho0 = THvCty->HideCountry(call,list_hidcnyf,coy);//Hide Country //ispfx,
                 if (f_b4qso && f_sho0) f_sho0 = HideB4Qso(call);//Hide B4QSO
+                if (hide_call_list && f_sho0) f_sho0 = HideByCall(call);//Hide blacklisted calls
             }
         }
         if (is_filters_active && !freply) freply = f_sho0;
         //if (is_filters_active && !forme ) freply = false;
         if (is_filters_active && !forme ) f_show = f_sho0;
+        // Blacklist applies unconditionally — even to messages directed at you (forme)
+        if (is_filters_active && hide_call_list) {
+            if (call.isEmpty()) call = FindHisCall(list.at(4));
+            if (!HideByCall(call)) { f_show = false; freply = false; }
+        }
         //if (s_list_ident==1/* && f_show!=freply*/) qDebug()<<"f_show="<<f_show<<"freply="<<freply<<list.at(4);
 
         //error counting with filter f_show &&
@@ -1812,9 +1841,19 @@ void DecodeList::SetTextMarkColors(QColor *c,int c_c,bool f_c3,bool f_c4)
 }
 void DecodeList::SetDListMarkText(QStringList l,int r12,int ih,int j,int k,int im)
 {
-    if (s_mark_txt!=l)
+    const QString gray_dup_token = "__GREY_DUP_CONTACTS__";
+    QStringList l0 = l;
+    s_gray_dup_contacts = false;
+    int gray_tok_pos = l0.indexOf(gray_dup_token);
+    if (gray_tok_pos>-1)
     {
-        s_mark_txt = l;//2.65 first this
+        s_gray_dup_contacts = true;
+        l0.removeAt(gray_tok_pos);
+    }
+
+    if (s_mark_txt!=l0)
+    {
+        s_mark_txt = l0;//2.65 first this
         s_mark_r12_pos = r12;
         s_mark_hisc_pos = ih;
         s_mark_b4q_pos = j;
@@ -1824,7 +1863,7 @@ void DecodeList::SetDListMarkText(QStringList l,int r12,int ih,int j,int k,int i
         list_b4qso.clear();
         int end = k;
         if (end > im) end = im;
-        for (int i = j; i < end; ++i) list_b4qso.append(l.at(i));
+        for (int i = j; i < end; ++i) list_b4qso.append(l0.at(i));
 
         viewport()->update();
         //qDebug()<<l;
@@ -1857,6 +1896,29 @@ void DecodeList::drawRow(QPainter *painter, const QStyleOptionViewItem & option,
 {
     QStyleOptionViewItem opt = option;
 
+    bool is_b4qso_row = false;
+    if (s_gray_dup_contacts && !list_b4qso.isEmpty())
+    {
+        QString row_msg = " "+model.item(index.row(),msg_column)->text().toUpper()+" ";
+        for (int i = 0; i < list_b4qso.count(); ++i)
+        {
+            QString call = list_b4qso.at(i).trimmed().toUpper();
+            if (call.isEmpty()) continue;
+            if (row_msg.contains(" "+call+" ") || row_msg.contains("<"+call+">"))
+            {
+                is_b4qso_row = true;
+                break;
+            }
+        }
+    }
+
+    if (is_b4qso_row)
+    {
+        QColor fg_b4 = QColor(120,120,120);
+        if (dsty) fg_b4 = QColor(170,170,170);
+        opt.palette.setColor(QPalette::Text, fg_b4);
+    }
+
     if (selectionModel()->isSelected(index)) //(index == selectedIndexes()[0])//selectedIndexes()[0]
     {
         opt.font.setBold(true);
@@ -1864,6 +1926,11 @@ void DecodeList::drawRow(QPainter *painter, const QStyleOptionViewItem & option,
 
         QColor cc = QColor(0,0,0);
         if (dsty) cc = QColor(255,255,255);
+        if (is_b4qso_row)
+        {
+            cc = QColor(120,120,120);
+            if (dsty) cc = QColor(170,170,170);
+        }
         opt.palette.setColor(QPalette::HighlightedText,cc);
 
         //8QString ss = model.data(model.index(index.row(),msg_column,QModelIndex()),Qt::DisplayRole).toString();
@@ -2055,6 +2122,64 @@ void DecodeList::ac_spot()
     // no crash ->model.item(index.row(),1)->text();//2.48    
 	//2.76sf last -> 0=normal msg, 1=$VERIFY$, 2=C0ALL.123456, 3=verified
     emit EmitRxStationInfo(list,1,false,3);//0->to psk reporter 1->to dx clusters  2.34, bool usefudpdectxt
+}
+void DecodeList::ac_respond_now()
+{
+    QModelIndex index = selectionModel()->currentIndex();
+    int row = index.row();
+    if (row < 0) return;
+
+    QString str = model.item(row, msg_column)->text();
+    QString tx_rpt = "?";
+    QString freq = "?";
+
+    if (s_mode==0 || s_mode==12)
+    {
+        tx_rpt = "+00";
+        if (s_mode==12)
+        {
+            if (!model.item(row, 4)->text().isEmpty()) tx_rpt = model.item(row, 4)->text();
+        }
+        else tx_rpt = model.item(row, 3)->text();
+        freq = model.item(row, 12)->text();
+    }
+    else if (s_mode==1 || s_mode==2 || s_mode==3)
+    {
+        tx_rpt = model.item(row, 4)->text();
+        freq = model.item(row, 7)->text();
+    }
+    else if (s_mode==4 || s_mode==5)
+    {
+        tx_rpt = model.item(row, 2)->text();
+        freq = "?";
+    }
+    else if (s_mode==6)
+    {
+        tx_rpt = "?";
+        freq = "?";
+    }
+    else if (s_mode==7 || s_mode==8 || s_mode==9 || s_mode==10)
+    {
+        tx_rpt = model.item(row, 2)->text();
+        freq = model.item(row, 9)->text();
+    }
+    else if (s_mode==11 || s_mode==13 || s_mode==18 || allq65)
+    {
+        tx_rpt = model.item(row, 1)->text();
+        freq = model.item(row, 9)->text();
+    }
+
+    emit EmitRespondNow(str,str,model.item(row, 0)->text(),tx_rpt,freq);
+}
+void DecodeList::ac_blacklist_call()
+{
+    QModelIndex index = selectionModel()->currentIndex();
+    int row = index.row();
+    if (row < 0) return;
+
+    QString msg = model.item(row, msg_column)->text();
+    QString call = FindHisCall(msg);
+    if (!call.isEmpty()) emit EmitBlacklistCall(call);
 }
 /*
 void DecodeList::mouseDoubleClickEvent(QMouseEvent * event)

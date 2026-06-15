@@ -24,6 +24,7 @@ public:
     void SetSettings4(QString);   
     void SetSettings5(QString);  
     void SetSettings6(QString);   
+    void SetSettings7(QString);
     QString GetSettings();
     QString GetSettings0();
     QString GetSettings1();
@@ -32,16 +33,18 @@ public:
     QString GetSettings4();
     QString GetSettings5();   
     QString GetSettings6();
+    QString GetSettings7();
     void SetCountries(QStringList); 
     QPushButton *pb_fltrOnOff;
     void SetHidFLBtOnOff(bool);
 
 signals:
     void EmitSetFilter(QStringList,bool*,QStringList,QStringList,QStringList,QStringList,
-    					QStringList,QStringList);
+					QStringList,QStringList,QStringList);
 
 public slots:
     void SetTextMark(bool*,QString);
+    void AddBlacklistCall(QString);
 
 private slots:
     void SetDefaultFilter();
@@ -76,6 +79,8 @@ private:
     HvLeWithSpace *le_contm1;
     QCheckBox *cb_contm2;
     HvLeWithSpace *le_contm2;
+    QCheckBox *cb_hidecalls;
+    HvLeWithSpace *le_hidecalls;
     QCheckBox *cb_contm3;
     HvLeWithSpace *le_contm3;
     QPushButton *b_clr;

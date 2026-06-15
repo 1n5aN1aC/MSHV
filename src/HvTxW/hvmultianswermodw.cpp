@@ -241,6 +241,28 @@ void ListA::InsertItem_hv(QStringList list)
     }
     //this->setCurrentIndex(model.index(model.rowCount(), 1, QModelIndex()));
 }
+void ListA::InsertItemFront_hv(QStringList list)
+{
+    if (!list.isEmpty())
+    {
+        QList<QStandardItem *> qlsi;
+        int k = 0;
+        for (QStringList::iterator it =  list.begin(); it != list.end(); ++it)
+        {
+            QStandardItem *item = new QStandardItem(QString(*it));
+            if (k==3 || k==5 || k==1) item->setTextAlignment(Qt::AlignCenter);//freq and dist
+            item->setEditable(false);
+            qlsi.append(item);
+            k++;
+        }
+        model.insertRow(0, qlsi);
+
+        emit ListCountChange(model.rowCount());
+
+        if      (s_auto_sort==1 && THvHeader->sortIndicatorSection()==3) AutoSortDist(3);//only LsQueue and distance
+        else if (s_auto_sort==2 && THvHeader->sortIndicatorSection()==1) AutoSortDist(1);
+    }
+}
 int ListA::FindCallOrBaseCallRow(QString c)
 {
     int row = -1;
@@ -439,6 +461,20 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     backup_db_pos_write = 0;
     current_msg = "";
     s_man_adding = false;
+    f_pounce_cq_keyword = false;
+    f_pounce_cq_grid = false;
+    s_pounce_cq_keywords.clear();
+    s_pounce_cq_grids.clear();
+    // Idle autorespond init
+    f_idle_ar_enabled = false;
+    s_idle_ar_timeout_cycles = 3;
+    s_idle_candidate_seconds = 90;
+    for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic) f_idle_cat[ic] = false;
+    s_idle_once_active = false;
+    s_idle_revert_to_cq = false;
+    s_idle_once_msg = "";
+    s_idle_contest_call = "";
+    s_idle_cq_count = 0;
 
     s_qrg = "237";
     s_last_bccall_tolog_excp = "NONE_";
@@ -602,6 +638,7 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     cb_cont_ns = new QCheckBox(tr("CNS"));
     cb_cont_ns->setStyleSheet("QCheckBox{spacing:3px;}");
     cb_cont_ns->setHidden(true);
+    connect(cb_cont_ns,SIGNAL(toggled(bool)),this,SIGNAL(EmitCNSChanged(bool)));
     /*cb_cont_ns = new QCheckBox();//cb_cont_ns->setToolTip("Continue non-stop");
     cb_cont_ns->setToolTip("CNS");   
     cb_cont_ns->setHidden(true);    
@@ -799,6 +836,37 @@ void MultiAnswerModW::SetSettings(QString s)
     else cb_cont_ns->setChecked(false);
     if (ls.at(8)=="1") SBmaxTP->SetDoubleClick();
     if (ls.at(11)=="1") cb_otp_mamd_key->setChecked(true);
+    // Idle autorespond settings (backward-compatible).
+    // Current layout starts at index 12: enable, timeout, 4 category flags, contest call.
+    // Older layouts may have had an empty reserved field at 12, so start at 13 in that case.
+    int idleBase = 12;
+    if (ls.count() > 12 && ls.at(12).isEmpty()) idleBase = 13;
+
+    if (ls.count() > idleBase) f_idle_ar_enabled = (ls.at(idleBase) == "1");
+    if (ls.count() > idleBase + 1)
+    {
+        int tcy = ls.at(idleBase + 1).toInt();
+        if (tcy < 1) tcy = 1;
+        if (tcy > 30) tcy = 30;
+        s_idle_ar_timeout_cycles = tcy;
+    }
+    for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic)
+    {
+        if (ls.count() > idleBase + 2 + ic) f_idle_cat[ic] = (ls.at(idleBase + 2 + ic) == "1");
+    }
+    if (ls.count() > idleBase + 6) s_idle_contest_call = ls.at(idleBase + 6).trimmed().toUpper();
+    if (ls.count() > idleBase + 7)
+    {
+        int sec = ls.at(idleBase + 7).toInt();
+        if (sec < 1) sec = 1;
+        if (sec > 3600) sec = 3600;
+        s_idle_candidate_seconds = sec;
+    }
+    else
+    {
+        // Backward compatibility with older settings that had no candidate-seconds field.
+        s_idle_candidate_seconds = 90;
+    }
 }
 void MultiAnswerModW::LQueueCountChange(int n)
 {
@@ -1628,6 +1696,14 @@ QString MultiAnswerModW::DecodeMacros(int row, QString id)//row from listNow id 
 void MultiAnswerModW::SetAuto(bool f) //2.35
 {
     f_auto_on = f;
+    if (!f)
+    {
+        s_idle_cq_count = 0;
+        s_idle_once_active = false;
+        s_idle_revert_to_cq = false;
+        s_idle_once_msg = "";
+        s_idle_candidates.clear();
+    }
 }
 void MultiAnswerModW::gen_msg()
 {
@@ -1641,9 +1717,22 @@ void MultiAnswerModW::gen_msg()
     QString prev_current_msg = current_msg; //qDebug()<<SBslots->valueS();
     current_msg = "";
     s_pos_nw_i3b = 0;
+    bool used_idle_once = false;
 
     if (rwc<=0)//start cq
     {
+        // Idle autorespond: if one-shot is pending, use it instead of CQ
+        if (s_idle_once_active && !s_idle_once_msg.isEmpty())
+        {
+            current_msg = s_idle_once_msg;
+            s_idle_once_active = false;
+            s_idle_revert_to_cq = true;
+            s_idle_once_msg = "";
+            used_idle_once = true;
+            // Don't stop auto or emit CQ progress - this is a direct call
+        }
+        else
+        {
         if (!g_block_stop_auto && f_multi_answer_mod_std && (!cb_cont_ns->isChecked() || id_mshf==1))//2.52 ->!g_block_stop_auto eventual->!f_tx_rx &&
             emit EmitStopAuto(); // from set_macros stop auto and clar lists
         if (f_block_free_cq)
@@ -1661,6 +1750,7 @@ void MultiAnswerModW::gen_msg()
             }
         } //qDebug()<<"s_msf_ftmsg="<<s_msf_ftmsg<<current_msg;
         emit EmitQSOProgressMAM(5,true);//2.51
+        }
     }
     else
     {
@@ -1695,7 +1785,7 @@ void MultiAnswerModW::gen_msg()
     if (prev_current_msg != current_msg)//2.35
     {
         //qDebug()<<"Msg="<<current_msg<<"Count="<<current_msg.count("#")+1;//2.59 +ft4 f_tx_rx &&
-        if ((s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_auto_on && SBslots->valueS()==1) emit MamEmitMessage(current_msg,false,true,true);
+        if ((s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_auto_on && (SBslots->valueS()==1 || used_idle_once)) emit MamEmitMessage(current_msg,false,true,true);
         else emit MamEmitMessage(current_msg,false,false,true); //qDebug()<<"Msg="<<current_msg.count();
     }
 }
@@ -1933,10 +2023,10 @@ void MultiAnswerModW::ConfigRestrictW()
 {
     if (f_multi_answer_mod_std)//(s_mode==11 || s_mode==13 || s_mode==18) &&
     {
-        if (gg_frest || allq65) SBslots->setRange(1,1);// || s_mode==18
+        if ((gg_frest && s_co_type!=4) || allq65) SBslots->setRange(1,1);// || s_mode==18
         else
         {
-            if (s_co_type==0) SBslots->setRange(1,2);
+            if (s_co_type==0 || s_co_type==4) SBslots->setRange(1,2);//s_co_type==4 ARRL Field Day, no serial number conflict
             else SBslots->setRange(1,1);//<- importent eu vhf only 1 slot needed
         }
         cb_tx_sm->setHidden(true);
@@ -2346,6 +2436,7 @@ void MultiAnswerModW::SetTxRxMsg(bool f)
             c_sf_rpt=0; //qDebug()<<"SetTxRxMsg RefreshLists0";
             RefreshLists(0);
         }
+        TryRespondWhenIdle(); // idle autorespond: evaluate at RX->TX transition
     }
     else
     {
@@ -2360,6 +2451,7 @@ void MultiAnswerModW::SetLastBcCallToLog(QString call)
 void MultiAnswerModW::SetTxMsgEnd()
 {
     bool is_change = false;
+    bool revert_idle_to_cq = (s_idle_revert_to_cq && LsNow->GetRowCount() <= 0);
     //qDebug()<<"TXing END====="<<f_tx_rx<<f_cfm73;
     //if (!f_tx_rx)//2.69 ???
     //{
@@ -2452,6 +2544,16 @@ void MultiAnswerModW::SetTxMsgEnd()
     {
         c_sf_rpt=0; //qDebug()<<"SetTxMsgEnd RefreshLists0";
         RefreshLists(0);
+        s_idle_revert_to_cq = false;
+    }
+    else if (revert_idle_to_cq)
+    {
+        s_idle_revert_to_cq = false;
+        gen_msg();
+    }
+    else if (!s_idle_once_active && LsNow->GetRowCount() > 0)
+    {
+        s_idle_revert_to_cq = false;
     }
 }
 void MultiAnswerModW::RefreshLists(int c_plus)
@@ -2505,6 +2607,9 @@ void MultiAnswerModW::RefreshLists(int c_plus)
         emit EmitMAMCalls(lout);
     }
     if (c_plus == 0) gen_msg();
+
+    // Reset idle CQ tracking when we have active QSOs
+    if (LsNow->GetRowCount() > 0) s_idle_cq_count = 0;
 
     prevnowc = LsNow->GetRowCount(); //qDebug()<<"MA= "<<is_need_rfresh_lists<<is_need_rfresh_hiscalls;
     if (is_need_rfresh_hiscalls)//2.71
@@ -2908,6 +3013,167 @@ void MultiAnswerModW::DecListTextAll(QString tx_rpt,QString str,QString freq,boo
         }
     }
 }
+void MultiAnswerModW::RespondNow(QString tx_rpt,QString str,QString freq)
+{
+    if (!f_multi_answer_mod_std) return;
+    if (str.isEmpty()) return;
+
+    QString hisCall_inmsg = "";
+    QString hisLoc_inmsg  = "";
+    QString myCall_inmsg  = "";
+    QString rpt_inmsg  = "";
+    QString cont_r_inmsg  = "";
+    QString rr73_inmsg  = "";
+    int row_queue = -1;
+    int row_now = -1;
+    QString sn_inmsg = "";
+    QString arrl_exch_imsg = "";
+
+    DetectTextInMsg(str, hisCall_inmsg,hisLoc_inmsg,myCall_inmsg,rpt_inmsg,cont_r_inmsg,rr73_inmsg,
+                    row_queue,row_now,sn_inmsg,arrl_exch_imsg);
+    if (hisCall_inmsg.isEmpty()) return;
+
+    if (row_now == 0)
+    {
+        QString hcap;
+        QString hloc;
+        DecListTextAll(tx_rpt,str,freq,true,hcap,hloc);
+        return;
+    }
+
+    QString id_rpt = "0";
+    bool block_rpt_all = true;
+    if (!myCall_inmsg.isEmpty())
+    {
+        if (rpt_inmsg.isEmpty() && hisLoc_inmsg.isEmpty() && cont_r_inmsg.isEmpty() && rr73_inmsg.isEmpty() && arrl_exch_imsg.isEmpty())
+        {
+            id_rpt = "1";
+            block_rpt_all = false;
+        }
+        else if (rpt_inmsg.isEmpty() && (!hisLoc_inmsg.isEmpty() || !arrl_exch_imsg.isEmpty()))
+        {
+            if (!cont_r_inmsg.isEmpty()) id_rpt = "3";
+            else
+            {
+                if (s_co_type==2 || s_co_type==4) id_rpt = "2";
+                else id_rpt = "1";
+            }
+            block_rpt_all = false;
+        }
+        else if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)!='R' && rpt_inmsg.at(rpt_inmsg.count()-1).isDigit() && rpt_inmsg!="73")
+        {
+            if (!cont_r_inmsg.isEmpty()) id_rpt = "3";
+            else id_rpt = "2";
+            rpt_inmsg = format_rpt_ma(rpt_inmsg);
+            block_rpt_all = false;
+        }
+        else if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)=='R' && rpt_inmsg.at(rpt_inmsg.count()-1).isDigit())
+        {
+            id_rpt = "3";
+            rpt_inmsg.remove("R");
+            rpt_inmsg = format_rpt_ma(rpt_inmsg);
+            block_rpt_all = false;
+        }
+        else if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)=='R' && !rpt_inmsg.at(rpt_inmsg.count()-1).isDigit() &&
+                 rpt_inmsg.at(rpt_inmsg.count()-1)=='R')
+        {
+            id_rpt = "3";
+            block_rpt_all = true;
+        }
+        else if ((!rpt_inmsg.isEmpty() && rpt_inmsg=="73") || rr73_inmsg=="RR73")
+        {
+            id_rpt = "4";
+            block_rpt_all = true;
+        }
+    }
+    else
+    {
+        if (s_start_qso_from_tx2 && s_co_type!=3) id_rpt = "1";
+        else id_rpt = "0";
+        block_rpt_all = false;
+        if (!rpt_inmsg.isEmpty() && rpt_inmsg.at(0)=='R' && rpt_inmsg.at(rpt_inmsg.count()-1).isDigit()) rpt_inmsg.remove("R");
+    }
+
+    if (id_mshf==2 && id_rpt=="2") return;
+    if (block_rpt_all && row_now<0 && row_queue<0) return;
+
+    QString tx_rpt_now = tx_rpt;
+    if (id_rpt == "0" || id_rpt == "1" || id_rpt == "2")
+    {
+        tx_rpt_now = TryFormatRPTtoRST(tx_rpt_now);
+        tx_rpt_now = format_rpt_ma(tx_rpt_now);
+    }
+    else tx_rpt_now = "";
+
+    QString dist = "?";
+    if (!hisLoc_inmsg.isEmpty()) dist = CalcDistance(hisLoc_inmsg,f_km_mi);
+    if (rpt_inmsg=="73" || rpt_inmsg=="RRR" || rpt_inmsg=="RR73") rpt_inmsg = "";
+
+    auto read_row = [&](ListA *lst, int row)->QStringList
+    {
+        QStringList out;
+        if (row < 0 || row >= lst->GetRowCount()) return out;
+        for (int j = 0; j < lst->GetColumnCount(); ++j) out << lst->model.item(row,j)->text();
+        return out;
+    };
+
+    QStringList selected_row;
+    if (row_now > -1) selected_row = read_row(LsNow,row_now);
+    else if (row_queue > -1) selected_row = read_row(LsQueue,row_queue);
+    else selected_row << hisCall_inmsg << "" << "" << "?" << "" << freq << "" << "0" << "" << "" << "" << "";
+    while (selected_row.count() < 12) selected_row << "";
+
+    if (row_queue > -1) LsQueue->RemoveRow(row_queue);
+    if (row_now > -1)
+    {
+        if (row_now > 0) LsNow->RemoveRow(row_now);
+        else return;
+    }
+
+    QStringList old_now_row;
+    if (LsNow->GetRowCount()>0)
+    {
+        old_now_row = read_row(LsNow,0);
+        LsNow->RemoveRow(0);
+    }
+
+    selected_row.replace(0,hisCall_inmsg);
+    if (!tx_rpt_now.isEmpty()) selected_row.replace(1,tx_rpt_now);
+    if (!rpt_inmsg.isEmpty()) selected_row.replace(2,rpt_inmsg);
+    if (dist!="?") selected_row.replace(3,dist);
+    if (!hisLoc_inmsg.isEmpty()) selected_row.replace(4,hisLoc_inmsg);
+    selected_row.replace(5,freq);
+    if (selected_row.at(6).isEmpty())
+    {
+        QDateTime utc_t = QDateTime::currentDateTimeUtc();
+        selected_row.replace(6,utc_t.toString("yyyyMMdd")+" "+utc_t.toString("hh:mm"));
+    }
+    selected_row.replace(7,id_rpt);
+    selected_row.replace(8,QString("%1").arg(QDateTime::currentDateTimeUtc().toTime_t()));
+    selected_row.replace(9,"0");
+    if (!sn_inmsg.isEmpty()) selected_row.replace(10,sn_inmsg);
+    if (!arrl_exch_imsg.isEmpty()) selected_row.replace(11,arrl_exch_imsg);
+
+    if (!old_now_row.isEmpty())
+    {
+        while (old_now_row.count() < 12) old_now_row << "";
+        old_now_row.replace(9,"0");
+        QString old_base = FindBaseFullCallRemAllSlash(old_now_row.at(0));
+        QString sel_base = FindBaseFullCallRemAllSlash(selected_row.at(0));
+        if (old_base != sel_base)
+        {
+            int oldq = LsQueue->FindCallOrBaseCallRow(old_base);
+            if (oldq > -1) LsQueue->RemoveRow(oldq);
+            LsQueue->InsertItemFront_hv(old_now_row);
+        }
+    }
+
+    int exists_now = LsNow->FindCallOrBaseCallRow(FindBaseFullCallRemAllSlash(selected_row.at(0)));
+    if (exists_now > -1) LsNow->RemoveRow(exists_now);
+    LsNow->InsertItemFront_hv(selected_row);
+
+    RefreshLists(0);
+}
 //#define _TEST_MASF_
 #if defined _TEST_MASF_
 #include <unistd.h>//for usleep
@@ -2923,6 +3189,7 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
         QString hcap;//fictive
         QString hloc;//fictive
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);//false f_double_click
+        CollectIdleCandidate(text_msg, freq); // idle autorespond candidate tracking
     }
 #else
     static int uuu = 0;
@@ -2984,6 +3251,420 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
     if (uuu<4) uuu++;
     else uuu=0;
 #endif
+}
+void MultiAnswerModW::SetPounceRespondCqKeyword(bool f)
+{
+    f_pounce_cq_keyword = f;
+}
+void MultiAnswerModW::SetPounceRespondCqKeywords(QString s)
+{
+    s_pounce_cq_keywords = NormalizePounceCsv(s);
+}
+void MultiAnswerModW::SetPounceRespondCqGrid(bool f)
+{
+    f_pounce_cq_grid = f;
+}
+void MultiAnswerModW::SetPounceRespondCqGrids(QString s)
+{
+    s_pounce_cq_grids = NormalizePounceCsv(s);
+}
+QStringList MultiAnswerModW::NormalizePounceCsv(QString csv) const
+{
+    QStringList out;
+    QStringList in = csv.toUpper().split(",", QString::SkipEmptyParts);
+    for (int i = 0; i < in.count(); ++i)
+    {
+        QString tok = in.at(i).trimmed();
+        if (!tok.isEmpty()) out << tok;
+    }
+    out.removeDuplicates();
+    return out;
+}
+bool MultiAnswerModW::IsCqMessage(QString text_msg) const
+{
+    QString s = text_msg.trimmed().toUpper();
+    return (s == "CQ" || s.startsWith("CQ "));
+}
+bool MultiAnswerModW::PounceCqKeywordMatch(QString text_msg) const
+{
+    if (s_pounce_cq_keywords.isEmpty()) return false;
+    QStringList words = text_msg.toUpper().split(" ", QString::SkipEmptyParts);
+    for (int i = 0; i < s_pounce_cq_keywords.count(); ++i)
+    {
+        if (words.contains(s_pounce_cq_keywords.at(i))) return true;
+    }
+    return false;
+}
+bool MultiAnswerModW::PounceCqGridMatch(QString hisLoc_inmsg) const
+{
+    if (s_pounce_cq_grids.isEmpty()) return false;
+    QString grid = hisLoc_inmsg.trimmed().toUpper();
+    if (grid.isEmpty()) return false;
+    for (int i = 0; i < s_pounce_cq_grids.count(); ++i)
+    {
+        QString wanted = s_pounce_cq_grids.at(i);
+        if (grid.startsWith(wanted) || wanted.startsWith(grid)) return true;
+    }
+    return false;
+}
+void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
+{
+    if (list_in.isEmpty() || !(s_mode==11 || s_mode==13 || s_mode==18 || allq65) || list_in.count()<=9)
+    {
+        return;
+    }
+    if (!f_multi_answer_mod_std || cb_cont_ns->isChecked())
+    {
+        return;
+    }
+
+    QString text_msg = list_in.at(4);
+    QString tx_rpt = list_in.at(1);
+    QString freq = list_in.at(9);
+    QString pounce_time = list_in.at(0);
+
+    QString hisCall_inmsg = "";
+    QString hisLoc_inmsg = "";
+    QString myCall_inmsg = "";
+    QString rpt_inmsg = "";
+    QString cont_r_inmsg = "";
+    QString rr73_inmsg = "";
+    int row_queue = -2;
+    int row_now = -2;
+    QString sn_inmsg = "";
+    QString arrl_exch_imsg = "";
+
+    DetectTextInMsg(text_msg,hisCall_inmsg,hisLoc_inmsg,myCall_inmsg,rpt_inmsg,
+                    cont_r_inmsg,rr73_inmsg,row_queue,row_now,sn_inmsg,arrl_exch_imsg);
+
+    if (rpt_inmsg == "73")
+    {
+        return;
+    }
+
+    bool directed_match = (!hisCall_inmsg.isEmpty() && !myCall_inmsg.isEmpty());
+    if (!directed_match)
+    {
+        // Keyword/grid CQ triggers should only queue when queue is empty.
+        if (LsQueue->GetRowCount() > 0)
+        {
+            return;
+        }
+        if (!IsCqMessage(text_msg))
+        {
+            return;
+        }
+
+        bool keyword_match = (f_pounce_cq_keyword && PounceCqKeywordMatch(text_msg));
+        bool grid_match = (f_pounce_cq_grid && PounceCqGridMatch(hisLoc_inmsg));
+        if (!keyword_match && !grid_match)
+        {
+            return;
+        }
+
+        // For CQ keyword/grid pounce, use strict idle-AR dupe rule:
+        // one logged QSO is enough to ignore the call, independent of MASTD dupe settings.
+        if (!hisCall_inmsg.isEmpty())
+        {
+            bool is_dupe = false;
+            emit IsCallDupeInLog(hisCall_inmsg, 1, is_dupe);
+            if (is_dupe)
+            {
+                return;
+            }
+        }
+    }
+
+    QString hcap;
+    QString hloc;
+    if (directed_match)
+    {
+        DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
+        emit EmitWAPDirectedQueued(freq,pounce_time);
+        return;
+    }
+
+    // For CQ keyword/grid pounce, use the same insertion path as user-triggered respond-now.
+    // Then start AUTO only if the decoded call is actually present in Queue/Now.
+    DecListTextAll(tx_rpt,text_msg,freq,true,hcap,hloc);
+
+    QString his_base_call = FindBaseFullCallRemAllSlash(hisCall_inmsg);
+    if (!his_base_call.isEmpty())
+    {
+        int row_queue = LsQueue->FindCallOrBaseCallRow(his_base_call);
+        int row_now = LsNow->FindCallOrBaseCallRow(his_base_call);
+        if (row_queue > -1 || row_now > -1)
+        {
+            QString pounce_freq = freq;
+            if (row_queue > -1)
+            {
+                QString row_freq = LsQueue->model.item(row_queue,5)->text().trimmed();
+                if (!row_freq.isEmpty()) pounce_freq = row_freq;
+            }
+            else if (row_now > -1)
+            {
+                QString row_freq = LsNow->model.item(row_now,5)->text().trimmed();
+                if (!row_freq.isEmpty()) pounce_freq = row_freq;
+            }
+            emit EmitWAPDirectedQueued(pounce_freq,pounce_time);
+        }
+    }
+}
+// ============ Idle Autorespond Implementation ============
+void MultiAnswerModW::SetIdleAutoRespondEnabled(bool f)
+{
+    f_idle_ar_enabled = f;
+    if (!f)
+    {
+        s_idle_cq_count = 0;
+        s_idle_once_active = false;
+        s_idle_once_msg = "";
+        s_idle_candidates.clear();
+    }
+}
+void MultiAnswerModW::SetIdleAutoRespondTimeout(int cycles)
+{
+    if (cycles < 1) cycles = 1;
+    if (cycles > 30) cycles = 30;
+    s_idle_ar_timeout_cycles = cycles;
+}
+void MultiAnswerModW::SetIdleCandidateSeconds(int seconds)
+{
+    if (seconds < 1) seconds = 1;
+    if (seconds > 3600) seconds = 3600;
+    s_idle_candidate_seconds = seconds;
+}
+void MultiAnswerModW::SetIdleCategoryEnabled(int cat, bool f)
+{
+    if (cat >= 0 && cat < IDLE_CAT_COUNT) f_idle_cat[cat] = f;
+}
+void MultiAnswerModW::SetIdleContestCall(QString c)
+{
+    s_idle_contest_call = c.trimmed().toUpper();
+}
+bool MultiAnswerModW::GetIdleAutoRespondEnabled()
+{
+    return f_idle_ar_enabled;
+}
+int MultiAnswerModW::GetIdleAutoRespondTimeout()
+{
+    return s_idle_ar_timeout_cycles;
+}
+int MultiAnswerModW::GetIdleCandidateSeconds()
+{
+    return s_idle_candidate_seconds;
+}
+bool MultiAnswerModW::GetIdleCategoryEnabled(int cat)
+{
+    if (cat >= 0 && cat < IDLE_CAT_COUNT) return f_idle_cat[cat];
+    return false;
+}
+QString MultiAnswerModW::GetIdleContestCall()
+{
+    return s_idle_contest_call;
+}
+IdleCandCategory MultiAnswerModW::ClassifyIdleCandidate(QString text_msg)
+{
+    // Parse the message text to determine category
+    QStringList words = text_msg.trimmed().split(" ", QString::SkipEmptyParts);
+    if (words.isEmpty()) return IDLE_CAT_COUNT; // invalid
+
+    // Check for CQ messages
+    if (words.at(0) == "CQ")
+    {
+        // cat[0] = CQ with a tag/modifier (DX/TEST/POTA/numbered, etc.)
+        // cat[1] = plain CQ without tag
+        bool hasTag = false;
+        if (words.count() >= 3)
+        {
+            QString w1 = words.at(1);
+            bool isTag = (w1.length() <= 4 && w1 == w1.toUpper() && !w1.contains(QRegExp("[0-9]")));
+            if (!isTag)
+            {
+                bool alldig = true;
+                for (int j = 0; j < w1.count(); ++j)
+                {
+                    if (w1.at(j).isLetter())
+                    {
+                        alldig = false;
+                        break;
+                    }
+                }
+                if (alldig && w1.count() <= 4) isTag = true;
+            }
+            hasTag = isTag;
+        }
+        return hasTag ? IDLE_CAT_CQ_CONTEST : IDLE_CAT_OTHER_CQ;
+    }
+
+    // Check for RR73 pattern
+    for (int i = 0; i < words.count(); ++i)
+    {
+        if (words.at(i) == "RR73" || words.at(i) == "RRR") return IDLE_CAT_RR73;
+    }
+
+    // Check for 73 pattern (but not RR73, already caught above)
+    for (int i = 0; i < words.count(); ++i)
+    {
+        if (words.at(i) == "73") return IDLE_CAT_73;
+    }
+
+    return IDLE_CAT_COUNT; // not a category we track
+}
+void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq)
+{
+    if (!f_idle_ar_enabled || !f_multi_answer_mod_std || !f_auto_on) return;
+
+    IdleCandCategory cat = ClassifyIdleCandidate(text_msg);
+    if (cat >= IDLE_CAT_COUNT) return;
+    if (!f_idle_cat[cat]) return; // category not enabled by user
+
+    // Extract the call sign from decoded message
+    QStringList words = text_msg.trimmed().split(" ", QString::SkipEmptyParts);
+    QString call;
+    QString loc;
+    QString cqTag;
+    if (words.at(0) == "CQ")
+    {
+        // CQ [TAG] CALL [LOC]  or  CQ CALL LOC
+        if (words.count() >= 3)
+        {
+            // Check if second word is a modifier/tag (short, all letters, < 4 chars or known directional)
+            QString w1 = words.at(1);
+            bool isTag = (w1.length() <= 4 && w1 == w1.toUpper() && !w1.contains(QRegExp("[0-9]")));
+            // But also allow numeric freq tags like "237"
+            if (!isTag)
+            {
+                bool alldig = true;
+                for (int j = 0; j < w1.count(); ++j)
+                    if (w1.at(j).isLetter()) { alldig = false; break; }
+                if (alldig && w1.count() <= 4) isTag = true;
+            }
+            if (isTag && words.count() >= 3) { cqTag = words.at(1).toUpper(); call = words.at(2); if (words.count() >= 4) loc = words.at(3); }
+            else { call = words.at(1); if (words.count() >= 3) loc = words.at(2); }
+        }
+        else if (words.count() == 2) call = words.at(1);
+
+        // If textbox is set, category-0 candidates must match that exact CQ tag.
+        if (cat == IDLE_CAT_CQ_CONTEST && !s_idle_contest_call.isEmpty() && cqTag != s_idle_contest_call)
+            return;
+    }
+    else
+    {
+        // Non-CQ message (RR73/73): use the second callsign as sender.
+        // This aligns with the operator workflow for harvesting follow-up calls.
+        if (words.count() >= 2)
+        {
+            call = words.at(1);
+        }
+    }
+
+    if (call.isEmpty() || call == list_macros.at(0) || call == s_my_base_call) return;
+    if (!isStandardCall(call)) return;
+
+    // Check if call is already in Queue or Now lists (active QSO)
+    if (LsQueue->FindCallOrBaseCallRow(call) >= 0) return;
+    if (LsNow->FindCallOrBaseCallRow(call) >= 0) return;
+
+    // Check for duplicate in candidate list - update if exists
+    unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
+    for (int i = 0; i < s_idle_candidates.count(); ++i)
+    {
+        if (s_idle_candidates[i].call == call)
+        {
+            s_idle_candidates[i].rx_time = now_t;
+            s_idle_candidates[i].freq = freq;
+            s_idle_candidates[i].cat = cat;
+            if (!loc.isEmpty()) s_idle_candidates[i].loc = loc;
+            return;
+        }
+    }
+
+    IdleCandidate cand;
+    cand.call = call;
+    cand.freq = freq;
+    cand.loc = loc;
+    cand.rx_time = now_t;
+    cand.cat = cat;
+    s_idle_candidates.append(cand);
+}
+QString MultiAnswerModW::BuildIdleCallMsg(QString call, IdleCandCategory cat)
+{
+    Q_UNUSED(cat);
+    // Build a direct call message: THEIRCALL MYCALL GRID
+    QString myCall = list_macros.at(0);
+    QString myLoc4 = list_macros.at(1).mid(0, 4);
+    QString msg = call + " " + myCall + " " + myLoc4;
+    return msg;
+}
+void MultiAnswerModW::TryRespondWhenIdle()
+{
+    // Called at RX->TX transition when gen_msg would produce CQ
+    // Check all preconditions
+    if (!f_idle_ar_enabled) return;
+    if (!f_multi_answer_mod_std) return;
+    if (!f_auto_on) return;
+    if (s_idle_once_active) return; // already have a pending one-shot
+
+    // Only trigger when Now list is empty (CQ-ing)
+    if (LsNow->GetRowCount() > 0) { s_idle_cq_count = 0; return; }
+
+    // Increment CQ cycle counter and check threshold
+    s_idle_cq_count++;
+    if (s_idle_cq_count < s_idle_ar_timeout_cycles) return;
+
+    // Prune old candidates (keep only those from recent seconds window)
+    unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
+    unsigned int windowSec = (unsigned int)GetIdleCandidateSeconds();
+    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    {
+        if ((now_t - s_idle_candidates[i].rx_time) > windowSec)
+            s_idle_candidates.removeAt(i);
+    }
+
+    // Also prune candidates that are now in Queue/Now
+    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    {
+        if (LsQueue->FindCallOrBaseCallRow(s_idle_candidates[i].call) >= 0 ||
+            LsNow->FindCallOrBaseCallRow(s_idle_candidates[i].call) >= 0)
+            s_idle_candidates.removeAt(i);
+    }
+
+    // Idle AR always blocks previously worked calls (strict 1-QSO dupe rule),
+    // independent of the normal MASTD dupe-limit selection.
+    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    {
+        bool is_dupe = false;
+        emit IsCallDupeInLog(s_idle_candidates[i].call, 1, is_dupe);
+        if (is_dupe) s_idle_candidates.removeAt(i);
+    }
+
+    // Search categories in priority order: first enabled category with candidates wins
+    for (int c = 0; c < IDLE_CAT_COUNT; ++c)
+    {
+        if (!f_idle_cat[c]) continue;
+        // Collect candidates in this category
+        QList<int> matches;
+        for (int i = 0; i < s_idle_candidates.count(); ++i)
+        {
+            if (s_idle_candidates[i].cat == (IdleCandCategory)c)
+                matches.append(i);
+        }
+        if (matches.isEmpty()) continue;
+
+        // Pick random candidate from this category
+        int pick = matches.at(qrand() % matches.count());
+        IdleCandidate &cand = s_idle_candidates[pick];
+        s_idle_once_msg = BuildIdleCallMsg(cand.call, cand.cat);
+        s_idle_once_active = true;
+
+        // Reset cycle counter so we don't re-trigger immediately
+        s_idle_cq_count = 0;
+        s_idle_candidates.removeAt(pick);
+        gen_msg();
+        return;
+    }
+    // No candidates found in any enabled category - keep counting
 }
 
 
