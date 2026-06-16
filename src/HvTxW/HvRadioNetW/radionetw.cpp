@@ -1168,6 +1168,13 @@ RadioAndNetW::RadioAndNetW(QString inst,QString path,bool indsty,int x,int y,QWi
     h_udpw->setSpacing(5);
     h_udpw->addWidget(cb_wr_status);
 
+    cb_n3fjp_band_status = new QCheckBox(tr("N3FJP Band Status"));
+    QHBoxLayout *h_udpn3fjp = new QHBoxLayout();
+    h_udpn3fjp->setContentsMargins(5,1,0,0);
+    h_udpn3fjp->setSpacing(5);
+    h_udpn3fjp->addWidget(cb_n3fjp_band_status);
+    connect(cb_n3fjp_band_status, SIGNAL(toggled(bool)), this, SLOT(StartStopN3FJPBandStatus(bool)));
+
     //////////2ndUDP////////////////////////////////////////////
     QHBoxLayout *h_udp2a = new QHBoxLayout();
     h_udp2a->setContentsMargins(0,5,0,0);
@@ -1208,6 +1215,7 @@ RadioAndNetW::RadioAndNetW(QString inst,QString path,bool indsty,int x,int y,QWi
     V_udp->addWidget(l_udp_broad_info);
     V_udp->addLayout(h_udp);
     V_udp->addLayout(h_udpw);
+    V_udp->addLayout(h_udpn3fjp);
     V_udp->addLayout(h_udp2a);
     V_udp->addLayout(h_udp2b);
     V_udp->addLayout(h_udp2c);
@@ -3207,12 +3215,14 @@ void RadioAndNetW::SetModeForFreqFromMode(int i)
     else f_mods_accept_cmd = false;
     SendStatus(8); //qDebug()<<"Mode=8"<<s<<s_smode<<mode<<f_mods_accept_cmd<<s_mode;
     if (cb_wr_status->isChecked()) write_status_timer->start(400);
+    SendN3FJPBandStatus();//N3FJP Band Status - mode change
 }
 void RadioAndNetW::SetFreqGlobal(QString s)
 {
     FREQ_GLOBAL = s;//qDebug()<<"Freq=7"<<FREQ_GLOBAL;
     SendStatus(7);//2.55
     if (cb_wr_status->isChecked()) write_status_timer->start(400);
+    SendN3FJPBandStatus();//N3FJP Band Status - frequency (band) change
 }
 void RadioAndNetW::FindFreqRadList(int id,QString &sfrq)
 {
@@ -3398,7 +3408,8 @@ void RadioAndNetW::StartStopUdpBroad(bool)
 {
     bool f = false;
     RefreshUdpOrTcpBroadLoggedAll();
-    if (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked() || cb_udp_broad_decod->isChecked()) f = true;
+    if (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked()
+        || cb_udp_broad_decod->isChecked() || cb_n3fjp_band_status->isChecked()) f = true;
     if (f)
     {
         l_udp_broad_info->setText(tr("Status: Connecting..."));
@@ -3414,6 +3425,12 @@ void RadioAndNetW::StartStopUdpBroad(bool)
         //ServTextChanged("_none_");
     }
 }
+void RadioAndNetW::StartStopN3FJPBandStatus(bool f)
+{
+    //delegate to the existing logic that already handles connect/disconnect for all UDP broadcast checkboxes
+    StartStopUdpBroad(f);
+    if (f) SendN3FJPBandStatus();//emit one packet right away on enable
+}
 void RadioAndNetW::ReconnectUdpBroad()
 {
     l_udp_broad_info->setText(tr("Status: Reconnecting..."));
@@ -3425,7 +3442,8 @@ void RadioAndNetW::UDPSrvPortBroadChanged(QString)
     QString s = UDPServerBroad->text();
     QString p = UDPPortBroad->text();
     if (!s.isEmpty() && !p.isEmpty() &&
-            (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked() || cb_udp_broad_decod->isChecked()))// && cb_udp_broad->isChecked())
+            (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked()
+             || cb_udp_broad_decod->isChecked() || cb_n3fjp_band_status->isChecked()))
     {
         l_udp_broad_info->setText(tr("Status: Connecting..."));
         //set port
@@ -3437,7 +3455,8 @@ void RadioAndNetW::UDPSrvPortBroadChanged(QString)
 }
 void RadioAndNetW::ConectionInfoBroad(QString s)
 {
-    if (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked() || cb_udp_broad_decod->isChecked())
+    if (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked()
+        || cb_udp_broad_decod->isChecked() || cb_n3fjp_band_status->isChecked())
         l_udp_broad_info->setText(tr("Status")+": "+s);
     else
         l_udp_broad_info->setText(tr("Status")+": <font color='red'>"+tr("UDP Broadcast Is Disabled And Disconnected")+"</font>");
@@ -3600,11 +3619,13 @@ void RadioAndNetW::SetAuto(bool f)
 {
     s_auto = f;
     SendStatus(4); //qDebug()<<"SetAuto="<<f;
+    SendN3FJPBandStatus();//N3FJP Band Status - auto on/off
 }
 void RadioAndNetW::SetTx(bool f)
 {
     s_tx = f;
     SendStatus(5); //qDebug()<<"SetTx="<<f;
+    SendN3FJPBandStatus();//N3FJP Band Status - TX start/end
 }
 void RadioAndNetW::SetTxMsg(QString s)//2.52
 {
@@ -3631,6 +3652,16 @@ void RadioAndNetW::WriteStatusTimer() //70.154;FT8;LZ2HV;-15;FT8;KN23
     QString sout = QString("%1").arg(frq,0,'f',3)+";"+s_mode+";"+s_dx_call+";"+s_report+";"+s_mode+";"+dx_gri+"\n";
     out << sout;
     file.close(); //qDebug()<<sout;
+}
+void RadioAndNetW::SendN3FJPBandStatus() //N3FJP Band Status - WSJT-X compatible Status packet
+{
+    if (!cb_n3fjp_band_status->isChecked()) return;
+    if (m_messageClientBroad == nullptr) return;
+    quint64 frq = FREQ_GLOBAL.toLongLong();
+    //decoding=false to avoid piggy-backing on decode-busy flag
+    m_messageClientBroad->statusUPD(frq,s_mode,s_dx_call,s_report,s_mode,
+                                    s_myCall,s_myLoc,s_dx_grid,false,s_smode,
+                                    s_auto,s_tx,s_tx_msg);
 }
 void RadioAndNetW::DecodUpdTimer()
 {
@@ -3732,6 +3763,7 @@ void RadioAndNetW::SaveSettings()
     out <<"tcps_qrz_log_all="<<LeQRZLogServer->text()<<"#"<<LeQRZLogPort->text()<<"#"<<LeQRZLogPost->text()<<"#"
     << LeQRZLogApi->text()<<"#"<<QString("%1").arg(cb_qrzlog->isChecked())<<"\n";
     out << "def_wr_status=" << QString("%1").arg(cb_wr_status->isChecked())<<"\n";
+    out << "n3fjp_band_status=" << QString("%1").arg(cb_n3fjp_band_status->isChecked())<<"\n";
     out <<"tcp_eqsl_log_all="<<LeEQSLServer->text()<<"#"<<LeEQSLPort->text()<<"#"<<LeEQSLPost->text()<<"#"
     <<LeEQSLUser->text()<<"#"<<LeEQSLPass->text()<<"#"<<LeEQSLQTHNick->text()<<"#"<<QString("%1").arg(cb_eqsl->isChecked())<<"#"
     <<LeEQSLmsg->text()<<"\n";
@@ -3762,13 +3794,13 @@ bool RadioAndNetW::isFindId(QString id,QString line,QString &res)
 }
 void RadioAndNetW::ReadSettings()
 {
-    const int c_st_id = 20; //dopalva se tuk v kraia
+    const int c_st_id = 21; //dopalva se tuk v kraia
     const QString st_id[c_st_id]=
         {
             "udp_server","udp_port","psk_spot_val","st_info_all","dx_spot_telnet_val","tcp_server","tcp_port",
             "udp_broad_server","udp_broad_port","udp_broad_log_all","psk_udp_tcp","tcp_broad_log_all",
             "tcps_club_log_all","udp2_broad_all","tcps_qrz_log_all","def_wr_status","tcp_eqsl_log_all",
-            "tcp_otp_all","otp_servers_list","tcp_pass"
+            "tcp_otp_all","otp_servers_list","tcp_pass","n3fjp_band_status"
         };
     QString st_res[c_st_id];
     for (int i = 0; i < c_st_id; ++i) st_res[i]="";
@@ -3974,6 +4006,16 @@ void RadioAndNetW::ReadSettings()
         ls.prepend(tr("List Servers"));
         CbOTPServers->addItems(ls);
         CbOTPServers->setCurrentIndex(0);
+    }
+    if (!st_res[20].isEmpty())
+    {
+        if (st_res[20]=="1") cb_n3fjp_band_status->setChecked(true);
+    }
+    //if N3FJP band status is enabled at startup, point the underlying client and emit one packet
+    if (cb_n3fjp_band_status->isChecked())
+    {
+        UDPSrvPortBroadChanged("a");
+        SendN3FJPBandStatus();
     }
 }
 

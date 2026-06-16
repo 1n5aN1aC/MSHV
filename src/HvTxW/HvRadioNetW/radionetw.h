@@ -495,6 +495,7 @@ private:
     
     QString AppPath;
     QCheckBox *cb_wr_status;
+    QCheckBox *cb_n3fjp_band_status;
     QTimer *write_status_timer;
 
 private slots:
@@ -512,6 +513,7 @@ private slots:
     void UdpTcpChangedPsk(bool);
     void StartStopUdpBroad(bool);
     void ReconnectUdpBroad();
+    void StartStopN3FJPBandStatus(bool);
     void UDPSrvPortBroadChanged(QString);
     void ConectionInfoBroad(QString);
     void SetDefaultFreqsActType(int id);
@@ -538,7 +540,8 @@ private slots:
     void readEQSL();
     void UplEQSLAdif();   
     void WriteStatusTimer();
-    
+    void SendN3FJPBandStatus();
+
 	//void connected_sfox();
 	//void disconnected_sfox(); 
 	//void sslError( QList<QSslError> errors );   

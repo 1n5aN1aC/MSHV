@@ -530,24 +530,38 @@ void MessageClient::statusUPD(quint64 f,QString mode,QString dx_call,QString rep
     if (m_->server_port_ && !m_->server_.isNull())
     {
         //qDebug()<<"statusUPD"<<dx_call<<report<<dx_grid;
-        quint32 quint32_max = std::numeric_limits<quint32>::max(); //qDebug()<<quint32_max;
-        //quint64 f;
-        //QString mode;
-        //QString dx_call;
-        //QString report;
-        //QString tx_mode;
-        //bool tx_enabled = true;  //auto on
-        //bool transmitting = false;//tx
-        //bool decoding = true;
-        quint32 rx_df = 0;//1200;
-        quint32 tx_df = 0;//1200;
-        //QString de_call;
-        //QString de_grid;
-        //QString dx_grid;
-        bool watchdog_timeout = false;
-        //QString sub_mode = "";
+        //N3FJP / WSJT-X compatible defaults.
+        //N3FJP uses rx_df + dial frequency to compute the actual RX frequency
+        //(the WSJT-X convention is to sit on a 1500 Hz audio offset for FT8/FT4).
+        quint32 rx_df = 1500;
+        quint32 tx_df = 1500;
+        //sub_mode is the per-mode sub-protocol letter (A/B/C/D for JT65/Q65, etc.)
+        //fast_mode is true for FT8/FT4/MSK144-style fast modes
         bool fast_mode = false;
-
+        if (mode == "FT8" || mode == "FT4" || mode == "FT2" || mode == "MSK144" || mode == "MSKMS")
+            fast_mode = true;
+        //TR period in seconds. N3FJP uses this to identify the operating mode
+        //and its associated TX timing. Defaults are:
+        //  MSK144 / MSKMS / FT4 -> 7.5 s
+        //  FT8                    -> 15 s
+        //  FT2                    -> 3 s
+        //  JT65 / Q65             -> 60 s
+        //  JT9 / FSK / ISCAT / JTMS / JT6M -> 60 s
+        quint32 tr_period = 60;
+        if (mode == "FT8") tr_period = 15;
+        else if (mode == "FT4") tr_period = 7;
+        else if (mode == "FT2") tr_period = 3;
+        else if (mode == "MSK144" || mode == "MSKMS") tr_period = 7;
+        else if (mode == "JT65" || mode == "Q65") tr_period = 60;
+        else if (mode == "FT8" && sub_mode == "75") tr_period = 75; //FT8 75s variant (if ever used)
+        //frequency_tolerance: typical FT8 RX bandwidth is ~50 Hz, FT4 ~80 Hz.
+        //Send a small non-sentinel value so N3FJP doesn't see 0xFFFFFFFF.
+        quint32 frequency_tolerance = 100;
+        //clean up the report: when no DX call is set, don't leak a stray
+        //"0" string (which is what s_report is initialized to in the rig).
+        QString clean_report = report;
+        if (dx_call.isEmpty()) clean_report = "";
+        bool watchdog_timeout = false;
         quint8 special_op_mode = 0;
         /*case 1: special = "[NA VHF]"; break;
         case 2: special = "[EU VHF]"; break;
@@ -555,15 +569,12 @@ void MessageClient::statusUPD(quint64 f,QString mode,QString dx_call,QString rep
         case 4: special = "[RTTY RU]"; break;
         case 5: special = "[Fox]"; break;
         case 6: special = "[Hound]"; break;*/
-
-        quint32 frequency_tolerance = quint32_max;//<1000
-        quint32 tr_period = quint32_max;
         QString configuration_name = "Default";
         //QString tx_message = "N/A";//2.52
 
         QByteArray message;
         NetworkMessage::Builder out {&message, NetworkMessage::Status, m_->id_, m_->schema_};
-        out << f << mode.toUtf8 () << dx_call.toUtf8 () << report.toUtf8 () << tx_mode.toUtf8 ()
+        out << f << mode.toUtf8 () << dx_call.toUtf8 () << clean_report.toUtf8 () << tx_mode.toUtf8 ()
         << tx_enabled << transmitting << decoding << rx_df << tx_df << de_call.toUtf8 ()
         << de_grid.toUtf8 () << dx_grid.toUtf8 () << watchdog_timeout << sub_mode.toUtf8 ()
         << fast_mode << special_op_mode << frequency_tolerance << tr_period << configuration_name.toUtf8()
