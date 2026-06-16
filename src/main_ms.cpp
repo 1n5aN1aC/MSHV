@@ -1996,6 +1996,7 @@ void Main_Ms::PounceButtonClicked()
         }
         if (THvTxW->GetCNS())
         {
+            //Disable CNS (When pounce enabled)
             THvTxW->SetCNS(false);
         }
         if (!TPounceSettings->RespondDirectedEnabled() &&
@@ -2006,6 +2007,9 @@ void Main_Ms::PounceButtonClicked()
             pb_pounce->setChecked(false);
             return;
         }
+    } else {
+        //Enable CNS. (When pounce disabled)
+        THvTxW->SetCNS(true);
     }
 
     THvTxW->SetWaitAndPounce(to_enable);
