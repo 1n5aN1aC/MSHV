@@ -406,6 +406,9 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     //connect(THvTxW,SIGNAL(EmitSFoxVerif(QString)),TDecodeList2,SLOT(SetSFoxVerif(QString)));//2.76sf
     connect(THvTxW,SIGNAL(EmitOffsetDt(int)),this,SLOT(SetOffsetDt(int)));//2.76sf
     connect(THvTxW,SIGNAL(EmitPounceCNSChanged(bool)),this,SLOT(PounceCNSChanged(bool)));
+    // N3FJP callsign highlight from external logging apps
+    connect(THvTxW,SIGNAL(EmitHighlightCall(QString,QColor,QColor,bool)),TDecodeList1,SLOT(SetN3FJPHighlight(QString,QColor,QColor,bool)));
+    connect(THvTxW,SIGNAL(EmitHighlightCall(QString,QColor,QColor,bool)),TDecodeList2,SLOT(SetN3FJPHighlight(QString,QColor,QColor,bool)));
 
     QMenuBar *Min_Menu = new QMenuBar();
 

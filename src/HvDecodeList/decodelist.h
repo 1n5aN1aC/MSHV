@@ -17,6 +17,8 @@
 #include <QFontDatabase>
 #include <QItemDelegate>
 #include <QMenu>
+#include <QHash>
+#include <QColor>
 //#include "../../../DirectX90c/include/dsound.h"// zaradi DWORD in pathred create
 //#include <unistd.h> // zaradi usleep
 //#include <QtGui>
@@ -107,6 +109,7 @@ public slots:
     void SetHisCalls(QStringList);
     void SetOtpVerif(QString,uint8_t);//2.76sf
     void SetShowOtpRxMsg(bool f);//2.76sf
+    void SetN3FJPHighlight(QString call, QColor bg, QColor fg, bool last_only);
     
 private slots:
     void RefreshListTimer();
@@ -196,6 +199,9 @@ private:
     bool f_mark_txqsy;//2.46
     uint8_t id_mark_otp_verif;//2.76
     QColor c_mark_txt[11];
+    // N3FJP external highlight storage (callsign -> background colour)
+    QHash<QString, QColor> n3fjp_highlight_bg;
+    QHash<QString, QColor> n3fjp_highlight_fg;
     int def_section_sizes[22];
     void SaveAndCorrSectionSize();//2.10 max 20 int def_section_sizes[20]; from model.columnCount()
     int count_dec;

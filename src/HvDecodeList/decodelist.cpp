@@ -1774,7 +1774,19 @@ void DecodeList::InsertItem_hv(QStringList list,bool ffopen,bool forme)
                 {
                 	if (dsty) item->setBackground(QColor(130,10,10));
                 	else item->setBackground(QColor(250,200,200));
-               	} 
+               	}
+                // N3FJP external highlight overrides normal colour when present
+                if (!n3fjp_highlight_bg.isEmpty())
+                {
+                    QString hcall = call;
+                    if (hcall.isEmpty()) hcall = FindHisCall(list.at(4));
+                    QColor n3bg = n3fjp_highlight_bg.value(hcall.toUpper());
+                    QColor n3fg = n3fjp_highlight_fg.value(hcall.toUpper());
+                    if (n3bg.isValid())
+                        item->setBackground(n3bg);
+                    if (n3fg.isValid())
+                        item->setForeground(n3fg);
+                } 
                	              	
                 qlsi.append(item);
             }
@@ -2257,3 +2269,37 @@ qDebug()<<"11mmmmmmm="<<e;
 	QTreeView::event(e);
 }
 */
+
+void DecodeList::SetN3FJPHighlight(QString call, QColor bg, QColor fg, bool last_only)
+{
+    Q_UNUSED(last_only);
+    call = call.toUpper().trimmed();
+    if (bg.isValid())
+        n3fjp_highlight_bg[call] = bg;
+    else
+        n3fjp_highlight_bg.remove(call);
+    if (fg.isValid())
+        n3fjp_highlight_fg[call] = fg;
+    else
+        n3fjp_highlight_fg.remove(call);
+    // Refresh all rows to apply new highlight
+    for (int r = 0; r < model.rowCount(); ++r)
+    {
+        QStandardItem* msg_item = model.item(r, msg_column);
+        if (!msg_item) continue;
+        QString txt = msg_item->text();
+        QString hcall = FindHisCall(txt).toUpper();
+        if (hcall.isEmpty()) continue;
+        QColor hbg = n3fjp_highlight_bg.value(hcall);
+        QColor hfg = n3fjp_highlight_fg.value(hcall);
+        for (int c = 0; c < model.columnCount(); ++c)
+        {
+            QStandardItem* item = model.item(r, c);
+            if (!item) continue;
+            if (hbg.isValid())
+                item->setBackground(hbg);
+            if (hfg.isValid())
+                item->setForeground(hfg);
+        }
+    }
+}

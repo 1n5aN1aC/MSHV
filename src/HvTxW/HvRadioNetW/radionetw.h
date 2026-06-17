@@ -12,6 +12,7 @@
 //#include <QHostInfo>
 #include <QQueue>
 #include <QHash>
+#include <QColor>
 
 class MessageClient;
 class QTimer;
@@ -278,6 +279,10 @@ public:
              cb_eqsl->isChecked()) res = true;
         return res;
     }
+    bool GetN3FJPDupeChecking()
+    {
+        return cb_n3fjp_dupe_checking->isChecked();
+    };
     void GetFtFr(long long int *a);
     QWidget *GetRadListW()
     {
@@ -296,6 +301,8 @@ signals:
     void EmitOtpTxKey(QString);
     void EmitOtpRxMsg(bool);
     void EmitOtpVerif(QString,uint8_t);
+    // Emitted when an N3FJP external app sends a HighlightCallsign instruction
+    void EmitHighlightCall(QString call, QColor bg, QColor fg, bool last_only);
     
 
 public slots:
@@ -496,7 +503,18 @@ private:
     QString AppPath;
     QCheckBox *cb_wr_status;
     QCheckBox *cb_n3fjp_band_status;
+    QCheckBox *cb_n3fjp_dupe_checking;
+    QCheckBox *cb_n3fjp_highlight;
     QTimer *write_status_timer;
+
+    // N3FJP callsign highlight storage (call -> background, foreground, last_only)
+    struct HighlightEntry
+    {
+        QColor bg;
+        QColor fg;
+        bool last_only;
+    };
+    QHash<QString, HighlightEntry> highlight_map;
 
 private slots:
     void StartStopTCPBroad(bool);
@@ -541,6 +559,7 @@ private slots:
     void UplEQSLAdif();   
     void WriteStatusTimer();
     void SendN3FJPBandStatus();
+    void set_highlight_callsign(QString const& callsign, QColor const& bg, QColor const& fg, bool last_only);
 
 	//void connected_sfox();
 	//void disconnected_sfox(); 

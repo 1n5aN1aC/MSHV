@@ -18,6 +18,7 @@
 #include <QUdpSocket>
 #include <QHostInfo>
 #include <QTimer>
+#include <QColor>
 //#include <QQueue>
 //#include <QByteArray>
 //#include <QHostAddress>
@@ -27,6 +28,21 @@
 #include "pimpl_impl.h"
 
 #include "moc_MessageClient.cpp" // HV triabva vazno neznam za6to
+
+// Mode-to-symbol mapping matching WSJT-X displayTransmittedText() behavior.
+// WSJT-X uses single-character symbols for each mode in UDP messages
+// (see widgets/displaytext.cpp in the WSJT-X source).
+static QString modeToSymbol(const QString& mode)
+{
+    if (mode == "FT4")  return "+";
+    if (mode == "FT8")  return "~";
+    if (mode == "JT4" || mode == "FSK441" || mode == "FSK315") return "$";
+    if (mode == "Q65")  return ":";
+    if (mode == "JT65") return "#";
+    if (mode == "MSK144" || mode == "MSKMS") return "&";
+    if (mode == "FST4" || mode == "FST4W")   return "`";
+    return "@"; // default symbol (JT9, ISCAT, JTMS, JT6M, PI4, FT2, etc.)
+}
 
 //#include <QtGui>
 class MessageClient::impl
@@ -283,6 +299,19 @@ void MessageClient::impl::parse_message(QByteArray const& msg)
                   Q_EMIT
                   self_->annotation_info(QString::fromUtf8(dx_call), sort_order_provided, sort_order);
                 }*/
+            }
+            break;
+        case NetworkMessage::HighlightCallsign:
+            {
+                QByteArray call;
+                QColor bg;      // default invalid color
+                QColor fg;      // default invalid color
+                bool last_only {false};
+                in >> call >> bg >> fg >> last_only;
+                if (check_status (in) != Fail && call.size ())
+                {
+                    Q_EMIT self_->highlight_callsign (QString::fromUtf8 (call), bg, fg, last_only);
+                }
             }
             break;
         default:
@@ -571,10 +600,12 @@ void MessageClient::statusUPD(quint64 f,QString mode,QString dx_call,QString rep
         case 6: special = "[Hound]"; break;*/
         QString configuration_name = "Default";
         //QString tx_message = "N/A";//2.52
+        // Convert mode to single-character symbol matching WSJT-X convention
+        QString mode_sym = modeToSymbol(mode);
 
         QByteArray message;
         NetworkMessage::Builder out {&message, NetworkMessage::Status, m_->id_, m_->schema_};
-        out << f << mode.toUtf8 () << dx_call.toUtf8 () << clean_report.toUtf8 () << tx_mode.toUtf8 ()
+        out << f << mode_sym.toUtf8 () << dx_call.toUtf8 () << clean_report.toUtf8 () << tx_mode.toUtf8 ()
         << tx_enabled << transmitting << decoding << rx_df << tx_df << de_call.toUtf8 ()
         << de_grid.toUtf8 () << dx_grid.toUtf8 () << watchdog_timeout << sub_mode.toUtf8 ()
         << fast_mode << special_op_mode << frequency_tolerance << tr_period << configuration_name.toUtf8()
@@ -592,14 +623,14 @@ void MessageClient::decode_TXT(bool is_new,QString tim,int sn,QString dt,int frq
         quint32 snr = (quint32)sn;
         float delta_time = (float)dt.toDouble();
         quint32 delta_frequency = (quint32)frq;
-        //QString mode = mod; // + ~ .....
-        //QString message_text = msg;
+        // Convert mode to single-character symbol matching WSJT-X convention
+        QString mode_sym = modeToSymbol(mode);
         bool low_confidence = false;
         bool off_air = false;//fopen
 
         QByteArray message;
         NetworkMessage::Builder out {&message, NetworkMessage::Decode, m_->id_, m_->schema_};
-        out << is_new << time << snr << delta_time << delta_frequency << mode.toUtf8 ()
+        out << is_new << time << snr << delta_time << delta_frequency << mode_sym.toUtf8 ()
         << message_text.toUtf8 () << low_confidence << off_air;
 
         m_->send_message(out, message);

@@ -6,8 +6,8 @@
 #define HVTXW_H
 
 #include <QWidget>
-
 #include <QLabel>
+#include <QColor>
 #include "../config_str_all.h"
 class HvLabAutoSeq : public QLabel
 {
@@ -431,6 +431,7 @@ signals:
     void EmitOtpVerif(QString,uint8_t);//2.76
     void EmitOffsetDt(int);//2.76.5
     void EmitPounceCNSChanged(bool);
+    void EmitHighlightCall(QString call, QColor bg, QColor fg, bool last_only);
  
 private slots:
     void SetRptRsq(bool);

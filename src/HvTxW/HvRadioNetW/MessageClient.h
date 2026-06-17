@@ -14,6 +14,7 @@
 #include <QDateTime>
 #include <QString>
 #include <QStringList>
+#include <QColor>
 
 //#include "Radio.hpp"
 
@@ -76,6 +77,10 @@ public:
   	//Q_SIGNAL void reply (QTime, qint32 snr, float delta_time, quint32 delta_frequency, QString const& mode
                        //, QString const& message_text, bool low_confidence, quint8 modifiers);  	
     Q_SIGNAL void configure(QStringList);//,bool);
+    
+    // highlight a callsign with a specific background/foreground colour
+    // (used by N3FJP and other external logging programs)
+    Q_SIGNAL void highlight_callsign(QString const& callsign, QColor const& bg, QColor const& fg, bool last_only);
     
     //Q_SIGNAL void annotation_info(QString const& dx_call, bool sort_order_provided, quint32 sort_order);
 

@@ -277,6 +277,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(TRadioAndNetW,SIGNAL(EmitOtpTxKey(QString)),this,SIGNAL(EmitOtpTxKey(QString)));//2.76sf
     connect(TRadioAndNetW,SIGNAL(EmitOtpRxMsg(bool)),this,SIGNAL(EmitOtpRxMsg(bool)));//2.76sf
     connect(TRadioAndNetW,SIGNAL(EmitOtpVerif(QString,uint8_t)),this,SIGNAL(EmitOtpVerif(QString,uint8_t)));//2.76sf
+    connect(TRadioAndNetW,SIGNAL(EmitHighlightCall(QString,QColor,QColor,bool)),this,SIGNAL(EmitHighlightCall(QString,QColor,QColor,bool)));
 
     TWD = new TWDialog(THvMakros,TRadioAndNetW,TRadioAndNetW->GetRadListW(),this);
     connect(TWD,SIGNAL(EmitClose()),THvMakros,SLOT(SetClose()));
@@ -5107,7 +5108,7 @@ void HvTxW::ValidateStationInfo(QStringList list_in, int id, bool emitudpdectxt,
         }
         //qDebug()<<"Status start"<<smsg;
         //2.43  && id==0 no emit if to DX Cluster  //v1.41 id 0->to psk reporter 1->to dx clusters ,  bool emitudpdectxt
-        if (TRadioAndNetW->GetUdpBroadDecod() && id==0 && emitudpdectxt && !fpsk_block)
+        if ((TRadioAndNetW->GetUdpBroadDecod() || TRadioAndNetW->GetN3FJPDupeChecking()) && id==0 && emitudpdectxt && !fpsk_block)
         {
             smsg.remove("\n");//
             TRadioAndNetW->SendDecodTxt(list_in.at(0),snr_spot,sdt,freq_offset,smsg);
