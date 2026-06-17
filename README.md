@@ -10,7 +10,7 @@ MSHV is multiplatform software designed for use by amateur radio afficinados. It
 
 This fork is designed to lift a couple of the restrictions present in the main project, and add a couple features:
  - Better N3FJP logging compatability.  (Band & Mode updating, Dupe Coloring, etc)
- - Allow autosequence CQ mode when in most contests.  (Remember, the contest may not allow this)
+ - Allow autosequence CQ mode when in contests.  (Remember, check if the contest allows this)
  - Feature to periodically call another "CQ __" station while calling "CQ __" yourself.
  - Option to grey out lines for duplicates
  - Option to 'Blacklist" certain stations to hide them from the decode list, and never automatically respond to them.
