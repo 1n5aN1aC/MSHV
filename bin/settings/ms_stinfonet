@@ -15,6 +15,7 @@ udp2_broad_all=127.0.0.1#2233#0
 tcps_qrz_log_all=logbook.qrz.com#443#api##0
 def_wr_status=0
 n3fjp_band_status=1
+n3fjp_dupe_checking=1
 tcp_eqsl_log_all=eqsl.cc#443#qslcard/importADIF.cfm####0#TNX For QSO 73!
 tcp_otp_all=www.9dx.cc#443#0#0#
 otp_servers_list=www.9dx.cc#hamdx.org

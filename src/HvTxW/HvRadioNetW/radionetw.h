@@ -504,7 +504,6 @@ private:
     QCheckBox *cb_wr_status;
     QCheckBox *cb_n3fjp_band_status;
     QCheckBox *cb_n3fjp_dupe_checking;
-    QCheckBox *cb_n3fjp_highlight;
     QTimer *write_status_timer;
 
     // N3FJP callsign highlight storage (call -> background, foreground, last_only)

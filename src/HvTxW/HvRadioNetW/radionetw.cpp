@@ -1170,14 +1170,11 @@ RadioAndNetW::RadioAndNetW(QString inst,QString path,bool indsty,int x,int y,QWi
 
     cb_n3fjp_band_status = new QCheckBox(tr("N3FJP Band Status"));
     cb_n3fjp_dupe_checking = new QCheckBox(tr("N3FJP Dupe Checking"));
-    cb_n3fjp_highlight = new QCheckBox(tr("N3FJP Highlight"));
-    cb_n3fjp_highlight->setToolTip(tr("Accept callsign highlight colours from N3FJP via UDP HighlightCallsign message type 13"));
     QHBoxLayout *h_udpn3fjp = new QHBoxLayout();
     h_udpn3fjp->setContentsMargins(5,1,0,0);
     h_udpn3fjp->setSpacing(5);
     h_udpn3fjp->addWidget(cb_n3fjp_band_status);
     h_udpn3fjp->addWidget(cb_n3fjp_dupe_checking);
-    h_udpn3fjp->addWidget(cb_n3fjp_highlight);
     connect(cb_n3fjp_band_status, SIGNAL(toggled(bool)), this, SLOT(StartStopN3FJPBandStatus(bool)));
     connect(cb_n3fjp_dupe_checking, SIGNAL(toggled(bool)), this, SLOT(StartStopUdpBroad(bool)));
 
@@ -3417,7 +3414,7 @@ void RadioAndNetW::StartStopUdpBroad(bool)
     RefreshUdpOrTcpBroadLoggedAll();
     if (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked()
         || cb_udp_broad_decod->isChecked() || cb_n3fjp_band_status->isChecked()
-        || cb_n3fjp_dupe_checking->isChecked() || cb_n3fjp_highlight->isChecked()) f = true;
+        || cb_n3fjp_dupe_checking->isChecked()) f = true;
     if (f)
     {
         l_udp_broad_info->setText(tr("Status: Connecting..."));
@@ -3452,7 +3449,7 @@ void RadioAndNetW::UDPSrvPortBroadChanged(QString)
     if (!s.isEmpty() && !p.isEmpty() &&
             (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked()
              || cb_udp_broad_decod->isChecked() || cb_n3fjp_band_status->isChecked()
-             || cb_n3fjp_dupe_checking->isChecked() || cb_n3fjp_highlight->isChecked()))
+             || cb_n3fjp_dupe_checking->isChecked()))
     {
         l_udp_broad_info->setText(tr("Status: Connecting..."));
         //set port
@@ -3466,7 +3463,7 @@ void RadioAndNetW::ConectionInfoBroad(QString s)
 {
     if (cb_udp_broad_log_qso->isChecked() || cb_udp_broad_log_adif->isChecked()
         || cb_udp_broad_decod->isChecked() || cb_n3fjp_band_status->isChecked()
-        || cb_n3fjp_dupe_checking->isChecked() || cb_n3fjp_highlight->isChecked())
+        || cb_n3fjp_dupe_checking->isChecked())
         l_udp_broad_info->setText(tr("Status")+": "+s);
     else
         l_udp_broad_info->setText(tr("Status")+": <font color='red'>"+tr("UDP Broadcast Is Disabled And Disconnected")+"</font>");
@@ -3677,7 +3674,7 @@ void RadioAndNetW::SendN3FJPBandStatus() //N3FJP Band Status - WSJT-X compatible
 void RadioAndNetW::set_highlight_callsign(QString const& callsign, QColor const& bg, QColor const& fg, bool last_only)
 {
     // Store or remove the highlight entry
-    if (!cb_n3fjp_highlight->isChecked()) return;
+    if (!cb_n3fjp_dupe_checking->isChecked()) return;
     if (bg.isValid() || fg.isValid())
     {
         HighlightEntry entry;
@@ -3795,7 +3792,6 @@ void RadioAndNetW::SaveSettings()
     out << "def_wr_status=" << QString("%1").arg(cb_wr_status->isChecked())<<"\n";
     out << "n3fjp_band_status=" << QString("%1").arg(cb_n3fjp_band_status->isChecked())<<"\n";
     out << "n3fjp_dupe_checking=" << QString("%1").arg(cb_n3fjp_dupe_checking->isChecked())<<"\n";
-    out << "n3fjp_highlight=" << QString("%1").arg(cb_n3fjp_highlight->isChecked())<<"\n";
     out <<"tcp_eqsl_log_all="<<LeEQSLServer->text()<<"#"<<LeEQSLPort->text()<<"#"<<LeEQSLPost->text()<<"#"
     <<LeEQSLUser->text()<<"#"<<LeEQSLPass->text()<<"#"<<LeEQSLQTHNick->text()<<"#"<<QString("%1").arg(cb_eqsl->isChecked())<<"#"
     <<LeEQSLmsg->text()<<"\n";
@@ -3826,14 +3822,13 @@ bool RadioAndNetW::isFindId(QString id,QString line,QString &res)
 }
 void RadioAndNetW::ReadSettings()
 {
-    const int c_st_id = 23; //dopalva se tuk v kraia
+    const int c_st_id = 22; //dopalva se tuk v kraia
     const QString st_id[c_st_id]=
         {
             "udp_server","udp_port","psk_spot_val","st_info_all","dx_spot_telnet_val","tcp_server","tcp_port",
             "udp_broad_server","udp_broad_port","udp_broad_log_all","psk_udp_tcp","tcp_broad_log_all",
             "tcps_club_log_all","udp2_broad_all","tcps_qrz_log_all","def_wr_status","tcp_eqsl_log_all",
-            "tcp_otp_all","otp_servers_list","tcp_pass","n3fjp_band_status","n3fjp_dupe_checking",
-            "n3fjp_highlight"
+            "tcp_otp_all","otp_servers_list","tcp_pass","n3fjp_band_status","n3fjp_dupe_checking"
         };
     QString st_res[c_st_id];
     for (int i = 0; i < c_st_id; ++i) st_res[i]="";
@@ -4047,10 +4042,6 @@ void RadioAndNetW::ReadSettings()
     if (!st_res[21].isEmpty())
     {
         if (st_res[21]=="1") cb_n3fjp_dupe_checking->setChecked(true);
-    }
-    if (!st_res[22].isEmpty())
-    {
-        if (st_res[22]=="1") cb_n3fjp_highlight->setChecked(true);
     }
     //if N3FJP band status or dupe checking is enabled at startup, setup the client and send initial packet
     if (cb_n3fjp_band_status->isChecked())
