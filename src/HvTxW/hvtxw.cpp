@@ -2233,6 +2233,8 @@ void HvTxW::IsCallDupeInLog(QString call,int maxqso,bool &f)
 {
     //qDebug()<<"ISSSS Dupe="<<call<<s_band<<ModeStr(s_mode);
     THvLogW->IsCallDupeInLog(call,ModeStr(s_mode),s_band,maxqso,f);
+    //also treat N3FJP-highlighted dupes as duplicates when enabled
+    if (!f && TRadioAndNetW->IsN3FJPDupe(call)) f = true;
 }
 void HvTxW::SetInfoDupeQso(bool f)
 {

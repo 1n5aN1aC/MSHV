@@ -283,6 +283,7 @@ public:
     {
         return cb_n3fjp_dupe_checking->isChecked();
     };
+    bool IsN3FJPDupe(QString call);
     void GetFtFr(long long int *a);
     QWidget *GetRadListW()
     {
@@ -504,6 +505,8 @@ private:
     QCheckBox *cb_wr_status;
     QCheckBox *cb_n3fjp_band_status;
     QCheckBox *cb_n3fjp_dupe_checking;
+    QCheckBox *cb_n3fjp_consider_dupes;
+    QLineEdit *le_n3fjp_dupe_color;
     QTimer *write_status_timer;
 
     // N3FJP callsign highlight storage (call -> background, foreground, last_only)

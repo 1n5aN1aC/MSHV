@@ -1170,11 +1170,19 @@ RadioAndNetW::RadioAndNetW(QString inst,QString path,bool indsty,int x,int y,QWi
 
     cb_n3fjp_band_status = new QCheckBox(tr("N3FJP Band Status"));
     cb_n3fjp_dupe_checking = new QCheckBox(tr("N3FJP Dupe Checking"));
+    cb_n3fjp_consider_dupes = new QCheckBox(tr("Consider N3FJP dupes"));
+    cb_n3fjp_consider_dupes->setToolTip(tr("When N3FJP highlights a callsign with its duplicate colour, treat that callsign as a duplicate for auto-sequencing, exactly as if it were already in the MSHV log.\nRequires N3FJP Dupe Checking to be enabled so the highlight colours are received."));
+    le_n3fjp_dupe_color = new QLineEdit();
+    le_n3fjp_dupe_color->setText("255,0,0");
+    le_n3fjp_dupe_color->setFixedWidth(70);
+    le_n3fjp_dupe_color->setToolTip(tr("RGB colour (R,G,B) that N3FJP uses for duplicates.\nA decoded callsign is treated as a duplicate when its N3FJP highlight background is within 10% (per channel) of this colour.\nDefault 255,0,0 (red)."));
     QHBoxLayout *h_udpn3fjp = new QHBoxLayout();
     h_udpn3fjp->setContentsMargins(5,1,0,0);
     h_udpn3fjp->setSpacing(5);
     h_udpn3fjp->addWidget(cb_n3fjp_band_status);
     h_udpn3fjp->addWidget(cb_n3fjp_dupe_checking);
+    h_udpn3fjp->addWidget(cb_n3fjp_consider_dupes);
+    h_udpn3fjp->addWidget(le_n3fjp_dupe_color);
     connect(cb_n3fjp_band_status, SIGNAL(toggled(bool)), this, SLOT(StartStopN3FJPBandStatus(bool)));
     connect(cb_n3fjp_dupe_checking, SIGNAL(toggled(bool)), this, SLOT(StartStopUdpBroad(bool)));
 
@@ -3690,6 +3698,32 @@ void RadioAndNetW::set_highlight_callsign(QString const& callsign, QColor const&
     // Notify both decode lists to refresh highlights
     emit EmitHighlightCall(callsign.toUpper(), bg, fg, last_only);
 }
+bool RadioAndNetW::IsN3FJPDupe(QString call)
+{
+    // Treat a callsign as a duplicate when N3FJP has highlighted it with its
+    // configured "dupe" colour. A highlight counts as a dupe when its background
+    // is within 10% (per channel, of the 0-255 range) of the configured colour.
+    if (!cb_n3fjp_consider_dupes->isChecked()) return false;
+    QHash<QString, HighlightEntry>::const_iterator it = highlight_map.constFind(call.toUpper());
+    if (it == highlight_map.constEnd()) return false;
+    QColor bg = it.value().bg;
+    if (!bg.isValid()) return false;
+    // Parse the configured dupe colour "R,G,B"; fall back to red on bad input.
+    QColor target(255,0,0);
+    QStringList parts = le_n3fjp_dupe_color->text().split(",");
+    if (parts.count()==3)
+    {
+        bool ok0,ok1,ok2;
+        int r = parts.at(0).trimmed().toInt(&ok0);
+        int g = parts.at(1).trimmed().toInt(&ok1);
+        int b = parts.at(2).trimmed().toInt(&ok2);
+        if (ok0 && ok1 && ok2) target.setRgb(r,g,b);
+    }
+    const int tol = 26; // 10% of the 0-255 range
+    return (qAbs(bg.red()   - target.red())   <= tol &&
+            qAbs(bg.green() - target.green()) <= tol &&
+            qAbs(bg.blue()  - target.blue())  <= tol);
+}
 void RadioAndNetW::DecodUpdTimer()
 {
     if (pos_upd == -1)
@@ -3792,6 +3826,8 @@ void RadioAndNetW::SaveSettings()
     out << "def_wr_status=" << QString("%1").arg(cb_wr_status->isChecked())<<"\n";
     out << "n3fjp_band_status=" << QString("%1").arg(cb_n3fjp_band_status->isChecked())<<"\n";
     out << "n3fjp_dupe_checking=" << QString("%1").arg(cb_n3fjp_dupe_checking->isChecked())<<"\n";
+    out << "n3fjp_consider_dupes=" << QString("%1").arg(cb_n3fjp_consider_dupes->isChecked())<<"\n";
+    out << "n3fjp_dupe_color=" << le_n3fjp_dupe_color->text()<<"\n";
     out <<"tcp_eqsl_log_all="<<LeEQSLServer->text()<<"#"<<LeEQSLPort->text()<<"#"<<LeEQSLPost->text()<<"#"
     <<LeEQSLUser->text()<<"#"<<LeEQSLPass->text()<<"#"<<LeEQSLQTHNick->text()<<"#"<<QString("%1").arg(cb_eqsl->isChecked())<<"#"
     <<LeEQSLmsg->text()<<"\n";
@@ -3822,13 +3858,14 @@ bool RadioAndNetW::isFindId(QString id,QString line,QString &res)
 }
 void RadioAndNetW::ReadSettings()
 {
-    const int c_st_id = 22; //dopalva se tuk v kraia
+    const int c_st_id = 24; //dopalva se tuk v kraia
     const QString st_id[c_st_id]=
         {
             "udp_server","udp_port","psk_spot_val","st_info_all","dx_spot_telnet_val","tcp_server","tcp_port",
             "udp_broad_server","udp_broad_port","udp_broad_log_all","psk_udp_tcp","tcp_broad_log_all",
             "tcps_club_log_all","udp2_broad_all","tcps_qrz_log_all","def_wr_status","tcp_eqsl_log_all",
-            "tcp_otp_all","otp_servers_list","tcp_pass","n3fjp_band_status","n3fjp_dupe_checking"
+            "tcp_otp_all","otp_servers_list","tcp_pass","n3fjp_band_status","n3fjp_dupe_checking",
+            "n3fjp_consider_dupes","n3fjp_dupe_color"
         };
     QString st_res[c_st_id];
     for (int i = 0; i < c_st_id; ++i) st_res[i]="";
@@ -4042,6 +4079,14 @@ void RadioAndNetW::ReadSettings()
     if (!st_res[21].isEmpty())
     {
         if (st_res[21]=="1") cb_n3fjp_dupe_checking->setChecked(true);
+    }
+    if (!st_res[22].isEmpty())
+    {
+        if (st_res[22]=="1") cb_n3fjp_consider_dupes->setChecked(true);
+    }
+    if (!st_res[23].isEmpty())
+    {
+        le_n3fjp_dupe_color->setText(st_res[23]);
     }
     //if N3FJP band status or dupe checking is enabled at startup, setup the client and send initial packet
     if (cb_n3fjp_band_status->isChecked())
