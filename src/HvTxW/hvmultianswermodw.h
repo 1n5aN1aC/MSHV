@@ -20,6 +20,7 @@ struct IdleCandidate {
     QString call;
     QString freq;
     QString loc;
+    QString snr;
     unsigned int rx_time;
     IdleCandCategory cat;
 };
@@ -263,7 +264,7 @@ public:
 	bool GetIdleCategoryEnabled(int cat);
     QString GetIdleContestCall();
 	void TryRespondWhenIdle();
-	void CollectIdleCandidate(QString text_msg, QString freq);
+	void CollectIdleCandidate(QString text_msg, QString freq, QString snr);
 
 signals:
     void MamEmitMessage(QString,bool,bool,bool);
@@ -407,7 +408,7 @@ private:
     int s_idle_cq_count;
     QList<IdleCandidate> s_idle_candidates;
     IdleCandCategory ClassifyIdleCandidate(QString text_msg);
-    QString BuildIdleCallMsg(QString call, IdleCandCategory cat);
+    QString BuildIdleCallMsg(const QString &call, const QString &snr);
 
 protected:
 

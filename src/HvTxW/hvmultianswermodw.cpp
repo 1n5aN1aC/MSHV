@@ -3195,7 +3195,7 @@ void MultiAnswerModW::CallStationOnce(QString call)
     if (call.isEmpty()) return;
     if (call == list_macros.at(0) || call == s_my_base_call) return;
 
-    s_idle_once_msg = BuildIdleCallMsg(call, IDLE_CAT_COUNT);
+    s_idle_once_msg = BuildIdleCallMsg(call, "+00");
     s_idle_once_active = true;
     s_idle_cq_count = 0;
 
@@ -3219,7 +3219,7 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
         QString hcap;//fictive
         QString hloc;//fictive
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);//false f_double_click
-        CollectIdleCandidate(text_msg, freq); // idle autorespond candidate tracking
+        CollectIdleCandidate(text_msg, freq, tx_rpt); // idle autorespond candidate tracking
     }
 #else
     static int uuu = 0;
@@ -3541,7 +3541,7 @@ IdleCandCategory MultiAnswerModW::ClassifyIdleCandidate(QString text_msg)
 
     return IDLE_CAT_COUNT; // not a category we track
 }
-void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq)
+void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QString snr)
 {
     if (!f_idle_ar_enabled || !f_multi_answer_mod_std || !f_auto_on) return;
 
@@ -3606,6 +3606,7 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq)
             s_idle_candidates[i].freq = freq;
             s_idle_candidates[i].cat = cat;
             if (!loc.isEmpty()) s_idle_candidates[i].loc = loc;
+            if (!snr.isEmpty()) s_idle_candidates[i].snr = snr;
             return;
         }
     }
@@ -3614,17 +3615,23 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq)
     cand.call = call;
     cand.freq = freq;
     cand.loc = loc;
+    cand.snr = snr;
     cand.rx_time = now_t;
     cand.cat = cat;
     s_idle_candidates.append(cand);
 }
-QString MultiAnswerModW::BuildIdleCallMsg(QString call, IdleCandCategory cat)
+QString MultiAnswerModW::BuildIdleCallMsg(const QString &call, const QString &snr)
 {
-    Q_UNUSED(cat);
-    // Build a direct call message: THEIRCALL MYCALL GRID
+    // Use TX2 template so contest exchanges (Field Day etc.) are sent correctly.
     QString myCall = list_macros.at(0);
-    QString myLoc4 = list_macros.at(1).mid(0, 4);
-    QString msg = call + " " + myCall + " " + myLoc4;
+    QString myLoc6 = list_macros.at(1);
+    QString myLoc4 = myLoc6.mid(0, 4);
+    QString msg = str_macros_mam_[1];
+    msg.replace("%T", call);
+    msg.replace("%M", myCall);
+    msg.replace("%R", snr);
+    msg.replace("%G4", myLoc4);
+    msg.replace("%G6", myLoc6);
     return msg;
 }
 void MultiAnswerModW::TryRespondWhenIdle()
@@ -3685,7 +3692,7 @@ void MultiAnswerModW::TryRespondWhenIdle()
         // Pick random candidate from this category
         int pick = matches.at(qrand() % matches.count());
         IdleCandidate &cand = s_idle_candidates[pick];
-        s_idle_once_msg = BuildIdleCallMsg(cand.call, cand.cat);
+        s_idle_once_msg = BuildIdleCallMsg(cand.call, cand.snr);
         s_idle_once_active = true;
 
         // Reset cycle counter so we don't re-trigger immediately
