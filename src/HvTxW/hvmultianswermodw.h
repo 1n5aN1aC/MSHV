@@ -287,6 +287,7 @@ public slots:
 	void SetQRG(QString);
 	void SetReriodTime(float);
     void RespondNow(QString,QString,QString);
+    void CallStationOnce(QString);
 	
 private slots:
     void LQueueCountChange(int);

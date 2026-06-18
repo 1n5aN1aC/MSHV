@@ -749,6 +749,8 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     connect(TDecodeList1, SIGNAL(EmitRxTextForAutoSeq(QStringList)), THvTxW, SLOT(SetTextForAutoSeq(QStringList)));
     connect(TDecodeList1, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
     connect(TDecodeList2, SIGNAL(EmitRespondNow(QString,QString,QString,QString,QString)), THvTxW, SLOT(RespondNowFromDecodeList(QString,QString,QString,QString,QString)));
+    connect(TDecodeList1, SIGNAL(EmitCallOnce(QString)), THvTxW, SLOT(CallOnceFromDecodeList(QString)));
+    connect(TDecodeList2, SIGNAL(EmitCallOnce(QString)), THvTxW, SLOT(CallOnceFromDecodeList(QString)));
     connect(TDecodeList1, SIGNAL(EmitBlacklistCall(QString)), FilterDialog, SLOT(AddBlacklistCall(QString)));
     connect(TDecodeList2, SIGNAL(EmitBlacklistCall(QString)), FilterDialog, SLOT(AddBlacklistCall(QString)));
 

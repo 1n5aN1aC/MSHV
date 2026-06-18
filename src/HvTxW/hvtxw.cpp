@@ -5436,6 +5436,11 @@ void HvTxW::RespondNowFromDecodeList(QString all_txt,QString str,QString tp,QStr
     if (!(s_mode==11 || s_mode==13 || s_mode==18 || allq65) || !f_multi_answer_mod) return;
     MultiAnswerMod->RespondNow(tx_rpt,str,freq);
 }
+void HvTxW::CallOnceFromDecodeList(QString call)
+{
+    if (!(s_mode==11 || s_mode==13 || s_mode==18 || allq65) || !f_multi_answer_mod) return;
+    MultiAnswerMod->CallStationOnce(call);
+}
 void HvTxW::SetTextForAutoSeq(QStringList list_in)
 {
     if ((s_mode==11 || s_mode==13 || s_mode==18 || allq65) && f_multi_answer_mod)//ft8 only  eventual ft4

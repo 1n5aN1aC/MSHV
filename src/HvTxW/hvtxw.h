@@ -360,6 +360,7 @@ public slots:
 
     void SetTextForAutoSeq(QStringList);
     void RespondNowFromDecodeList(QString,QString,QString,QString,QString);
+    void CallOnceFromDecodeList(QString);
     void SetInfoDupeQso(bool);
     void Macros_exec();
     void NetW_exec();

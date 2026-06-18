@@ -2997,6 +2997,15 @@ void MultiAnswerModW::DecListTextAll(QString tx_rpt,QString str,QString freq,boo
         }
         else if (id_0qe_1nw_2ne == 2)//thirt upd  2=New
         {
+            // A NEW station is answering us directly (mycall is in the message).
+            // If a manual single-call (or idle one-shot) is still pending or was
+            // just fired, drop it and work the answering station instead.
+            if (!myCall_inmsg.isEmpty() && (s_idle_once_active || s_idle_revert_to_cq))
+            {
+                s_idle_once_active = false;
+                s_idle_once_msg = "";
+                s_idle_revert_to_cq = false;
+            }
             //"Call"<<"dB"<<"Rx dB"<<"Dist"<<"Grid"<<"Freq"<<"Time"<<"IDrpt"<<"Try"<<"GinTxT"<<s<<e;
             QStringList lss;
             if (!rpt_inmsg.isEmpty()) rpt_inmsg = format_rpt_ma(rpt_inmsg);
@@ -3173,6 +3182,27 @@ void MultiAnswerModW::RespondNow(QString tx_rpt,QString str,QString freq)
     LsNow->InsertItemFront_hv(selected_row);
 
     RefreshLists(0);
+}
+void MultiAnswerModW::CallStationOnce(QString call)
+{
+    // Manual single-call: arm a one-shot direct call to the right-clicked
+    // station, reusing the idle-autorespond one-shot path. Unlike idle
+    // autorespond the target is chosen explicitly, so we do NOT touch the idle
+    // candidate list here. The call is transmitted once and never inserted into
+    // the Now/Queue lists; gen_msg()/SetTxMsgEnd() revert to CQ afterwards.
+    if (!f_multi_answer_mod_std || !f_auto_on) return;
+    call = call.trimmed().toUpper();
+    if (call.isEmpty()) return;
+    if (call == list_macros.at(0) || call == s_my_base_call) return;
+
+    s_idle_once_msg = BuildIdleCallMsg(call, IDLE_CAT_COUNT);
+    s_idle_once_active = true;
+    s_idle_cq_count = 0;
+
+    // Fire "next time we'd CQ": if idle right now (Now list empty), generate
+    // immediately so it goes out on the next TX period; otherwise it is
+    // consumed when the current QSO finishes and gen_msg() next produces a CQ.
+    if (LsNow->GetRowCount() <= 0) gen_msg();
 }
 //#define _TEST_MASF_
 #if defined _TEST_MASF_

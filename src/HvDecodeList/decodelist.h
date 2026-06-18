@@ -80,6 +80,7 @@ signals:
     //void SendRightClick();
     void ListSelectedTextAll(QString,QString,QString,QString,QString);
     void EmitRespondNow(QString,QString,QString,QString,QString);
+    void EmitCallOnce(QString);
     void EmitBlacklistCall(QString);
     void ListSelectedRpt(QString);
     void EmitRxAllTxt(QString);
@@ -116,6 +117,7 @@ private slots:
     void ItemSelectedText(QString,int,int);
     void ac_spot();
     void ac_respond_now();
+    void ac_call_once();
     void ac_blacklist_call();
     //void SetHeaderSingleClicked();
     void SetHeaderDoubleClicked();//2.44
@@ -174,6 +176,7 @@ private:
     QTimer *list_rfresh_timer;    
     QMenu *m_spot; 
     QAction *m_respond_now;
+    QAction *m_call_once;
     QAction *m_blacklist_call;
     //HvHeader *THvHeader;
     QHeaderView *THvHeader;

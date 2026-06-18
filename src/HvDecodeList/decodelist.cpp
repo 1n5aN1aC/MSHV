@@ -184,10 +184,13 @@ DecodeList::DecodeList(int ident,bool f,QWidget *parent)
     m_spot->addAction(ac_spot);
     m_respond_now = new QAction(tr("Respond to this message NOW"), this);
     m_spot->addAction(m_respond_now);
+    m_call_once = new QAction(tr("Call this station ONCE"), this);
+    m_spot->addAction(m_call_once);
     m_blacklist_call = new QAction(tr("BLACKLIST this callsign"), this);
     m_spot->addAction(m_blacklist_call);
     connect(ac_spot, SIGNAL(triggered()), this, SLOT(ac_spot()));
     connect(m_respond_now, SIGNAL(triggered()), this, SLOT(ac_respond_now()));
+    connect(m_call_once, SIGNAL(triggered()), this, SLOT(ac_call_once()));
     connect(m_blacklist_call, SIGNAL(triggered()), this, SLOT(ac_blacklist_call()));
 
     //f_resize_event = false;
@@ -2182,6 +2185,16 @@ void DecodeList::ac_respond_now()
     }
 
     emit EmitRespondNow(str,str,model.item(row, 0)->text(),tx_rpt,freq);
+}
+void DecodeList::ac_call_once()
+{
+    QModelIndex index = selectionModel()->currentIndex();
+    int row = index.row();
+    if (row < 0) return;
+
+    QString msg = model.item(row, msg_column)->text();
+    QString call = FindHisCall(msg);
+    if (!call.isEmpty()) emit EmitCallOnce(call);
 }
 void DecodeList::ac_blacklist_call()
 {
