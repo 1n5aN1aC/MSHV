@@ -1063,6 +1063,7 @@ build/moc_main_ms.cpp: src/main_ms.h \
 		src/HvMsPlayer/libsound/HvGenQ65/gen_q65.h \
 		src/HvMsPlayer/libsound/HvGenQ65/q65_subs.h \
 		src/HvTxW/hvtxw.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/config_str_all.h \
 		src/HvTxW/hvinle.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLineEdit \
@@ -1148,7 +1149,6 @@ build/moc_main_ms.cpp: src/main_ms.h \
 		src/HvHelpSkMs/hvhelpskms.h \
 		src/HvAboutMsHv/hvaboutmshv.h \
 		src/HvTextColor/hvtxtcolor.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/HvAggressiveW/aggressiv_d.h \
 		src/HvSlider_H/hvslider_h.h \
 		src/HvAlsaMixer/hvmixermain.h \
@@ -2978,6 +2978,12 @@ build/moc_MessageClient.cpp: src/HvTxW/HvRadioNetW/MessageClient.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QString \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		src/HvTxW/HvRadioNetW/pimpl_h.h \
 		build/moc_predefs.h \
 		../../../../QT/5.15.2/mingw81_64/bin/moc.exe
@@ -3103,13 +3109,17 @@ build/moc_radionetw.cpp: src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qqueue.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QHash \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		src/HvTxW/hvqthloc.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QMessageBox \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmessagebox.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgetsglobal.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgets-config.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qdialog.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qwidget.h \
@@ -3120,9 +3130,6 @@ build/moc_radionetw.cpp: src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qrect.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsize.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpalette.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qbrush.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qmatrix.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpolygon.h \
@@ -3486,6 +3493,7 @@ build/moc_hvtxw.cpp: src/HvTxW/hvtxw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLabel \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlabel.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qframe.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/config_str_all.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QRadioButton \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qradiobutton.h \
@@ -4932,6 +4940,8 @@ build/moc_decodelist.cpp: src/HvDecodeList/decodelist.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmenu.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qaction.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qactiongroup.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QHash \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/HvDecodeList/hvtooltip.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QTimer \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtimer.h \
@@ -8424,6 +8434,12 @@ build/MessageClient.moc: src/HvTxW/HvRadioNetW/MessageClient.cpp \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QString \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		src/HvTxW/HvRadioNetW/pimpl_h.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtNetwork/QUdpSocket \
 		../../../../QT/5.15.2/mingw81_64/include/QtNetwork/qudpsocket.h \
@@ -8799,6 +8815,7 @@ build/main.o: src/main.cpp ../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QA
 		src/HvMsPlayer/libsound/HvGenQ65/gen_q65.h \
 		src/HvMsPlayer/libsound/HvGenQ65/q65_subs.h \
 		src/HvTxW/hvtxw.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/config_str_all.h \
 		src/HvTxW/hvinle.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLineEdit \
@@ -8884,7 +8901,6 @@ build/main.o: src/main.cpp ../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QA
 		src/HvHelpSkMs/hvhelpskms.h \
 		src/HvAboutMsHv/hvaboutmshv.h \
 		src/HvTextColor/hvtxtcolor.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/HvAggressiveW/aggressiv_d.h \
 		src/HvSlider_H/hvslider_h.h \
 		src/HvAlsaMixer/hvmixermain.h \
@@ -9139,6 +9155,7 @@ build/main_ms.o: src/main_ms.cpp src/main_ms.h \
 		src/HvMsPlayer/libsound/HvGenQ65/gen_q65.h \
 		src/HvMsPlayer/libsound/HvGenQ65/q65_subs.h \
 		src/HvTxW/hvtxw.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/config_str_all.h \
 		src/HvTxW/hvinle.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLineEdit \
@@ -9224,7 +9241,6 @@ build/main_ms.o: src/main_ms.cpp src/main_ms.h \
 		src/HvHelpSkMs/hvhelpskms.h \
 		src/HvAboutMsHv/hvaboutmshv.h \
 		src/HvTextColor/hvtxtcolor.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/HvAggressiveW/aggressiv_d.h \
 		src/HvSlider_H/hvslider_h.h \
 		src/HvAlsaMixer/hvmixermain.h \
@@ -10226,12 +10242,24 @@ build/pouncesettings.o: src/HvPounce/pouncesettings.cpp src/HvPounce/pouncesetti
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qcheckbox.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractbutton.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qicon.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QButtonGroup \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qbuttongroup.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QDialogButtonBox \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qdialogbuttonbox.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QFrame \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qframe.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QGroupBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qgroupbox.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLabel \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlabel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLineEdit \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlineedit.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextcursor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextformat.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpen.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextoption.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QRadioButton \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qradiobutton.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QVBoxLayout \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qboxlayout.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlayout.h \
@@ -13522,6 +13550,12 @@ build/MessageClient.o: src/HvTxW/HvRadioNetW/MessageClient.cpp src/HvTxW/HvRadio
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QString \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		src/HvTxW/HvRadioNetW/pimpl_h.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtNetwork/QUdpSocket \
 		../../../../QT/5.15.2/mingw81_64/include/QtNetwork/qudpsocket.h \
@@ -13767,13 +13801,17 @@ build/radionetw.o: src/HvTxW/HvRadioNetW/radionetw.cpp src/HvTxW/HvRadioNetW/rad
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qqueue.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QHash \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		src/HvTxW/hvqthloc.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QMessageBox \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmessagebox.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgetsglobal.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgets-config.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qdialog.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qwidget.h \
@@ -13784,9 +13822,6 @@ build/radionetw.o: src/HvTxW/HvRadioNetW/radionetw.cpp src/HvTxW/HvRadioNetW/rad
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qrect.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsize.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpalette.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
-		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qbrush.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qmatrix.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpolygon.h \
@@ -14158,6 +14193,7 @@ build/hvtxw.o: src/HvTxW/hvtxw.cpp src/HvTxW/hvtxw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLabel \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlabel.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qframe.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/config_str_all.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QRadioButton \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qradiobutton.h \
@@ -15859,6 +15895,8 @@ build/decodelist.o: src/HvDecodeList/decodelist.cpp src/HvDecodeList/decodelist.
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmenu.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qaction.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qactiongroup.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QHash \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QColor \
 		src/HvDecodeList/hvtooltip.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QTimer \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtimer.h \
