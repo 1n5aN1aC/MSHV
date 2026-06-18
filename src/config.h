@@ -1,10 +1,10 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-#define VERSION_MAJOR 1337  //version when you make incompatible API changes
-#define VERSION_MINOR 76 //version when you add functionality in a backward compatible manner
-#define VERSION_PATCH 6  //version when you make backward compatible bug fixes
-#define VERSION_REVISION 5
+#define VERSION_MAJOR 1337 //clarifies this is not the original MSHV, but a forked version
+#define VERSION_MINOR 76   //Follows MSHV sersioning: version when you add functionality in a backward compatible manner
+#define VERSION_PATCH 6    //Follows MSHV sersioning: version when you make backward compatible bug fixes
+#define VERSION_REVISION 6 //our fork's versioning
 
 #define STR0(x) #x
 #define TOSTR0(x) STR0(x)

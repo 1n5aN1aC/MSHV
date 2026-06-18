@@ -600,12 +600,10 @@ void MessageClient::statusUPD(quint64 f,QString mode,QString dx_call,QString rep
         case 6: special = "[Hound]"; break;*/
         QString configuration_name = "Default";
         //QString tx_message = "N/A";//2.52
-        // Convert mode to single-character symbol matching WSJT-X convention
-        QString mode_sym = modeToSymbol(mode);
 
         QByteArray message;
         NetworkMessage::Builder out {&message, NetworkMessage::Status, m_->id_, m_->schema_};
-        out << f << mode_sym.toUtf8 () << dx_call.toUtf8 () << clean_report.toUtf8 () << tx_mode.toUtf8 ()
+        out << f << mode.toUtf8 () << dx_call.toUtf8 () << clean_report.toUtf8 () << tx_mode.toUtf8 ()
         << tx_enabled << transmitting << decoding << rx_df << tx_df << de_call.toUtf8 ()
         << de_grid.toUtf8 () << dx_grid.toUtf8 () << watchdog_timeout << sub_mode.toUtf8 ()
         << fast_mode << special_op_mode << frequency_tolerance << tr_period << configuration_name.toUtf8()
