@@ -3219,7 +3219,7 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
         QString hcap;//fictive
         QString hloc;//fictive
         DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);//false f_double_click
-        CollectIdleCandidate(text_msg, freq, tx_rpt); // idle autorespond candidate tracking
+        CollectIdleCandidate(text_msg, freq, format_rpt_ma(tx_rpt)); // idle autorespond candidate tracking
     }
 #else
     static int uuu = 0;
