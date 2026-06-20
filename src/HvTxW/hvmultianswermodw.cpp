@@ -3622,11 +3622,11 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QStri
 }
 QString MultiAnswerModW::BuildIdleCallMsg(const QString &call, const QString &snr)
 {
-    // Use TX2 template so contest exchanges (Field Day etc.) are sent correctly.
     QString myCall = list_macros.at(0);
     QString myLoc6 = list_macros.at(1);
     QString myLoc4 = myLoc6.mid(0, 4);
-    QString msg = str_macros_mam_[1];
+    int tx_idx = s_start_qso_from_tx2 ? 1 : 0; // 0=TX1 grid, 1=TX2 SNR
+    QString msg = str_macros_mam_[tx_idx];
     msg.replace("%T", call);
     msg.replace("%M", myCall);
     msg.replace("%R", snr);
