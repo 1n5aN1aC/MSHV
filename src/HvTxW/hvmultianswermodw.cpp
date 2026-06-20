@@ -3648,7 +3648,7 @@ void MultiAnswerModW::TryRespondWhenIdle()
 
     // Increment CQ cycle counter and check threshold
     s_idle_cq_count++;
-    if (s_idle_cq_count < s_idle_ar_timeout_cycles) return;
+    if (s_idle_cq_count <= s_idle_ar_timeout_cycles) return;
 
     // Prune old candidates (keep only those from recent seconds window)
     unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();

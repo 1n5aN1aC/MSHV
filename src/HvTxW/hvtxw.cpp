@@ -519,12 +519,12 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     Box_idle_ar->setContentsMargins(0, 0, 0, 0);
     cb_idle_ar_enable = new QCheckBox(tr("Idle Autorespond"));
     cb_idle_ar_enable->setChecked(false);
-    cb_idle_ar_enable->setToolTip(tr("When CQing without answers,\nautomatically call a decoded station"));
+    cb_idle_ar_enable->setToolTip(tr("When CQing without answers,\nautomatically call a decoded station.\nSets how many CQs to send before each auto-response."));
     sb_idle_ar_timeout = new QSpinBox();
     sb_idle_ar_timeout->setRange(1, 30);
     sb_idle_ar_timeout->setValue(3);
     sb_idle_ar_timeout->setPrefix(tr("Every")+": ");
-    sb_idle_ar_timeout->setSuffix(" "+tr("TX"));
+    sb_idle_ar_timeout->setSuffix(" "+tr("CQ"));
     sb_idle_ar_timeout->setFixedHeight(19);
     sb_idle_ar_timeout->findChild<QLineEdit*>()->setReadOnly(true);
     sb_idle_ar_timeout->setContextMenuPolicy(Qt::NoContextMenu);
