@@ -5710,7 +5710,7 @@ void HvTxW::SetTextForAutoSeq(QStringList list_in)
                     {//msg=4 73
                         SetTxRaportToRB(4,true);//2.02 first this
 
-                        if (!f_cfm73) count_73_auto_seq = 1;//2.31
+                        if (rr73_inmsg != "RR73" || !f_cfm73) count_73_auto_seq = 1;//2.31 plain 73 always stops; only RR73 gated by cfm73
 
                         if (s_cont_type>1 && s_mode != 12)//2.02  2.59 or->if (((!f_cfm73 && f_areset_qso) || s_cont_type>1) && s_mode != 12)
                         {

@@ -2993,24 +2993,15 @@ void MultiAnswerModW::DecListTextAll(QString tx_rpt,QString str,QString freq,boo
                 //if (f_tx_rx && f_auto_on && SBslots->valueS()==1 && s_mode==11 && (id_rpt == "4" || id_rpt == "3"))
                 //LsNow->SetItem(row_now,7,"3");//2.72 stop
                 LsNow->SetItem(row_now,9,"0");//1 tx 0 rx gen_in_tx_time
-                if (!f_cfm73 && id_rpt == "4") SetTxMsgEnd();
+                if (id_rpt == "4" && (rr73_inmsg != "RR73" || !f_cfm73)) SetTxMsgEnd();
                 else gen_msg();
                 //qDebug()<<"000SetTxMsgEnd()"<<gen_in_tx_time<<id_rpt;
             }
-            //else if (!f_cfm73 && prev_id_rpt == "2" && id_rpt == "4")//old 2.70  no needed -> f_multi_answer_mod_std &&
-            else if (!f_cfm73 && (prev_id_rpt == "2" || prev_id_rpt == "3") && id_rpt == "4")//2.70
+            else if ((prev_id_rpt == "2" || prev_id_rpt == "3") && id_rpt == "4")
             {
-                //LsNow->SetItem(row_now,7,"3");//2.72 stop out id for SetTxMsgEnd();
                 LsNow->SetItem(row_now,9,"0");//1 tx 0 rx
-                SetTxMsgEnd();
-                //qDebug()<<"111SetTxMsgEnd()"<<gen_in_tx_time;
-            }
-            //else if (f_cfm73 && prev_id_rpt == "2" && id_rpt == "4")//old 2.47
-            else if (f_cfm73 && (prev_id_rpt == "2" || prev_id_rpt == "3") && id_rpt == "4")//2.48 no needed -> f_multi_answer_mod_std &&
-            {
-                //LsNow->SetItem(row_now,7,"3");//2.72 stop out id for SetTxMsgEnd();
-                gen_msg();
-                //qDebug()<<"222SetTxMsgEnd()"<<gen_in_tx_time<<prev_id_rpt<<id_rpt;
+                if (rr73_inmsg != "RR73" || !f_cfm73) SetTxMsgEnd();
+                else gen_msg();
             }
             else gen_msg();
         }

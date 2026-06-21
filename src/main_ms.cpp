@@ -692,7 +692,7 @@ Main_Ms::Main_Ms(QString inst0,QWidget * parent)
     Option_m->addAction(ac_aseq_max_dist);
     connect(ac_aseq_max_dist, SIGNAL(toggled(bool)), THvTxW, SLOT(SetUseASeqMaxDist(bool)));//2.66
 
-    ac_Cfm73 = new QAction(tr("TX Confirmation If 73 Or RR73")+" FT Q65",this);// Q65 2.55
+    ac_Cfm73 = new QAction(tr("TX 73 If Received RR73")+" FT Q65",this);
     ac_Cfm73->setCheckable(true);
     Option_m->addAction(ac_Cfm73);
     ac_Cfm73->setEnabled(false);
