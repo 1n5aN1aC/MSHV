@@ -75,6 +75,7 @@ HEADERS = src/main_ms.h \
  src/HvTxW/hvcustomw.h \
  src/HvTxW/hvstditmmod.h \
  src/HvTxW/hvmultianswermodw.h \
+ src/HvTxW/idlearstatusdialog.h \
  src/HvTextColor/hvtxtcolor.h \
  src/HvDecodeList/hvtooltip.h \
  src/HvDecodeList/hvcty.h \
@@ -180,6 +181,7 @@ SOURCES = src/main.cpp \
  src/HvTxW/hvcustomw.cpp \
  src/HvTxW/hvstditmmod.cpp \
  src/HvTxW/hvmultianswermodw.cpp \
+ src/HvTxW/idlearstatusdialog.cpp \
  src/HvTextColor/hvtxtcolor.cpp \
  src/HvDecodeList/hvtooltip.cpp \
  src/HvDecodeList/hvcty.cpp \

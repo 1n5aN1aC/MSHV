@@ -8,6 +8,34 @@
 #include <QPainter>
 #include <QDateTime>
 #include "../config_str_color.h"
+
+namespace {
+// ---------------------------------------------------------------------------
+// Idle autorespond scoring weights — all tuning in one place.
+//
+// Scale rationale:
+//   CONTEST_MATCH (1000) exceeds the maximum score any non-matched candidate
+//   can reach: CAT_CQ(200) + TRIED_FRESH(400) + RECENCY_MAX(100) +
+//   SNR_MAX(24) = 724. A matched candidate always wins over any unmatched one.
+//
+//   TRIED_FRESH (400) dominates the category range (200) so a never-tried
+//   lower-category candidate beats a just-tried higher-category one.
+//
+//   CAT gaps (100) exceed RECENCY_MAX + SNR_MAX (124) so category order is
+//   preserved among candidates with equal tried-state.
+//
+//   CQ_CONTEST and OTHER_CQ score the same unless contest_match fires.
+//   The text box (s_idle_contest_call) is the only way to boost a specific CQ tag.
+// ---------------------------------------------------------------------------
+static const int IDLE_W_CONTEST_MATCH  = 1000; // cqTag == s_idle_contest_call (filter non-empty)
+static const int IDLE_W_CAT_CQ         =  200; // any CQ (tagged or plain, matched or not)
+static const int IDLE_W_CAT_RR73       =  100; // RR73 or RRR (treated equally)
+static const int IDLE_W_CAT_73         =    0; // 73
+static const int IDLE_W_TRIED_FRESH    =  400; // never tried / cooldown fully elapsed
+static const int IDLE_W_RECENCY_MAX    =  100; // heard right now (scales to 0 at window edge)
+static const int IDLE_W_SNR_MAX        =   24; // maps [-24..+24 dB] to [0..24] pts
+static const unsigned int TRIED_COOLDOWN_SEC = 600; // 10 minutes (hardcoded)
+} // namespace
 //#include <QtGui>
 
 ListA::ListA(int ident,bool f,QWidget *parent)
@@ -1703,6 +1731,7 @@ void MultiAnswerModW::SetAuto(bool f) //2.35
         s_idle_revert_to_cq = false;
         s_idle_once_msg = "";
         s_idle_candidates.clear();
+        emit EmitIdleCandidateCount(0);
     }
 }
 void MultiAnswerModW::gen_msg()
@@ -3450,6 +3479,7 @@ void MultiAnswerModW::SetIdleAutoRespondEnabled(bool f)
         s_idle_once_active = false;
         s_idle_once_msg = "";
         s_idle_candidates.clear();
+        emit EmitIdleCandidateCount(0);
     }
 }
 void MultiAnswerModW::SetIdleAutoRespondTimeout(int cycles)
@@ -3541,13 +3571,25 @@ IdleCandCategory MultiAnswerModW::ClassifyIdleCandidate(QString text_msg)
 
     return IDLE_CAT_COUNT; // not a category we track
 }
+int MultiAnswerModW::CountActiveCandidates() const
+{
+    unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
+    unsigned int windowSec = (unsigned int)s_idle_candidate_seconds;
+    int count = 0;
+    for (int i = 0; i < s_idle_candidates.count(); ++i)
+    {
+        if ((now_t - s_idle_candidates[i].rx_time) <= windowSec)
+            ++count;
+    }
+    return count;
+}
 void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QString snr)
 {
     if (!f_idle_ar_enabled || !f_multi_answer_mod_std || !f_auto_on) return;
 
     IdleCandCategory cat = ClassifyIdleCandidate(text_msg);
     if (cat >= IDLE_CAT_COUNT) return;
-    if (!f_idle_cat[cat]) return; // category not enabled by user
+    // Note: per-category enable/disable is enforced at selection time, not collection time.
 
     // Extract the call sign from decoded message
     QStringList words = text_msg.trimmed().split(" ", QString::SkipEmptyParts);
@@ -3574,10 +3616,6 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QStri
             else { call = words.at(1); if (words.count() >= 3) loc = words.at(2); }
         }
         else if (words.count() == 2) call = words.at(1);
-
-        // If textbox is set, category-0 candidates must match that exact CQ tag.
-        if (cat == IDLE_CAT_CQ_CONTEST && !s_idle_contest_call.isEmpty() && cqTag != s_idle_contest_call)
-            return;
     }
     else
     {
@@ -3589,12 +3627,22 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QStri
         }
     }
 
+    // Compute contest_match flag for scoring (not a collection gate).
+    bool cm = (cat == IDLE_CAT_CQ_CONTEST)
+              && !s_idle_contest_call.isEmpty()
+              && (cqTag == s_idle_contest_call);
+
     if (call.isEmpty() || call == list_macros.at(0) || call == s_my_base_call) return;
     if (!isStandardCall(call)) return;
 
     // Check if call is already in Queue or Now lists (active QSO)
     if (LsQueue->FindCallOrBaseCallRow(call) >= 0) return;
     if (LsNow->FindCallOrBaseCallRow(call) >= 0) return;
+
+    // Skip calls already worked (same strict 1-QSO threshold as selection)
+    bool is_dupe = false;
+    emit IsCallDupeInLog(call, 1, is_dupe);
+    if (is_dupe) return;
 
     // Check for duplicate in candidate list - update if exists
     unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
@@ -3605,6 +3653,7 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QStri
             s_idle_candidates[i].rx_time = now_t;
             s_idle_candidates[i].freq = freq;
             s_idle_candidates[i].cat = cat;
+            s_idle_candidates[i].contest_match = cm;
             if (!loc.isEmpty()) s_idle_candidates[i].loc = loc;
             if (!snr.isEmpty()) s_idle_candidates[i].snr = snr;
             return;
@@ -3617,8 +3666,11 @@ void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QStri
     cand.loc = loc;
     cand.snr = snr;
     cand.rx_time = now_t;
+    cand.last_tried = 0;
     cand.cat = cat;
+    cand.contest_match = cm;
     s_idle_candidates.append(cand);
+    emit EmitIdleCandidateCount(CountActiveCandidates());
 }
 QString MultiAnswerModW::BuildIdleCallMsg(const QString &call, const QString &snr)
 {
@@ -3633,6 +3685,63 @@ QString MultiAnswerModW::BuildIdleCallMsg(const QString &call, const QString &sn
     msg.replace("%G4", myLoc4);
     msg.replace("%G6", myLoc6);
     return msg;
+}
+int MultiAnswerModW::ScoreIdleCandidate(const IdleCandidate &cand,
+                                         unsigned int now_t,
+                                         unsigned int windowSec)
+{
+    int score = 0;
+
+    // Contest match — always-prefer bonus (only fires when s_idle_contest_call is set)
+    if (cand.contest_match)
+        score += IDLE_W_CONTEST_MATCH;
+
+    // Message-type weight: any CQ > RR73/RRR > 73
+    // CQ_CONTEST and OTHER_CQ score equally unless contest_match fires above
+    switch (cand.cat)
+    {
+    case IDLE_CAT_CQ_CONTEST:
+    case IDLE_CAT_OTHER_CQ:   score += IDLE_W_CAT_CQ;   break;
+    case IDLE_CAT_RR73:       score += IDLE_W_CAT_RR73;  break;
+    case IDLE_CAT_73:         score += IDLE_W_CAT_73;    break;
+    default: break;
+    }
+
+    // Tried recency — linear: 0 (just tried) to TRIED_FRESH (never tried / fully cooled)
+    if (cand.last_tried == 0)
+    {
+        score += IDLE_W_TRIED_FRESH;
+    }
+    else
+    {
+        unsigned int elapsed = now_t - cand.last_tried;
+        if (elapsed >= TRIED_COOLDOWN_SEC)
+            score += IDLE_W_TRIED_FRESH;
+        else
+            score += (int)(IDLE_W_TRIED_FRESH * elapsed / TRIED_COOLDOWN_SEC);
+    }
+
+    // Heard recency — linear: 0 (window edge) to RECENCY_MAX (heard just now)
+    unsigned int age = now_t - cand.rx_time;
+    if (age < windowSec)
+        score += (int)(IDLE_W_RECENCY_MAX * (windowSec - age) / windowSec);
+
+    // SNR — small tiebreaker; parse "+05", "-12", "R+09", "59", "599"
+    {
+        QString s = cand.snr.trimmed();
+        if (!s.isEmpty() && s.at(0).toUpper() == 'R') s = s.mid(1);
+        bool ok = false;
+        int snr_val = s.toInt(&ok);
+        if (ok)
+        {
+            if (snr_val < -24) snr_val = -24;
+            if (snr_val >  24) snr_val =  24;
+            score += (snr_val + 24) * IDLE_W_SNR_MAX / 48; // maps [-24..+24] to [0..SNR_MAX]
+        }
+        // RST-format (59/599) clamps to +24; unparseable contributes 0
+    }
+
+    return score;
 }
 void MultiAnswerModW::TryRespondWhenIdle()
 {
@@ -3650,58 +3759,55 @@ void MultiAnswerModW::TryRespondWhenIdle()
     s_idle_cq_count++;
     if (s_idle_cq_count <= s_idle_ar_timeout_cycles) return;
 
-    // Prune old candidates (keep only those from recent seconds window)
     unsigned int now_t = QDateTime::currentDateTimeUtc().toTime_t();
     unsigned int windowSec = (unsigned int)GetIdleCandidateSeconds();
+    if (windowSec == 0) windowSec = 1;
+
+    // Remove stale candidates and any that are now worked (logged since collection).
     for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
     {
-        if ((now_t - s_idle_candidates[i].rx_time) > windowSec)
+        bool cand_is_dupe = false;
+        emit IsCallDupeInLog(s_idle_candidates[i].call, 1, cand_is_dupe);
+        if ((now_t - s_idle_candidates[i].rx_time) > TRIED_COOLDOWN_SEC || cand_is_dupe)
             s_idle_candidates.removeAt(i);
     }
 
-    // Also prune candidates that are now in Queue/Now
-    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
-    {
-        if (LsQueue->FindCallOrBaseCallRow(s_idle_candidates[i].call) >= 0 ||
-            LsNow->FindCallOrBaseCallRow(s_idle_candidates[i].call) >= 0)
-            s_idle_candidates.removeAt(i);
-    }
+    emit EmitIdleCandidateCount(CountActiveCandidates());
 
-    // Idle AR always blocks previously worked calls (strict 1-QSO dupe rule),
-    // independent of the normal MASTD dupe-limit selection.
-    for (int i = s_idle_candidates.count() - 1; i >= 0; --i)
+    // Score eligible candidates; skip those outside the window, already in
+    // Queue/Now, in disabled categories, or previously worked (strict dupe rule).
+    int best_score = -1;
+    int best_idx   = -1;
+
+    for (int i = 0; i < s_idle_candidates.count(); ++i)
     {
+        const IdleCandidate &c = s_idle_candidates[i];
+        if ((now_t - c.rx_time) > windowSec) continue;
+        if (!f_idle_cat[c.cat]) continue;
+        if (LsQueue->FindCallOrBaseCallRow(c.call) >= 0) continue;
+        if (LsNow->FindCallOrBaseCallRow(c.call)  >= 0) continue;
         bool is_dupe = false;
-        emit IsCallDupeInLog(s_idle_candidates[i].call, 1, is_dupe);
-        if (is_dupe) s_idle_candidates.removeAt(i);
-    }
-
-    // Search categories in priority order: first enabled category with candidates wins
-    for (int c = 0; c < IDLE_CAT_COUNT; ++c)
-    {
-        if (!f_idle_cat[c]) continue;
-        // Collect candidates in this category
-        QList<int> matches;
-        for (int i = 0; i < s_idle_candidates.count(); ++i)
+        emit IsCallDupeInLog(c.call, 1, is_dupe);
+        if (is_dupe) continue;
+        int sc = ScoreIdleCandidate(c, now_t, windowSec);
+        if (sc > best_score)
         {
-            if (s_idle_candidates[i].cat == (IdleCandCategory)c)
-                matches.append(i);
+            best_score = sc;
+            best_idx   = i;
         }
-        if (matches.isEmpty()) continue;
-
-        // Pick random candidate from this category
-        int pick = matches.at(qrand() % matches.count());
-        IdleCandidate &cand = s_idle_candidates[pick];
-        s_idle_once_msg = BuildIdleCallMsg(cand.call, cand.snr);
-        s_idle_once_active = true;
-
-        // Reset cycle counter so we don't re-trigger immediately
-        s_idle_cq_count = 0;
-        s_idle_candidates.removeAt(pick);
-        gen_msg();
-        return;
     }
-    // No candidates found in any enabled category - keep counting
+
+    if (best_idx < 0) return; // no enabled candidates — keep counting
+
+    s_idle_candidates[best_idx].last_tried = now_t;
+    IdleCandidate &cand = s_idle_candidates[best_idx];
+    s_idle_once_msg = BuildIdleCallMsg(cand.call, cand.snr);
+    s_idle_once_active = true;
+
+    s_idle_cq_count = 0;
+    emit EmitIdleCandidateCount(CountActiveCandidates());
+    emit EmitIdleArFired(cand.call);
+    gen_msg();
 }
 
 

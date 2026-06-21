@@ -7,6 +7,8 @@
 #include "hvtxw.h"
 #include "../config_str_color.h"
 #include "config_rpt_all.h"
+#include <QDateTime>
+#include <QEvent>
 //#include <QtGui>
 
 HvLabAutoSeq::HvLabAutoSeq(bool f,QWidget * parent )
@@ -506,6 +508,10 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(MultiAnswerMod,SIGNAL(EmitSFMATxAll(QString)),this,SIGNAL(EmitSFMATxAll(QString)));//2.76sf
     connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued(QString,QString)),this,SLOT(StartPounceAuto(QString,QString)));
     connect(MultiAnswerMod,SIGNAL(EmitCNSChanged(bool)),this,SIGNAL(EmitPounceCNSChanged(bool)));
+    connect(MultiAnswerMod,SIGNAL(EmitIdleCandidateCount(int)),this,SLOT(IdleCandCountChanged(int)));
+    connect(MultiAnswerMod,SIGNAL(EmitIdleArFired(QString)),this,SLOT(IdleArFired(QString)));
+
+    dlg_idle_ar_status = new IdleArStatusDialog(this);
 
     // Idle Autorespond pane
     Box_idle_ar = new QFrame();
@@ -549,6 +555,18 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     sb_idle_ar_candidate_seconds->findChild<QLineEdit*>()->setReadOnly(true);
     sb_idle_ar_candidate_seconds->setContextMenuPolicy(Qt::NoContextMenu);
     sb_idle_ar_candidate_seconds->setStyleSheet("QSpinBox{selection-color:black;selection-background-color:white;}");
+    QLabel *lb_idle_cand_count = new QLabel(tr("Pending:"));
+    le_idle_cand_count = new QLineEdit("0");
+    le_idle_cand_count->setReadOnly(true);
+    le_idle_cand_count->setFixedWidth(35);
+    le_idle_cand_count->setFixedHeight(19);
+    le_idle_cand_count->setAlignment(Qt::AlignCenter);
+    le_idle_cand_count->setContextMenuPolicy(Qt::NoContextMenu);
+    le_idle_cand_count->setCursor(Qt::PointingHandCursor);
+    le_idle_cand_count->setToolTip(tr("Click to open Idle AR status"));
+    le_idle_cand_count->installEventFilter(this);
+    H_idle_win->addWidget(lb_idle_cand_count);
+    H_idle_win->addWidget(le_idle_cand_count);
     H_idle_win->addStretch(1);
     H_idle_win->addWidget(sb_idle_ar_candidate_seconds);
     V_idle->addLayout(H_idle_win);
@@ -3909,6 +3927,38 @@ void HvTxW::IdleArCatChanged(bool)
 void HvTxW::IdleArContestCallChanged(QString s)
 {
     MultiAnswerMod->SetIdleContestCall(s);
+}
+void HvTxW::IdleCandCountChanged(int n)
+{
+    le_idle_cand_count->setText(QString::number(n));
+    if (dlg_idle_ar_status->isVisible())
+    {
+        unsigned int nowSec = QDateTime::currentDateTimeUtc().toTime_t();
+        unsigned int winSec = (unsigned int)MultiAnswerMod->GetIdleCandidateSeconds();
+        dlg_idle_ar_status->UpdateCandidates(MultiAnswerMod->GetIdleCandidates(), nowSec, winSec);
+    }
+}
+void HvTxW::IdleArFired(QString call)
+{
+    unsigned int nowSec = QDateTime::currentDateTimeUtc().toTime_t();
+    unsigned int winSec = (unsigned int)MultiAnswerMod->GetIdleCandidateSeconds();
+    dlg_idle_ar_status->UpdateCandidates(MultiAnswerMod->GetIdleCandidates(), nowSec, winSec);
+    dlg_idle_ar_status->NotifyFired(call);
+    // dialog is not shown automatically; user opens it by clicking the pending count box
+}
+bool HvTxW::eventFilter(QObject *obj, QEvent *ev)
+{
+    if (obj == le_idle_cand_count && ev->type() == QEvent::MouseButtonPress)
+    {
+        unsigned int nowSec = QDateTime::currentDateTimeUtc().toTime_t();
+        unsigned int winSec = (unsigned int)MultiAnswerMod->GetIdleCandidateSeconds();
+        dlg_idle_ar_status->UpdateCandidates(MultiAnswerMod->GetIdleCandidates(), nowSec, winSec);
+        dlg_idle_ar_status->show();
+        dlg_idle_ar_status->raise();
+        dlg_idle_ar_status->activateWindow();
+        return true;
+    }
+    return QWidget::eventFilter(obj, ev);
 }
 void HvTxW::MshfChanget(bool)//2.76
 {    	

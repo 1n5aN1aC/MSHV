@@ -51,6 +51,7 @@ build/hvspinbox.o
 build/hvcustomw.o
 build/hvstditmmod.o
 build/hvmultianswermodw.o
+build/idlearstatusdialog.o
 build/hvtxtcolor.o
 build/hvtooltip.o
 build/hvcty.o
@@ -142,6 +143,7 @@ build/moc_hvspinbox.o
 build/moc_hvcustomw.o
 build/moc_hvstditmmod.o
 build/moc_hvmultianswermodw.o
+build/moc_idlearstatusdialog.o
 build/moc_hvtxtcolor.o
 build/moc_hvtooltip.o
 build/moc_hvfilterdialog.o

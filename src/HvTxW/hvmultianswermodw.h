@@ -22,7 +22,9 @@ struct IdleCandidate {
     QString loc;
     QString snr;
     unsigned int rx_time;
+    unsigned int last_tried; // epoch seconds; 0 = never tried
     IdleCandCategory cat;
+    bool contest_match; // true = cqTag matched s_idle_contest_call (non-empty) at collection time
 };
 
 class ListA : public QTreeView
@@ -263,6 +265,8 @@ public:
     int  GetIdleCandidateSeconds();
 	bool GetIdleCategoryEnabled(int cat);
     QString GetIdleContestCall();
+    QList<IdleCandidate> GetIdleCandidates() const { return s_idle_candidates; }
+    static int ScoreIdleCandidate(const IdleCandidate &cand, unsigned int now_t, unsigned int windowSec);
 	void TryRespondWhenIdle();
 	void CollectIdleCandidate(QString text_msg, QString freq, QString snr);
 
@@ -282,7 +286,9 @@ signals:
     void EmitSFMATxAll(QString);//2.76
     void EmitWAPDirectedQueued(QString,QString);
     void EmitCNSChanged(bool);
-    
+    void EmitIdleCandidateCount(int);
+    void EmitIdleArFired(QString call);
+
 public slots:
 	void SetHisCallChanged(QString); 
 	void SetQRG(QString);
@@ -409,6 +415,7 @@ private:
     QList<IdleCandidate> s_idle_candidates;
     IdleCandCategory ClassifyIdleCandidate(QString text_msg);
     QString BuildIdleCallMsg(const QString &call, const QString &snr);
+    int CountActiveCandidates() const;
 
 protected:
 

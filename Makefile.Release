@@ -103,6 +103,7 @@ SOURCES       = src\main.cpp \
 		src\HvTxW\hvcustomw.cpp \
 		src\HvTxW\hvstditmmod.cpp \
 		src\HvTxW\hvmultianswermodw.cpp \
+		src\HvTxW\idlearstatusdialog.cpp \
 		src\HvTextColor\hvtxtcolor.cpp \
 		src\HvDecodeList\hvtooltip.cpp \
 		src\HvDecodeList\hvcty.cpp \
@@ -193,6 +194,7 @@ SOURCES       = src\main.cpp \
 		build\moc_hvcustomw.cpp \
 		build\moc_hvstditmmod.cpp \
 		build\moc_hvmultianswermodw.cpp \
+		build\moc_idlearstatusdialog.cpp \
 		build\moc_hvtxtcolor.cpp \
 		build\moc_hvtooltip.cpp \
 		build\moc_hvfilterdialog.cpp \
@@ -278,6 +280,7 @@ OBJECTS       = build/main.o \
 		build/hvcustomw.o \
 		build/hvstditmmod.o \
 		build/hvmultianswermodw.o \
+		build/idlearstatusdialog.o \
 		build/hvtxtcolor.o \
 		build/hvtooltip.o \
 		build/hvcty.o \
@@ -369,6 +372,7 @@ OBJECTS       = build/main.o \
 		build/moc_hvcustomw.o \
 		build/moc_hvstditmmod.o \
 		build/moc_hvmultianswermodw.o \
+		build/moc_idlearstatusdialog.o \
 		build/moc_hvtxtcolor.o \
 		build/moc_hvtooltip.o \
 		build/moc_hvfilterdialog.o \
@@ -459,6 +463,7 @@ DIST          =  src\main_ms.h \
 		src\HvTxW\hvcustomw.h \
 		src\HvTxW\hvstditmmod.h \
 		src\HvTxW\hvmultianswermodw.h \
+		src\HvTxW\idlearstatusdialog.h \
 		src\HvTextColor\hvtxtcolor.h \
 		src\HvDecodeList\hvtooltip.h \
 		src\HvDecodeList\hvcty.h \
@@ -560,6 +565,7 @@ DIST          =  src\main_ms.h \
 		src\HvTxW\hvcustomw.cpp \
 		src\HvTxW\hvstditmmod.cpp \
 		src\HvTxW\hvmultianswermodw.cpp \
+		src\HvTxW\idlearstatusdialog.cpp \
 		src\HvTextColor\hvtxtcolor.cpp \
 		src\HvDecodeList\hvtooltip.cpp \
 		src\HvDecodeList\hvcty.cpp \
@@ -642,11 +648,11 @@ qmake: FORCE
 qmake_all: FORCE
 
 dist:
-	$(ZIP) MSHV_WIN64.zip $(SOURCES) $(DIST) MSHV_WIN64.pro ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\spec_pre.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\qdevice.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\device_config.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\sanitize.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\gcc-base.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\g++-base.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\angle.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\windows_vulkan_sdk.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\windows-vulkan.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\g++-win32.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\windows-desktop.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\qconfig.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3danimation.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3danimation_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dcore.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dcore_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dextras.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dextras_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dinput.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dinput_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dlogic.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dlogic_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquick.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquick_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickanimation.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickanimation_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickextras.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickextras_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickinput.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickinput_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickrender.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickrender_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickscene2d.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickscene2d_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3drender.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3drender_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_accessibility_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axbase.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axbase_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axcontainer.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axcontainer_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axserver.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axserver_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_bluetooth.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_bluetooth_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_bootstrap_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_concurrent.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_concurrent_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_core.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_core_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_dbus.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_dbus_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_designer.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_designer_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_designercomponents_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_devicediscovery_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_edid_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_egl_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_eventdispatcher_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_fb_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_fontdatabase_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gamepad.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gamepad_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gui.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gui_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_help.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_help_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_location.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_location_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimedia.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimedia_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimediawidgets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimediawidgets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_network.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_network_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_nfc.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_nfc_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_opengl.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_opengl_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_openglextensions.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_openglextensions_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_packetprotocol_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_platformcompositor_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioning.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioning_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioningquick.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioningquick_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_printsupport.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_printsupport_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qml.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qml_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmldebug_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmldevtools_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlmodels.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlmodels_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmltest.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmltest_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlworkerscript.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlworkerscript_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qtmultimediaquicktools_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quick.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quick_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickcontrols2.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickcontrols2_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickparticles_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickshapes_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quicktemplates2.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quicktemplates2_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickwidgets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickwidgets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_remoteobjects.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_remoteobjects_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_repparser.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_repparser_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_scxml.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_scxml_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sensors.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sensors_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialbus.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialbus_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialport.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialport_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sql.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sql_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_svg.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_svg_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_testlib.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_testlib_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_texttospeech.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_texttospeech_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_theme_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_uiplugin.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_uitools.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_uitools_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_vulkan_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_webchannel.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_webchannel_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_websockets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_websockets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_widgets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_widgets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_windowsuiautomation_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_winextras.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_winextras_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xml.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xml_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xmlpatterns.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xmlpatterns_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_zlib_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qt_functions.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qt_config.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\win32-g++\qmake.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\spec_post.prf .qmake.stash ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\exclusive_builds.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\toolchain.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\default_pre.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\default_pre.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\resolve_config.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\exclusive_builds_post.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\default_post.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\build_pass.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\exceptions_off.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\warn_on.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\precompile_header.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qt.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\resources_functions.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\resources.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\moc.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\opengl.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\uic.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\dumpcpp.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qmake_use.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\file_copies.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\windows.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\testcase_targets.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\yacc.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\lex.prf MSHV_WIN64.pro src\main_ms.qrc src\HvSMeter\hvsmeter_h.qrc src\DisplayMs\display_ms.qrc src\HvSlider_V_Identif\hvslider_v_identif.qrc src\HvTxW\HvLogW\hvlogw.qrc src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.qrc src\HvButtons\hvbuttons.qrc src\HvSlider_H\hvslider_h.qrc ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5AxContainer.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5AxBase.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Widgets.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Gui.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5WebSockets.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Network.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Core.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\qtmain.prl "src\HvTranslations\mshv_bg.ts src\HvTranslations\mshv_ru.ts src\HvTranslations\mshv_zh.ts src\HvTranslations\mshv_zhhk.ts src\HvTranslations\mshv_eses.ts src\HvTranslations\mshv_caes.ts src\HvTranslations\mshv_ptpt.ts src\HvTranslations\mshv_ptbr.ts src\HvTranslations\mshv_roro.ts src\HvTranslations\mshv_dadk.ts src\HvTranslations\mshv_plpl.ts src\HvTranslations\mshv_frfr.ts src\HvTranslations\mshv_nbno.ts src\HvTranslations\mshv_itit.ts src\HvTranslations\mshv_cscz.ts" src\HvTranslations\mshv_bg.ts src\HvTranslations\mshv_ru.ts src\HvTranslations\mshv_zh.ts src\HvTranslations\mshv_zhhk.ts src\HvTranslations\mshv_eses.ts src\HvTranslations\mshv_caes.ts src\HvTranslations\mshv_ptpt.ts src\HvTranslations\mshv_ptbr.ts src\HvTranslations\mshv_roro.ts src\HvTranslations\mshv_dadk.ts src\HvTranslations\mshv_plpl.ts src\HvTranslations\mshv_frfr.ts src\HvTranslations\mshv_nbno.ts src\HvTranslations\mshv_itit.ts src\HvTranslations\mshv_cscz.ts  src\main_ms.qrc src\HvSMeter\hvsmeter_h.qrc src\DisplayMs\display_ms.qrc src\HvSlider_V_Identif\hvslider_v_identif.qrc src\HvTxW\HvLogW\hvlogw.qrc src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.qrc src\HvButtons\hvbuttons.qrc src\HvSlider_H\hvslider_h.qrc ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\data\dummy.cpp  src\main_ms.h src\config.h src\config_msg_all.h src\config_str_all.h src\config_str_exc.h src\config_str_con.h src\config_band_all.h src\config_str_sk.h src\config_str_color.h src\nhash.h src\DisplayMs\display_ms.h src\DisplayMs\HvCustomPalW\custompalw.h src\HvStylePlastique\hvstyleplastique.h src\HvStylePlastique\hvfontdialog.h src\HvMsCore\mscore.h src\SettingsMs\settings_ms.h src\HvPounce\pouncesettings.h src\HvSMeter\hvsmeter_h.h src\HvMsPlayer\msplayerhv.h src\HvMsPlayer\libsound\config.h src\HvMsPlayer\libsound\mpegsound.h src\HvMsPlayer\libsound\mpegsound_locals.h src\HvMsPlayer\libsound\genpom.h src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_unpack_msg.h src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_unpack_msg77.h src\HvMsPlayer\libsound\HvGenMsk\config_rpt_msk40.h src\HvMsPlayer\libsound\HvGenMsk\bpdecode_msk.h src\HvMsPlayer\libsound\HvGenMsk\genmesage_msk.h src\HvMsPlayer\libsound\HvGen65\gen65.h src\HvMsPlayer\libsound\HvGenFt8\bpdecode_ft8_174_91.h src\HvMsPlayer\libsound\HvGenFt8\gen_ft8.h src\HvMsPlayer\libsound\HvGenFt8\gen_sfox.h src\HvMsPlayer\libsound\HvGenFt4\gen_ft4.h src\HvMsPlayer\libsound\HvGenFt2\gen_ft2.h src\HvMsPlayer\libsound\HvGenQ65\gen_q65.h src\HvMsPlayer\libsound\HvGenQ65\q65_subs.h src\HvMsPlayer\libsound\HvRawFilter\hvrawfilter.h src\HvTxW\HvAstroDataW\hvastrodataw.h src\HvTxW\HvLogW\config_prop_all.h src\HvTxW\HvLogW\hvlogw.h src\HvTxW\HvMakros\hvmakros.h src\HvTxW\HvRadioNetW\MessageClient.h src\HvTxW\HvRadioNetW\NetworkMessage.h src\HvTxW\HvRadioNetW\pimpl_h.h src\HvTxW\HvRadioNetW\pimpl_impl.h src\HvTxW\HvRadioNetW\pskreporterudptcp.h src\HvTxW\HvRadioNetW\radionetw.h src\HvTxW\HvRadioNetW\bcnlistw.h src\HvTxW\config_rpt_all.h src\HvTxW\hvtxw.h src\HvTxW\hvqthloc.h src\HvTxW\hvmsdb.h src\HvTxW\hvinle.h src\HvTxW\hvspinbox.h src\HvTxW\hvcustomw.h src\HvTxW\hvstditmmod.h src\HvTxW\hvmultianswermodw.h src\HvTextColor\hvtxtcolor.h src\HvDecodeList\hvtooltip.h src\HvDecodeList\hvcty.h src\HvDecodeList\hvfilterdialog.h src\HvDecodeList\decodelist.h src\HvDecoderMs\decoderms.h src\HvDecoderMs\decoderpom.h src\HvDecoderMs\decoderq65.h src\HvRigControl\hvrigcontrol.h src\HvRigControl\qexsp_1_2rc\qextserialport.h src\HvRigControl\qexsp_1_2rc\qextserialenumerator.h src\HvRigControl\qexsp_1_2rc\qextserialport_global.h src\HvRigControl\qexsp_1_2rc\qextserialport_p.h src\HvRigControl\qexsp_1_2rc\qextserialenumerator_p.h src\HvRigControl\HvRigCat\rigdef.h src\HvRigControl\HvRigCat\hvutils.h src\HvRigControl\HvRigCat\hvrigcatw.h src\HvRigControl\HvRigCat\icom\icom.h src\HvRigControl\HvRigCat\kenwood\kenwood.h src\HvRigControl\HvRigCat\yaesu\yaesu.h src\HvRigControl\HvRigCat\elecraft\elecraft.h src\HvRigControl\HvRigCat\tentec\tentec.h src\HvRigControl\HvRigCat\alinco\alinco.h src\HvRigControl\HvRigCat\jrc\jrc.h src\HvRigControl\HvRigCat\drake\drake.h src\HvRigControl\HvRigCat\icmarine\icmarine.h src\HvRigControl\HvRigCat\pcr\pcr.h src\HvRigControl\HvRigCat\racal\racal.h src\HvRigControl\HvRigCat\omnirig\omnirig.h src\HvRigControl\HvRigCat\omnirig\omnirighv.h src\HvRigControl\HvRigCat\sdrs\sdrs.h src\HvRigControl\HvRigCat\network\network.h src\HvRigControl\HvRigCat\mits\mits.h src\LabWidget\labw.h src\HvSlider_V_Identif\hvslider_v_identif.h src\HvAllTxt\hvalltxt.h src\HvHelpMs\hvhelpms.h src\HvHelpSkMs\hvhelpskms.h src\HvAboutMsHv\hvaboutmshv.h src\CpuWidget\cpusensorhv.h src\CpuWidget\cpuwudget.h src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.h src\HvButtons\hvbutton_left2.h src\HvButtons\hvbutton_left4.h src\HvButtons\hvmodbtsw.h src\HvButtons\hvbutton_lrc.h src\HvMsProc\hvmsproc.h src\HvSlider_H\hvslider_h.h src\HvAggressiveW\aggressiv_d.h   src\main.cpp src\main_ms.cpp src\nhash.cpp src\DisplayMs\display_ms.cpp src\DisplayMs\HvCustomPalW\custompalw.cpp src\HvStylePlastique\hvstyleplastique.cpp src\HvStylePlastique\hvfontdialog.cpp src\HvMsCore\mscore.cpp src\HvMsCore\winsound_in.cpp src\SettingsMs\settings_ms.cpp src\HvPounce\pouncesettings.cpp src\HvSMeter\hvsmeter_h.cpp src\HvMsPlayer\msplayerhv.cpp src\HvMsPlayer\libsound\fileinput.cpp src\HvMsPlayer\libsound\rawplayer.cpp src\HvMsPlayer\libsound\soundinputstream.cpp src\HvMsPlayer\libsound\soundplayer.cpp src\HvMsPlayer\libsound\wavetoraw.cpp src\HvMsPlayer\libsound\winsound_out.cpp src\HvMsPlayer\libsound\rawtodata.cpp src\HvMsPlayer\libsound\soundplayer_wr.cpp src\HvMsPlayer\libsound\rawtofile_wr.cpp src\HvMsPlayer\libsound\genmesage.cpp src\HvMsPlayer\libsound\genmesage_ms.cpp src\HvMsPlayer\libsound\genpom.cpp src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_msg.cpp src\HvMsPlayer\libsound\HvPackUnpackMsg\unpack_msg.cpp src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_unpack_msg77.cpp src\HvMsPlayer\libsound\HvGenMsk\genmesage_msk.cpp src\HvMsPlayer\libsound\HvGen65\gen65.cpp src\HvMsPlayer\libsound\HvGenFt8\gen_ft8.cpp src\HvMsPlayer\libsound\HvGenFt8\gen_sfox.cpp src\HvMsPlayer\libsound\HvGenFt4\gen_ft4.cpp src\HvMsPlayer\libsound\HvGenFt2\gen_ft2.cpp src\HvMsPlayer\libsound\HvGenQ65\gen_q65.cpp src\HvMsPlayer\libsound\HvGenQ65\q65_subs.cpp src\HvMsPlayer\libsound\HvRawFilter\hvrawfilter.cpp src\HvTxW\HvAstroDataW\hvastrodataw.cpp src\HvTxW\HvLogW\hvlogw.cpp src\HvTxW\HvMakros\hvmakros.cpp src\HvTxW\HvRadioNetW\MessageClient.cpp src\HvTxW\HvRadioNetW\NetworkMessage.cpp src\HvTxW\HvRadioNetW\pskreporterudptcp.cpp src\HvTxW\HvRadioNetW\radionetw.cpp src\HvTxW\HvRadioNetW\bcnlistw.cpp src\HvTxW\hvtxw.cpp src\HvTxW\hvqthloc.cpp src\HvTxW\hvmsdb.cpp src\HvTxW\hvinle.cpp src\HvTxW\hvspinbox.cpp src\HvTxW\hvcustomw.cpp src\HvTxW\hvstditmmod.cpp src\HvTxW\hvmultianswermodw.cpp src\HvTextColor\hvtxtcolor.cpp src\HvDecodeList\hvtooltip.cpp src\HvDecodeList\hvcty.cpp src\HvDecodeList\hvfilterdialog.cpp src\HvDecodeList\decodelist.cpp src\HvDecoderMs\decoderms.cpp src\HvDecoderMs\decoderpom.cpp src\HvDecoderMs\decodermsk144.cpp src\HvDecoderMs\decodermsk40.cpp src\HvDecoderMs\decoderjtms.cpp src\HvDecoderMs\decoderfsk441.cpp src\HvDecoderMs\decoder6m.cpp src\HvDecoderMs\decoderiscat.cpp src\HvDecoderMs\decoderjt65.cpp src\HvDecoderMs\decoderpi4.cpp src\HvDecoderMs\decoderft8.cpp src\HvDecoderMs\decoderft8var.cpp src\HvDecoderMs\decodersfox.cpp src\HvDecoderMs\decoderft4.cpp src\HvDecoderMs\decoderft2.cpp src\HvDecoderMs\decoderq65.cpp src\HvRigControl\hvrigcontrol.cpp src\HvRigControl\qexsp_1_2rc\qextserialport.cpp src\HvRigControl\qexsp_1_2rc\qextserialenumerator.cpp src\HvRigControl\qexsp_1_2rc\qextserialport_win.cpp src\HvRigControl\qexsp_1_2rc\qextserialenumerator_win.cpp src\HvRigControl\HvRigCat\hvutils.cpp src\HvRigControl\HvRigCat\hvrigcatw.cpp src\HvRigControl\HvRigCat\icom\icom.cpp src\HvRigControl\HvRigCat\kenwood\kenwood.cpp src\HvRigControl\HvRigCat\yaesu\yaesu.cpp src\HvRigControl\HvRigCat\elecraft\elecraft.cpp src\HvRigControl\HvRigCat\tentec\tentec.cpp src\HvRigControl\HvRigCat\alinco\alinco.cpp src\HvRigControl\HvRigCat\jrc\jrc.cpp src\HvRigControl\HvRigCat\drake\drake.cpp src\HvRigControl\HvRigCat\icmarine\icmarine.cpp src\HvRigControl\HvRigCat\pcr\pcr.cpp src\HvRigControl\HvRigCat\racal\racal.cpp src\HvRigControl\HvRigCat\omnirig\omnirig.cpp src\HvRigControl\HvRigCat\omnirig\omnirighv.cpp src\HvRigControl\HvRigCat\sdrs\sdrs.cpp src\HvRigControl\HvRigCat\network\network.cpp src\HvRigControl\HvRigCat\mits\mits.cpp src\LabWidget\labw.cpp src\HvSlider_V_Identif\hvslider_v_identif.cpp src\HvAllTxt\hvalltxt.cpp src\HvHelpMs\hvhelpms.cpp src\HvHelpSkMs\hvhelpskms.cpp src\HvAboutMsHv\hvaboutmshv.cpp src\CpuWidget\cpusensorhv.cpp src\CpuWidget\cpuwudget.cpp src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.cpp src\HvButtons\hvbutton_left2.cpp src\HvButtons\hvbutton_left4.cpp src\HvButtons\hvmodbtsw.cpp src\HvButtons\hvbutton_lrc.cpp src\HvMsProc\hvmsproc.cpp src\HvSlider_H\hvslider_h.cpp src\HvAggressiveW\aggressiv_d.cpp     
+	$(ZIP) MSHV_WIN64.zip $(SOURCES) $(DIST) MSHV_WIN64.pro ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\spec_pre.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\qdevice.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\device_config.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\sanitize.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\gcc-base.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\g++-base.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\angle.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\windows_vulkan_sdk.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\windows-vulkan.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\g++-win32.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\common\windows-desktop.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\qconfig.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3danimation.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3danimation_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dcore.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dcore_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dextras.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dextras_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dinput.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dinput_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dlogic.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dlogic_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquick.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquick_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickanimation.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickanimation_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickextras.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickextras_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickinput.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickinput_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickrender.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickrender_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickscene2d.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3dquickscene2d_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3drender.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_3drender_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_accessibility_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axbase.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axbase_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axcontainer.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axcontainer_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axserver.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_axserver_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_bluetooth.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_bluetooth_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_bootstrap_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_concurrent.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_concurrent_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_core.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_core_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_dbus.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_dbus_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_designer.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_designer_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_designercomponents_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_devicediscovery_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_edid_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_egl_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_eventdispatcher_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_fb_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_fontdatabase_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gamepad.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gamepad_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gui.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_gui_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_help.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_help_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_location.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_location_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimedia.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimedia_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimediawidgets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_multimediawidgets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_network.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_network_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_nfc.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_nfc_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_opengl.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_opengl_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_openglextensions.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_openglextensions_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_packetprotocol_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_platformcompositor_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioning.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioning_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioningquick.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_positioningquick_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_printsupport.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_printsupport_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qml.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qml_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmldebug_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmldevtools_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlmodels.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlmodels_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmltest.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmltest_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlworkerscript.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qmlworkerscript_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_qtmultimediaquicktools_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quick.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quick_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickcontrols2.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickcontrols2_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickparticles_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickshapes_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quicktemplates2.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quicktemplates2_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickwidgets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_quickwidgets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_remoteobjects.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_remoteobjects_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_repparser.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_repparser_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_scxml.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_scxml_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sensors.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sensors_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialbus.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialbus_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialport.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_serialport_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sql.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_sql_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_svg.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_svg_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_testlib.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_testlib_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_texttospeech.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_texttospeech_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_theme_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_uiplugin.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_uitools.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_uitools_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_vulkan_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_webchannel.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_webchannel_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_websockets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_websockets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_widgets.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_widgets_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_windowsuiautomation_support_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_winextras.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_winextras_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xml.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xml_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xmlpatterns.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_xmlpatterns_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\modules\qt_lib_zlib_private.pri ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qt_functions.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qt_config.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\win32-g++\qmake.conf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\spec_post.prf .qmake.stash ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\exclusive_builds.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\toolchain.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\default_pre.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\default_pre.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\resolve_config.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\exclusive_builds_post.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\default_post.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\build_pass.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\exceptions_off.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\warn_on.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\precompile_header.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qt.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\resources_functions.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\resources.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\moc.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\opengl.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\uic.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\dumpcpp.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\qmake_use.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\file_copies.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\win32\windows.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\testcase_targets.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\yacc.prf ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\lex.prf MSHV_WIN64.pro src\main_ms.qrc src\HvSMeter\hvsmeter_h.qrc src\DisplayMs\display_ms.qrc src\HvSlider_V_Identif\hvslider_v_identif.qrc src\HvTxW\HvLogW\hvlogw.qrc src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.qrc src\HvButtons\hvbuttons.qrc src\HvSlider_H\hvslider_h.qrc ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5AxContainer.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5AxBase.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Widgets.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Gui.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5WebSockets.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Network.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\Qt5Core.prl ..\..\..\..\QT\5.15.2\mingw81_64\lib\qtmain.prl "src\HvTranslations\mshv_bg.ts src\HvTranslations\mshv_ru.ts src\HvTranslations\mshv_zh.ts src\HvTranslations\mshv_zhhk.ts src\HvTranslations\mshv_eses.ts src\HvTranslations\mshv_caes.ts src\HvTranslations\mshv_ptpt.ts src\HvTranslations\mshv_ptbr.ts src\HvTranslations\mshv_roro.ts src\HvTranslations\mshv_dadk.ts src\HvTranslations\mshv_plpl.ts src\HvTranslations\mshv_frfr.ts src\HvTranslations\mshv_nbno.ts src\HvTranslations\mshv_itit.ts src\HvTranslations\mshv_cscz.ts" src\HvTranslations\mshv_bg.ts src\HvTranslations\mshv_ru.ts src\HvTranslations\mshv_zh.ts src\HvTranslations\mshv_zhhk.ts src\HvTranslations\mshv_eses.ts src\HvTranslations\mshv_caes.ts src\HvTranslations\mshv_ptpt.ts src\HvTranslations\mshv_ptbr.ts src\HvTranslations\mshv_roro.ts src\HvTranslations\mshv_dadk.ts src\HvTranslations\mshv_plpl.ts src\HvTranslations\mshv_frfr.ts src\HvTranslations\mshv_nbno.ts src\HvTranslations\mshv_itit.ts src\HvTranslations\mshv_cscz.ts  src\main_ms.qrc src\HvSMeter\hvsmeter_h.qrc src\DisplayMs\display_ms.qrc src\HvSlider_V_Identif\hvslider_v_identif.qrc src\HvTxW\HvLogW\hvlogw.qrc src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.qrc src\HvButtons\hvbuttons.qrc src\HvSlider_H\hvslider_h.qrc ..\..\..\..\QT\5.15.2\mingw81_64\mkspecs\features\data\dummy.cpp  src\main_ms.h src\config.h src\config_msg_all.h src\config_str_all.h src\config_str_exc.h src\config_str_con.h src\config_band_all.h src\config_str_sk.h src\config_str_color.h src\nhash.h src\DisplayMs\display_ms.h src\DisplayMs\HvCustomPalW\custompalw.h src\HvStylePlastique\hvstyleplastique.h src\HvStylePlastique\hvfontdialog.h src\HvMsCore\mscore.h src\SettingsMs\settings_ms.h src\HvPounce\pouncesettings.h src\HvSMeter\hvsmeter_h.h src\HvMsPlayer\msplayerhv.h src\HvMsPlayer\libsound\config.h src\HvMsPlayer\libsound\mpegsound.h src\HvMsPlayer\libsound\mpegsound_locals.h src\HvMsPlayer\libsound\genpom.h src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_unpack_msg.h src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_unpack_msg77.h src\HvMsPlayer\libsound\HvGenMsk\config_rpt_msk40.h src\HvMsPlayer\libsound\HvGenMsk\bpdecode_msk.h src\HvMsPlayer\libsound\HvGenMsk\genmesage_msk.h src\HvMsPlayer\libsound\HvGen65\gen65.h src\HvMsPlayer\libsound\HvGenFt8\bpdecode_ft8_174_91.h src\HvMsPlayer\libsound\HvGenFt8\gen_ft8.h src\HvMsPlayer\libsound\HvGenFt8\gen_sfox.h src\HvMsPlayer\libsound\HvGenFt4\gen_ft4.h src\HvMsPlayer\libsound\HvGenFt2\gen_ft2.h src\HvMsPlayer\libsound\HvGenQ65\gen_q65.h src\HvMsPlayer\libsound\HvGenQ65\q65_subs.h src\HvMsPlayer\libsound\HvRawFilter\hvrawfilter.h src\HvTxW\HvAstroDataW\hvastrodataw.h src\HvTxW\HvLogW\config_prop_all.h src\HvTxW\HvLogW\hvlogw.h src\HvTxW\HvMakros\hvmakros.h src\HvTxW\HvRadioNetW\MessageClient.h src\HvTxW\HvRadioNetW\NetworkMessage.h src\HvTxW\HvRadioNetW\pimpl_h.h src\HvTxW\HvRadioNetW\pimpl_impl.h src\HvTxW\HvRadioNetW\pskreporterudptcp.h src\HvTxW\HvRadioNetW\radionetw.h src\HvTxW\HvRadioNetW\bcnlistw.h src\HvTxW\config_rpt_all.h src\HvTxW\hvtxw.h src\HvTxW\hvqthloc.h src\HvTxW\hvmsdb.h src\HvTxW\hvinle.h src\HvTxW\hvspinbox.h src\HvTxW\hvcustomw.h src\HvTxW\hvstditmmod.h src\HvTxW\hvmultianswermodw.h src\HvTxW\idlearstatusdialog.h src\HvTextColor\hvtxtcolor.h src\HvDecodeList\hvtooltip.h src\HvDecodeList\hvcty.h src\HvDecodeList\hvfilterdialog.h src\HvDecodeList\decodelist.h src\HvDecoderMs\decoderms.h src\HvDecoderMs\decoderpom.h src\HvDecoderMs\decoderq65.h src\HvRigControl\hvrigcontrol.h src\HvRigControl\qexsp_1_2rc\qextserialport.h src\HvRigControl\qexsp_1_2rc\qextserialenumerator.h src\HvRigControl\qexsp_1_2rc\qextserialport_global.h src\HvRigControl\qexsp_1_2rc\qextserialport_p.h src\HvRigControl\qexsp_1_2rc\qextserialenumerator_p.h src\HvRigControl\HvRigCat\rigdef.h src\HvRigControl\HvRigCat\hvutils.h src\HvRigControl\HvRigCat\hvrigcatw.h src\HvRigControl\HvRigCat\icom\icom.h src\HvRigControl\HvRigCat\kenwood\kenwood.h src\HvRigControl\HvRigCat\yaesu\yaesu.h src\HvRigControl\HvRigCat\elecraft\elecraft.h src\HvRigControl\HvRigCat\tentec\tentec.h src\HvRigControl\HvRigCat\alinco\alinco.h src\HvRigControl\HvRigCat\jrc\jrc.h src\HvRigControl\HvRigCat\drake\drake.h src\HvRigControl\HvRigCat\icmarine\icmarine.h src\HvRigControl\HvRigCat\pcr\pcr.h src\HvRigControl\HvRigCat\racal\racal.h src\HvRigControl\HvRigCat\omnirig\omnirig.h src\HvRigControl\HvRigCat\omnirig\omnirighv.h src\HvRigControl\HvRigCat\sdrs\sdrs.h src\HvRigControl\HvRigCat\network\network.h src\HvRigControl\HvRigCat\mits\mits.h src\LabWidget\labw.h src\HvSlider_V_Identif\hvslider_v_identif.h src\HvAllTxt\hvalltxt.h src\HvHelpMs\hvhelpms.h src\HvHelpSkMs\hvhelpskms.h src\HvAboutMsHv\hvaboutmshv.h src\CpuWidget\cpusensorhv.h src\CpuWidget\cpuwudget.h src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.h src\HvButtons\hvbutton_left2.h src\HvButtons\hvbutton_left4.h src\HvButtons\hvmodbtsw.h src\HvButtons\hvbutton_lrc.h src\HvMsProc\hvmsproc.h src\HvSlider_H\hvslider_h.h src\HvAggressiveW\aggressiv_d.h   src\main.cpp src\main_ms.cpp src\nhash.cpp src\DisplayMs\display_ms.cpp src\DisplayMs\HvCustomPalW\custompalw.cpp src\HvStylePlastique\hvstyleplastique.cpp src\HvStylePlastique\hvfontdialog.cpp src\HvMsCore\mscore.cpp src\HvMsCore\winsound_in.cpp src\SettingsMs\settings_ms.cpp src\HvPounce\pouncesettings.cpp src\HvSMeter\hvsmeter_h.cpp src\HvMsPlayer\msplayerhv.cpp src\HvMsPlayer\libsound\fileinput.cpp src\HvMsPlayer\libsound\rawplayer.cpp src\HvMsPlayer\libsound\soundinputstream.cpp src\HvMsPlayer\libsound\soundplayer.cpp src\HvMsPlayer\libsound\wavetoraw.cpp src\HvMsPlayer\libsound\winsound_out.cpp src\HvMsPlayer\libsound\rawtodata.cpp src\HvMsPlayer\libsound\soundplayer_wr.cpp src\HvMsPlayer\libsound\rawtofile_wr.cpp src\HvMsPlayer\libsound\genmesage.cpp src\HvMsPlayer\libsound\genmesage_ms.cpp src\HvMsPlayer\libsound\genpom.cpp src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_msg.cpp src\HvMsPlayer\libsound\HvPackUnpackMsg\unpack_msg.cpp src\HvMsPlayer\libsound\HvPackUnpackMsg\pack_unpack_msg77.cpp src\HvMsPlayer\libsound\HvGenMsk\genmesage_msk.cpp src\HvMsPlayer\libsound\HvGen65\gen65.cpp src\HvMsPlayer\libsound\HvGenFt8\gen_ft8.cpp src\HvMsPlayer\libsound\HvGenFt8\gen_sfox.cpp src\HvMsPlayer\libsound\HvGenFt4\gen_ft4.cpp src\HvMsPlayer\libsound\HvGenFt2\gen_ft2.cpp src\HvMsPlayer\libsound\HvGenQ65\gen_q65.cpp src\HvMsPlayer\libsound\HvGenQ65\q65_subs.cpp src\HvMsPlayer\libsound\HvRawFilter\hvrawfilter.cpp src\HvTxW\HvAstroDataW\hvastrodataw.cpp src\HvTxW\HvLogW\hvlogw.cpp src\HvTxW\HvMakros\hvmakros.cpp src\HvTxW\HvRadioNetW\MessageClient.cpp src\HvTxW\HvRadioNetW\NetworkMessage.cpp src\HvTxW\HvRadioNetW\pskreporterudptcp.cpp src\HvTxW\HvRadioNetW\radionetw.cpp src\HvTxW\HvRadioNetW\bcnlistw.cpp src\HvTxW\hvtxw.cpp src\HvTxW\hvqthloc.cpp src\HvTxW\hvmsdb.cpp src\HvTxW\hvinle.cpp src\HvTxW\hvspinbox.cpp src\HvTxW\hvcustomw.cpp src\HvTxW\hvstditmmod.cpp src\HvTxW\hvmultianswermodw.cpp src\HvTxW\idlearstatusdialog.cpp src\HvTextColor\hvtxtcolor.cpp src\HvDecodeList\hvtooltip.cpp src\HvDecodeList\hvcty.cpp src\HvDecodeList\hvfilterdialog.cpp src\HvDecodeList\decodelist.cpp src\HvDecoderMs\decoderms.cpp src\HvDecoderMs\decoderpom.cpp src\HvDecoderMs\decodermsk144.cpp src\HvDecoderMs\decodermsk40.cpp src\HvDecoderMs\decoderjtms.cpp src\HvDecoderMs\decoderfsk441.cpp src\HvDecoderMs\decoder6m.cpp src\HvDecoderMs\decoderiscat.cpp src\HvDecoderMs\decoderjt65.cpp src\HvDecoderMs\decoderpi4.cpp src\HvDecoderMs\decoderft8.cpp src\HvDecoderMs\decoderft8var.cpp src\HvDecoderMs\decodersfox.cpp src\HvDecoderMs\decoderft4.cpp src\HvDecoderMs\decoderft2.cpp src\HvDecoderMs\decoderq65.cpp src\HvRigControl\hvrigcontrol.cpp src\HvRigControl\qexsp_1_2rc\qextserialport.cpp src\HvRigControl\qexsp_1_2rc\qextserialenumerator.cpp src\HvRigControl\qexsp_1_2rc\qextserialport_win.cpp src\HvRigControl\qexsp_1_2rc\qextserialenumerator_win.cpp src\HvRigControl\HvRigCat\hvutils.cpp src\HvRigControl\HvRigCat\hvrigcatw.cpp src\HvRigControl\HvRigCat\icom\icom.cpp src\HvRigControl\HvRigCat\kenwood\kenwood.cpp src\HvRigControl\HvRigCat\yaesu\yaesu.cpp src\HvRigControl\HvRigCat\elecraft\elecraft.cpp src\HvRigControl\HvRigCat\tentec\tentec.cpp src\HvRigControl\HvRigCat\alinco\alinco.cpp src\HvRigControl\HvRigCat\jrc\jrc.cpp src\HvRigControl\HvRigCat\drake\drake.cpp src\HvRigControl\HvRigCat\icmarine\icmarine.cpp src\HvRigControl\HvRigCat\pcr\pcr.cpp src\HvRigControl\HvRigCat\racal\racal.cpp src\HvRigControl\HvRigCat\omnirig\omnirig.cpp src\HvRigControl\HvRigCat\omnirig\omnirighv.cpp src\HvRigControl\HvRigCat\sdrs\sdrs.cpp src\HvRigControl\HvRigCat\network\network.cpp src\HvRigControl\HvRigCat\mits\mits.cpp src\LabWidget\labw.cpp src\HvSlider_V_Identif\hvslider_v_identif.cpp src\HvAllTxt\hvalltxt.cpp src\HvHelpMs\hvhelpms.cpp src\HvHelpSkMs\hvhelpskms.cpp src\HvAboutMsHv\hvaboutmshv.cpp src\CpuWidget\cpusensorhv.cpp src\CpuWidget\cpuwudget.cpp src\CpuWidget\HvProgBarSlowH\hvprogbarslowh.cpp src\HvButtons\hvbutton_left2.cpp src\HvButtons\hvbutton_left4.cpp src\HvButtons\hvmodbtsw.cpp src\HvButtons\hvbutton_lrc.cpp src\HvMsProc\hvmsproc.cpp src\HvSlider_H\hvslider_h.cpp src\HvAggressiveW\aggressiv_d.cpp     
 
 clean: compiler_clean 
-	-$(DEL_FILE) build\main.o build\main_ms.o build\nhash.o build\display_ms.o build\custompalw.o build\hvstyleplastique.o build\hvfontdialog.o build\mscore.o build\winsound_in.o build\settings_ms.o build\pouncesettings.o build\hvsmeter_h.o build\msplayerhv.o build\fileinput.o build\rawplayer.o build\soundinputstream.o build\soundplayer.o build\wavetoraw.o build\winsound_out.o build\rawtodata.o build\soundplayer_wr.o build\rawtofile_wr.o build\genmesage.o build\genmesage_ms.o build\genpom.o build\pack_msg.o build\unpack_msg.o build\pack_unpack_msg77.o build\genmesage_msk.o build\gen65.o build\gen_ft8.o build\gen_sfox.o build\gen_ft4.o build\gen_ft2.o build\gen_q65.o build\q65_subs.o build\hvrawfilter.o build\hvastrodataw.o build\hvlogw.o build\hvmakros.o build\MessageClient.o build\NetworkMessage.o build\pskreporterudptcp.o build\radionetw.o build\bcnlistw.o build\hvtxw.o build\hvqthloc.o build\hvmsdb.o build\hvinle.o build\hvspinbox.o build\hvcustomw.o build\hvstditmmod.o build\hvmultianswermodw.o build\hvtxtcolor.o build\hvtooltip.o build\hvcty.o build\hvfilterdialog.o build\decodelist.o build\decoderms.o build\decoderpom.o build\decodermsk144.o build\decodermsk40.o build\decoderjtms.o build\decoderfsk441.o build\decoder6m.o build\decoderiscat.o build\decoderjt65.o build\decoderpi4.o build\decoderft8.o build\decoderft8var.o build\decodersfox.o build\decoderft4.o build\decoderft2.o build\decoderq65.o build\hvrigcontrol.o build\qextserialport.o build\qextserialenumerator.o build\qextserialport_win.o build\qextserialenumerator_win.o build\hvutils.o build\hvrigcatw.o build\icom.o build\kenwood.o build\yaesu.o build\elecraft.o build\tentec.o build\alinco.o build\jrc.o build\drake.o build\icmarine.o build\pcr.o build\racal.o build\omnirig.o build\omnirighv.o build\sdrs.o build\network.o build\mits.o build\labw.o build\hvslider_v_identif.o build\hvalltxt.o build\hvhelpms.o build\hvhelpskms.o build\hvaboutmshv.o build\cpusensorhv.o build\cpuwudget.o build\hvprogbarslowh.o build\hvbutton_left2.o build\hvbutton_left4.o
-	-$(DEL_FILE) build\hvmodbtsw.o build\hvbutton_lrc.o build\hvmsproc.o build\hvslider_h.o build\aggressiv_d.o build\qrc_main_ms.o build\qrc_hvsmeter_h.o build\qrc_display_ms.o build\qrc_hvslider_v_identif.o build\qrc_hvlogw.o build\qrc_hvprogbarslowh.o build\qrc_hvbuttons.o build\qrc_hvslider_h.o build\moc_main_ms.o build\moc_display_ms.o build\moc_custompalw.o build\moc_hvstyleplastique.o build\moc_hvfontdialog.o build\moc_mscore.o build\moc_settings_ms.o build\moc_pouncesettings.o build\moc_hvsmeter_h.o build\moc_msplayerhv.o build\moc_mpegsound.o build\moc_hvastrodataw.o build\moc_hvlogw.o build\moc_hvmakros.o build\moc_radionetw.o build\moc_bcnlistw.o build\moc_hvtxw.o build\moc_hvmsdb.o build\moc_hvinle.o build\moc_hvspinbox.o build\moc_hvcustomw.o build\moc_hvstditmmod.o build\moc_hvmultianswermodw.o build\moc_hvtxtcolor.o build\moc_hvtooltip.o build\moc_hvfilterdialog.o build\moc_decodelist.o build\moc_decoderms.o build\moc_decoderq65.o build\moc_hvrigcontrol.o build\moc_hvrigcatw.o build\moc_icom.o build\moc_kenwood.o build\moc_yaesu.o build\moc_elecraft.o build\moc_tentec.o build\moc_alinco.o build\moc_jrc.o build\moc_drake.o build\moc_icmarine.o build\moc_pcr.o build\moc_racal.o build\moc_omnirighv.o build\moc_sdrs.o build\moc_network.o build\moc_mits.o build\moc_hvslider_v_identif.o build\moc_hvalltxt.o build\moc_cpuwudget.o build\moc_hvbutton_left2.o build\moc_hvbutton_left4.o build\moc_hvmodbtsw.o build\moc_hvbutton_lrc.o build\moc_hvslider_h.o build\moc_aggressiv_d.o
+	-$(DEL_FILE) build\main.o build\main_ms.o build\nhash.o build\display_ms.o build\custompalw.o build\hvstyleplastique.o build\hvfontdialog.o build\mscore.o build\winsound_in.o build\settings_ms.o build\pouncesettings.o build\hvsmeter_h.o build\msplayerhv.o build\fileinput.o build\rawplayer.o build\soundinputstream.o build\soundplayer.o build\wavetoraw.o build\winsound_out.o build\rawtodata.o build\soundplayer_wr.o build\rawtofile_wr.o build\genmesage.o build\genmesage_ms.o build\genpom.o build\pack_msg.o build\unpack_msg.o build\pack_unpack_msg77.o build\genmesage_msk.o build\gen65.o build\gen_ft8.o build\gen_sfox.o build\gen_ft4.o build\gen_ft2.o build\gen_q65.o build\q65_subs.o build\hvrawfilter.o build\hvastrodataw.o build\hvlogw.o build\hvmakros.o build\MessageClient.o build\NetworkMessage.o build\pskreporterudptcp.o build\radionetw.o build\bcnlistw.o build\hvtxw.o build\hvqthloc.o build\hvmsdb.o build\hvinle.o build\hvspinbox.o build\hvcustomw.o build\hvstditmmod.o build\hvmultianswermodw.o build\idlearstatusdialog.o build\hvtxtcolor.o build\hvtooltip.o build\hvcty.o build\hvfilterdialog.o build\decodelist.o build\decoderms.o build\decoderpom.o build\decodermsk144.o build\decodermsk40.o build\decoderjtms.o build\decoderfsk441.o build\decoder6m.o build\decoderiscat.o build\decoderjt65.o build\decoderpi4.o build\decoderft8.o build\decoderft8var.o build\decodersfox.o build\decoderft4.o build\decoderft2.o build\decoderq65.o build\hvrigcontrol.o build\qextserialport.o build\qextserialenumerator.o build\qextserialport_win.o build\qextserialenumerator_win.o build\hvutils.o build\hvrigcatw.o build\icom.o build\kenwood.o build\yaesu.o build\elecraft.o build\tentec.o build\alinco.o build\jrc.o build\drake.o build\icmarine.o build\pcr.o build\racal.o build\omnirig.o build\omnirighv.o build\sdrs.o build\network.o build\mits.o build\labw.o build\hvslider_v_identif.o build\hvalltxt.o build\hvhelpms.o build\hvhelpskms.o build\hvaboutmshv.o build\cpusensorhv.o build\cpuwudget.o build\hvprogbarslowh.o build\hvbutton_left2.o
+	-$(DEL_FILE) build\hvbutton_left4.o build\hvmodbtsw.o build\hvbutton_lrc.o build\hvmsproc.o build\hvslider_h.o build\aggressiv_d.o build\qrc_main_ms.o build\qrc_hvsmeter_h.o build\qrc_display_ms.o build\qrc_hvslider_v_identif.o build\qrc_hvlogw.o build\qrc_hvprogbarslowh.o build\qrc_hvbuttons.o build\qrc_hvslider_h.o build\moc_main_ms.o build\moc_display_ms.o build\moc_custompalw.o build\moc_hvstyleplastique.o build\moc_hvfontdialog.o build\moc_mscore.o build\moc_settings_ms.o build\moc_pouncesettings.o build\moc_hvsmeter_h.o build\moc_msplayerhv.o build\moc_mpegsound.o build\moc_hvastrodataw.o build\moc_hvlogw.o build\moc_hvmakros.o build\moc_radionetw.o build\moc_bcnlistw.o build\moc_hvtxw.o build\moc_hvmsdb.o build\moc_hvinle.o build\moc_hvspinbox.o build\moc_hvcustomw.o build\moc_hvstditmmod.o build\moc_hvmultianswermodw.o build\moc_idlearstatusdialog.o build\moc_hvtxtcolor.o build\moc_hvtooltip.o build\moc_hvfilterdialog.o build\moc_decodelist.o build\moc_decoderms.o build\moc_decoderq65.o build\moc_hvrigcontrol.o build\moc_hvrigcatw.o build\moc_icom.o build\moc_kenwood.o build\moc_yaesu.o build\moc_elecraft.o build\moc_tentec.o build\moc_alinco.o build\moc_jrc.o build\moc_drake.o build\moc_icmarine.o build\moc_pcr.o build\moc_racal.o build\moc_omnirighv.o build\moc_sdrs.o build\moc_network.o build\moc_mits.o build\moc_hvslider_v_identif.o build\moc_hvalltxt.o build\moc_cpuwudget.o build\moc_hvbutton_left2.o build\moc_hvbutton_left4.o build\moc_hvmodbtsw.o build\moc_hvbutton_lrc.o build\moc_hvslider_h.o build\moc_aggressiv_d.o
 	-$(DEL_FILE) build\ms_ico_win_res.o
 
 distclean: clean 
@@ -827,9 +833,9 @@ build/moc_predefs.h: ../../../../QT/5.15.2/mingw81_64/mkspecs/features/data/dumm
 
 compiler_dumpcpp_decl_make_all:
 compiler_dumpcpp_decl_clean:
-compiler_moc_header_make_all: build/moc_main_ms.cpp build/moc_display_ms.cpp build/moc_custompalw.cpp build/moc_hvstyleplastique.cpp build/moc_hvfontdialog.cpp build/moc_mscore.cpp build/moc_settings_ms.cpp build/moc_pouncesettings.cpp build/moc_hvsmeter_h.cpp build/moc_msplayerhv.cpp build/moc_mpegsound.cpp build/moc_hvastrodataw.cpp build/moc_hvlogw.cpp build/moc_hvmakros.cpp build/moc_MessageClient.cpp build/moc_pskreporterudptcp.cpp build/moc_radionetw.cpp build/moc_bcnlistw.cpp build/moc_hvtxw.cpp build/moc_hvmsdb.cpp build/moc_hvinle.cpp build/moc_hvspinbox.cpp build/moc_hvcustomw.cpp build/moc_hvstditmmod.cpp build/moc_hvmultianswermodw.cpp build/moc_hvtxtcolor.cpp build/moc_hvtooltip.cpp build/moc_hvfilterdialog.cpp build/moc_decodelist.cpp build/moc_decoderms.cpp build/moc_decoderq65.cpp build/moc_hvrigcontrol.cpp build/moc_qextserialport.cpp build/moc_qextserialenumerator.cpp build/moc_hvrigcatw.cpp build/moc_icom.cpp build/moc_kenwood.cpp build/moc_yaesu.cpp build/moc_elecraft.cpp build/moc_tentec.cpp build/moc_alinco.cpp build/moc_jrc.cpp build/moc_drake.cpp build/moc_icmarine.cpp build/moc_pcr.cpp build/moc_racal.cpp build/moc_omnirighv.cpp build/moc_sdrs.cpp build/moc_network.cpp build/moc_mits.cpp build/moc_hvslider_v_identif.cpp build/moc_hvalltxt.cpp build/moc_cpuwudget.cpp build/moc_hvbutton_left2.cpp build/moc_hvbutton_left4.cpp build/moc_hvmodbtsw.cpp build/moc_hvbutton_lrc.cpp build/moc_hvslider_h.cpp build/moc_aggressiv_d.cpp
+compiler_moc_header_make_all: build/moc_main_ms.cpp build/moc_display_ms.cpp build/moc_custompalw.cpp build/moc_hvstyleplastique.cpp build/moc_hvfontdialog.cpp build/moc_mscore.cpp build/moc_settings_ms.cpp build/moc_pouncesettings.cpp build/moc_hvsmeter_h.cpp build/moc_msplayerhv.cpp build/moc_mpegsound.cpp build/moc_hvastrodataw.cpp build/moc_hvlogw.cpp build/moc_hvmakros.cpp build/moc_MessageClient.cpp build/moc_pskreporterudptcp.cpp build/moc_radionetw.cpp build/moc_bcnlistw.cpp build/moc_hvtxw.cpp build/moc_hvmsdb.cpp build/moc_hvinle.cpp build/moc_hvspinbox.cpp build/moc_hvcustomw.cpp build/moc_hvstditmmod.cpp build/moc_hvmultianswermodw.cpp build/moc_idlearstatusdialog.cpp build/moc_hvtxtcolor.cpp build/moc_hvtooltip.cpp build/moc_hvfilterdialog.cpp build/moc_decodelist.cpp build/moc_decoderms.cpp build/moc_decoderq65.cpp build/moc_hvrigcontrol.cpp build/moc_qextserialport.cpp build/moc_qextserialenumerator.cpp build/moc_hvrigcatw.cpp build/moc_icom.cpp build/moc_kenwood.cpp build/moc_yaesu.cpp build/moc_elecraft.cpp build/moc_tentec.cpp build/moc_alinco.cpp build/moc_jrc.cpp build/moc_drake.cpp build/moc_icmarine.cpp build/moc_pcr.cpp build/moc_racal.cpp build/moc_omnirighv.cpp build/moc_sdrs.cpp build/moc_network.cpp build/moc_mits.cpp build/moc_hvslider_v_identif.cpp build/moc_hvalltxt.cpp build/moc_cpuwudget.cpp build/moc_hvbutton_left2.cpp build/moc_hvbutton_left4.cpp build/moc_hvmodbtsw.cpp build/moc_hvbutton_lrc.cpp build/moc_hvslider_h.cpp build/moc_aggressiv_d.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) build\moc_main_ms.cpp build\moc_display_ms.cpp build\moc_custompalw.cpp build\moc_hvstyleplastique.cpp build\moc_hvfontdialog.cpp build\moc_mscore.cpp build\moc_settings_ms.cpp build\moc_pouncesettings.cpp build\moc_hvsmeter_h.cpp build\moc_msplayerhv.cpp build\moc_mpegsound.cpp build\moc_hvastrodataw.cpp build\moc_hvlogw.cpp build\moc_hvmakros.cpp build\moc_MessageClient.cpp build\moc_pskreporterudptcp.cpp build\moc_radionetw.cpp build\moc_bcnlistw.cpp build\moc_hvtxw.cpp build\moc_hvmsdb.cpp build\moc_hvinle.cpp build\moc_hvspinbox.cpp build\moc_hvcustomw.cpp build\moc_hvstditmmod.cpp build\moc_hvmultianswermodw.cpp build\moc_hvtxtcolor.cpp build\moc_hvtooltip.cpp build\moc_hvfilterdialog.cpp build\moc_decodelist.cpp build\moc_decoderms.cpp build\moc_decoderq65.cpp build\moc_hvrigcontrol.cpp build\moc_qextserialport.cpp build\moc_qextserialenumerator.cpp build\moc_hvrigcatw.cpp build\moc_icom.cpp build\moc_kenwood.cpp build\moc_yaesu.cpp build\moc_elecraft.cpp build\moc_tentec.cpp build\moc_alinco.cpp build\moc_jrc.cpp build\moc_drake.cpp build\moc_icmarine.cpp build\moc_pcr.cpp build\moc_racal.cpp build\moc_omnirighv.cpp build\moc_sdrs.cpp build\moc_network.cpp build\moc_mits.cpp build\moc_hvslider_v_identif.cpp build\moc_hvalltxt.cpp build\moc_cpuwudget.cpp build\moc_hvbutton_left2.cpp build\moc_hvbutton_left4.cpp build\moc_hvmodbtsw.cpp build\moc_hvbutton_lrc.cpp build\moc_hvslider_h.cpp build\moc_aggressiv_d.cpp
+	-$(DEL_FILE) build\moc_main_ms.cpp build\moc_display_ms.cpp build\moc_custompalw.cpp build\moc_hvstyleplastique.cpp build\moc_hvfontdialog.cpp build\moc_mscore.cpp build\moc_settings_ms.cpp build\moc_pouncesettings.cpp build\moc_hvsmeter_h.cpp build\moc_msplayerhv.cpp build\moc_mpegsound.cpp build\moc_hvastrodataw.cpp build\moc_hvlogw.cpp build\moc_hvmakros.cpp build\moc_MessageClient.cpp build\moc_pskreporterudptcp.cpp build\moc_radionetw.cpp build\moc_bcnlistw.cpp build\moc_hvtxw.cpp build\moc_hvmsdb.cpp build\moc_hvinle.cpp build\moc_hvspinbox.cpp build\moc_hvcustomw.cpp build\moc_hvstditmmod.cpp build\moc_hvmultianswermodw.cpp build\moc_idlearstatusdialog.cpp build\moc_hvtxtcolor.cpp build\moc_hvtooltip.cpp build\moc_hvfilterdialog.cpp build\moc_decodelist.cpp build\moc_decoderms.cpp build\moc_decoderq65.cpp build\moc_hvrigcontrol.cpp build\moc_qextserialport.cpp build\moc_qextserialenumerator.cpp build\moc_hvrigcatw.cpp build\moc_icom.cpp build\moc_kenwood.cpp build\moc_yaesu.cpp build\moc_elecraft.cpp build\moc_tentec.cpp build\moc_alinco.cpp build\moc_jrc.cpp build\moc_drake.cpp build\moc_icmarine.cpp build\moc_pcr.cpp build\moc_racal.cpp build\moc_omnirighv.cpp build\moc_sdrs.cpp build\moc_network.cpp build\moc_mits.cpp build\moc_hvslider_v_identif.cpp build\moc_hvalltxt.cpp build\moc_cpuwudget.cpp build\moc_hvbutton_left2.cpp build\moc_hvbutton_left4.cpp build\moc_hvmodbtsw.cpp build\moc_hvbutton_lrc.cpp build\moc_hvslider_h.cpp build\moc_aggressiv_d.cpp
 build/moc_main_ms.cpp: src/main_ms.h \
 		src/config.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QWidget \
@@ -1096,6 +1102,10 @@ build/moc_main_ms.cpp: src/main_ms.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qstandarditemmodel.h \
 		src/HvTxW/hvcustomw.h \
 		src/HvTxW/hvmultianswermodw.h \
+		src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
 		src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QQueue \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qqueue.h \
@@ -3586,6 +3596,10 @@ build/moc_hvtxw.cpp: src/HvTxW/hvtxw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdatetime.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QSpinBox \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qspinbox.h \
+		src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
 		src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QString \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QQueue \
@@ -4369,6 +4383,189 @@ build/moc_hvmultianswermodw.cpp: src/HvTxW/hvmultianswermodw.h \
 		build/moc_predefs.h \
 		../../../../QT/5.15.2/mingw81_64/bin/moc.exe
 	C:\QT\5.15.2\mingw81_64\bin\moc.exe $(DEFINES) --include C:/Users/joshua/Desktop/MSHV/build/moc_predefs.h -IC:/QT/5.15.2/mingw81_64/mkspecs/win32-g++ -IC:/Users/joshua/Desktop/MSHV -IC:/QT/5.15.2/mingw81_64/include -IC:/QT/5.15.2/mingw81_64/include/ActiveQt -IC:/QT/5.15.2/mingw81_64/include/QtWidgets -IC:/QT/5.15.2/mingw81_64/include/QtGui -IC:/QT/5.15.2/mingw81_64/include/QtANGLE -IC:/QT/5.15.2/mingw81_64/include/QtWebSockets -IC:/QT/5.15.2/mingw81_64/include/QtNetwork -IC:/QT/5.15.2/mingw81_64/include/QtCore -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++ -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed -IC:/Qt/Tools/mingw810_64/x86_64-w64-mingw32/include src\HvTxW\hvmultianswermodw.h -o build\moc_hvmultianswermodw.cpp
+
+build/moc_idlearstatusdialog.cpp: src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QDialog \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgetsglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qconfig-bootstrapped.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qconfig.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtcore-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsystemdetection.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qprocessordetection.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcompilerdetection.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtypeinfo.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsysinfo.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qlogging.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qflags.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbasicatomic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic_bootstrap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qgenericatomic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic_cxx11.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic_msvc.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qglobalstatic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmutex.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qnumeric.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qversiontagging.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgets-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qwidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qwindowdefs.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobjectdefs.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qnamespace.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobjectdefs_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qwindowdefs_win.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobject.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstring.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qchar.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbytearray.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qrefcount.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qarraydata.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringliteral.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringalgorithms.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringbuilder.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qlist.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qalgorithms.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qiterator.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhashfunctions.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qpair.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qvector.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcontainertools_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qpoint.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbytearraylist.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringlist.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qregexp.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringmatcher.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcoreevent.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qscopedpointer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmetatype.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qvarlengtharray.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcontainerfwd.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobject_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmargins.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpaintdevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qrect.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsize.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpalette.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qbrush.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qmatrix.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpolygon.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qregion.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdatastream.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qiodevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qline.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtransform.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qimage.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpixelformat.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpixmap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsharedpointer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qshareddata.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsharedpointer_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qfont.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qfontmetrics.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qfontinfo.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qsizepolicy.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcursor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qkeysequence.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qevent.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qvariant.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdebug.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtextstream.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qlocale.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qset.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcontiguouscache.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qurl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qurlquery.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qfile.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qfiledevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qvector2d.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtouchdevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractitemview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractscrollarea.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qframe.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qabstractitemmodel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qitemselectionmodel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractitemdelegate.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qstyleoption.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractspinbox.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qvalidator.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qregularexpression.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qicon.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qslider.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractslider.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qstyle.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtabbar.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtabwidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qrubberband.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLabel \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlabel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QPushButton \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qpushbutton.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractbutton.h \
+		src/HvTxW/hvmultianswermodw.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTabWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTreeView \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtreeview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QHeaderView \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qheaderview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QStandardItemModel \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qstandarditemmodel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QMenu \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmenu.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qaction.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qactiongroup.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QMouseEvent \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QDateTime \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdatetime.h \
+		src/HvTxW/hvstditmmod.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QSpinBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qspinbox.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QComboBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qcombobox.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QCheckBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qcheckbox.h \
+		src/HvTxW/hvqthloc.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QMessageBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmessagebox.h \
+		src/HvTxW/hvinle.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QVBoxLayout \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qboxlayout.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlayout.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlayoutitem.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qgridlayout.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLineEdit \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlineedit.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextcursor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextformat.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpen.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextoption.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QKeyEvent \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QValidator \
+		src/HvButtons/hvbutton_left2.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QBitmap \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qbitmap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QPainter \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpainter.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QTimer \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtimer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbasictimer.h \
+		build/moc_predefs.h \
+		../../../../QT/5.15.2/mingw81_64/bin/moc.exe
+	C:\QT\5.15.2\mingw81_64\bin\moc.exe $(DEFINES) --include C:/Users/joshua/Desktop/MSHV/build/moc_predefs.h -IC:/QT/5.15.2/mingw81_64/mkspecs/win32-g++ -IC:/Users/joshua/Desktop/MSHV -IC:/QT/5.15.2/mingw81_64/include -IC:/QT/5.15.2/mingw81_64/include/ActiveQt -IC:/QT/5.15.2/mingw81_64/include/QtWidgets -IC:/QT/5.15.2/mingw81_64/include/QtGui -IC:/QT/5.15.2/mingw81_64/include/QtANGLE -IC:/QT/5.15.2/mingw81_64/include/QtWebSockets -IC:/QT/5.15.2/mingw81_64/include/QtNetwork -IC:/QT/5.15.2/mingw81_64/include/QtCore -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++ -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include/c++/backward -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include -IC:/Qt/Tools/mingw810_64/lib/gcc/x86_64-w64-mingw32/8.1.0/include-fixed -IC:/Qt/Tools/mingw810_64/x86_64-w64-mingw32/include src\HvTxW\idlearstatusdialog.h -o build\moc_idlearstatusdialog.cpp
 
 build/moc_hvtxtcolor.cpp: src/HvTextColor/hvtxtcolor.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QDialog \
@@ -8848,6 +9045,10 @@ build/main.o: src/main.cpp ../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QA
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qstandarditemmodel.h \
 		src/HvTxW/hvcustomw.h \
 		src/HvTxW/hvmultianswermodw.h \
+		src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
 		src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QQueue \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qqueue.h \
@@ -9188,6 +9389,10 @@ build/main_ms.o: src/main_ms.cpp src/main_ms.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtGui/qstandarditemmodel.h \
 		src/HvTxW/hvcustomw.h \
 		src/HvTxW/hvmultianswermodw.h \
+		src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
 		src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QQueue \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qqueue.h \
@@ -14286,6 +14491,10 @@ build/hvtxw.o: src/HvTxW/hvtxw.cpp src/HvTxW/hvtxw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdatetime.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QSpinBox \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qspinbox.h \
+		src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
 		src/HvTxW/HvRadioNetW/radionetw.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QString \
 		../../../../QT/5.15.2/mingw81_64/include/QtCore/QQueue \
@@ -14319,6 +14528,7 @@ build/hvtxw.o: src/HvTxW/hvtxw.cpp src/HvTxW/hvtxw.h \
 		src/config_band_all.h \
 		src/config_str_color.h \
 		src/HvTxW/config_rpt_all.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QEvent \
 		src/config_str_con.h \
 		src/config_str_sk.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build\hvtxw.o src\HvTxW\hvtxw.cpp
@@ -15189,6 +15399,188 @@ build/hvmultianswermodw.o: src/HvTxW/hvmultianswermodw.cpp src/HvTxW/hvmultiansw
 		src/HvTxW/config_rpt_all.h \
 		src/pfx_sfx.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build\hvmultianswermodw.o src\HvTxW\hvmultianswermodw.cpp
+
+build/idlearstatusdialog.o: src/HvTxW/idlearstatusdialog.cpp src/HvTxW/idlearstatusdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QDialog \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qdialog.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgetsglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtguiglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qglobal.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qconfig-bootstrapped.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qconfig.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtcore-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsystemdetection.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qprocessordetection.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcompilerdetection.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtypeinfo.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsysinfo.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qlogging.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qflags.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbasicatomic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic_bootstrap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qgenericatomic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic_cxx11.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qatomic_msvc.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qglobalstatic.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmutex.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qnumeric.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qversiontagging.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtgui-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtwidgets-config.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qwidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qwindowdefs.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobjectdefs.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qnamespace.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobjectdefs_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qwindowdefs_win.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobject.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstring.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qchar.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbytearray.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qrefcount.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qarraydata.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringliteral.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringalgorithms.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringbuilder.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qlist.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qalgorithms.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qiterator.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhashfunctions.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qpair.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qvector.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcontainertools_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qpoint.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbytearraylist.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringlist.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qregexp.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qstringmatcher.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcoreevent.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qscopedpointer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmetatype.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qvarlengtharray.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcontainerfwd.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qobject_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmargins.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpaintdevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qrect.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsize.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpalette.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcolor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgb.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qrgba64.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qbrush.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qmatrix.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpolygon.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qregion.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdatastream.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qiodevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qline.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtransform.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qimage.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpixelformat.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpixmap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsharedpointer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qshareddata.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qhash.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qsharedpointer_impl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qfont.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qfontmetrics.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qfontinfo.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qsizepolicy.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qcursor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qkeysequence.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qevent.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qvariant.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qmap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdebug.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtextstream.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qlocale.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qset.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qcontiguouscache.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qurl.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qurlquery.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qfile.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qfiledevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qvector2d.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtouchdevice.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTableWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtablewidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtableview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractitemview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractscrollarea.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qframe.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qabstractitemmodel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qitemselectionmodel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractitemdelegate.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qstyleoption.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractspinbox.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qvalidator.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qregularexpression.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qicon.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qslider.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractslider.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qstyle.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtabbar.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtabwidget.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qrubberband.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLabel \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlabel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QPushButton \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qpushbutton.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qabstractbutton.h \
+		src/HvTxW/hvmultianswermodw.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTabWidget \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QTreeView \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qtreeview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QHeaderView \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qheaderview.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QStandardItemModel \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qstandarditemmodel.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QMenu \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmenu.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qaction.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qactiongroup.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QMouseEvent \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QDateTime \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qdatetime.h \
+		src/HvTxW/hvstditmmod.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QSpinBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qspinbox.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QComboBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qcombobox.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QCheckBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qcheckbox.h \
+		src/HvTxW/hvqthloc.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QStringList \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QMessageBox \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qmessagebox.h \
+		src/HvTxW/hvinle.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QVBoxLayout \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qboxlayout.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlayout.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlayoutitem.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qgridlayout.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QLineEdit \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/qlineedit.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextcursor.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextformat.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpen.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qtextoption.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QKeyEvent \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QValidator \
+		src/HvButtons/hvbutton_left2.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QBitmap \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qbitmap.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/QPainter \
+		../../../../QT/5.15.2/mingw81_64/include/QtGui/qpainter.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/QTimer \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qtimer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtCore/qbasictimer.h \
+		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QHBoxLayout
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build\idlearstatusdialog.o src\HvTxW\idlearstatusdialog.cpp
 
 build/hvtxtcolor.o: src/HvTextColor/hvtxtcolor.cpp src/HvTextColor/hvtxtcolor.h \
 		../../../../QT/5.15.2/mingw81_64/include/QtWidgets/QDialog \
@@ -22397,6 +22789,9 @@ build/moc_hvstditmmod.o: build/moc_hvstditmmod.cpp
 
 build/moc_hvmultianswermodw.o: build/moc_hvmultianswermodw.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build\moc_hvmultianswermodw.o build\moc_hvmultianswermodw.cpp
+
+build/moc_idlearstatusdialog.o: build/moc_idlearstatusdialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build\moc_idlearstatusdialog.o build\moc_idlearstatusdialog.cpp
 
 build/moc_hvtxtcolor.o: build/moc_hvtxtcolor.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o build\moc_hvtxtcolor.o build\moc_hvtxtcolor.cpp

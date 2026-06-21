@@ -138,7 +138,8 @@ private:
 #define  TEX_MARK_C 31
 #include "../config.h"
 #include "hvcustomw.h" 
-#include "hvmultianswermodw.h" 
+#include "hvmultianswermodw.h"
+#include "idlearstatusdialog.h"
 #include "HvRadioNetW/radionetw.h"
 #include "../HvSlider_V_Identif/hvslider_v_identif.h"
 #include "HvAstroDataW/hvastrodataw.h"
@@ -473,6 +474,9 @@ private slots:
     void IdleArCandidateSecondsChanged(int);
     void IdleArCatChanged(bool);
     void IdleArContestCallChanged(QString);
+    void IdleCandCountChanged(int);
+    void IdleArFired(QString);
+    bool eventFilter(QObject *obj, QEvent *ev);
 
 private:
 	uint8_t id_mshf;//2.76
@@ -526,7 +530,9 @@ private:
     QSpinBox *sb_idle_ar_candidate_seconds;
     QCheckBox *cb_idle_cat[4]; // CQ, CQ Other, RR73, 73
     QLineEdit *le_idle_contest_call;
+    QLineEdit *le_idle_cand_count;
     void RefreshIdleArPane();
+    IdleArStatusDialog *dlg_idle_ar_status;
     
     bool s_2click_list_autu_on;
     bool log_qso_startdt_eq_enddt;
