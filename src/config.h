@@ -4,7 +4,7 @@
 #define VERSION_MAJOR 1337 //clarifies this is not the original MSHV, but a forked version
 #define VERSION_MINOR 76   //Follows MSHV sersioning: version when you add functionality in a backward compatible manner
 #define VERSION_PATCH 6    //Follows MSHV sersioning: version when you make backward compatible bug fixes
-#define VERSION_REVISION 8 //our fork's versioning
+#define VERSION_REVISION 9 //our fork's versioning
 
 #define STR0(x) #x
 #define TOSTR0(x) STR0(x)

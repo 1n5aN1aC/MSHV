@@ -562,6 +562,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     le_idle_cand_count->setFixedHeight(19);
     le_idle_cand_count->setAlignment(Qt::AlignCenter);
     le_idle_cand_count->setContextMenuPolicy(Qt::NoContextMenu);
+    le_idle_cand_count->setStyleSheet("QLineEdit{background-color:#d4d0c8;color:#606060;selection-background-color:#d4d0c8;}");
     le_idle_cand_count->setCursor(Qt::PointingHandCursor);
     le_idle_cand_count->setToolTip(tr("Click to open Idle AR status"));
     le_idle_cand_count->installEventFilter(this);
