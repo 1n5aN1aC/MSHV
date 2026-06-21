@@ -528,7 +528,7 @@ private:
     QCheckBox *cb_idle_ar_enable;
     QSpinBox *sb_idle_ar_timeout;
     QSpinBox *sb_idle_ar_candidate_seconds;
-    QCheckBox *cb_idle_cat[4]; // CQ, CQ Other, RR73, 73
+    QCheckBox *cb_idle_cat[IDLE_CAT_COUNT]; // CQ Tag, CQ, RR73, 73, Other
     QLineEdit *le_idle_contest_call;
     QLineEdit *le_idle_cand_count;
     void RefreshIdleArPane();

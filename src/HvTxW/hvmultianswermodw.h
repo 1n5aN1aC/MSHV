@@ -15,7 +15,7 @@
 #include <QDateTime>
 #include "hvstditmmod.h"
 
-enum IdleCandCategory { IDLE_CAT_CQ_CONTEST=0, IDLE_CAT_OTHER_CQ=1, IDLE_CAT_RR73=2, IDLE_CAT_73=3, IDLE_CAT_COUNT=4 };
+enum IdleCandCategory { IDLE_CAT_CQ_CONTEST=0, IDLE_CAT_OTHER_CQ=1, IDLE_CAT_RR73=2, IDLE_CAT_73=3, IDLE_CAT_OTHER=4, IDLE_CAT_COUNT=5 };
 struct IdleCandidate {
     QString call;
     QString freq;
@@ -208,14 +208,16 @@ public:
         out.append("#");
         out.append(QString("%1").arg(s_idle_ar_timeout_cycles));
         out.append("#");
-        for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic)
+        for (int ic = 0; ic < 4; ++ic) // positions 0..3 must not shift — IDLE_CAT_OTHER appended at end
         {
             out.append(QString("%1").arg(f_idle_cat[ic] ? 1 : 0));
             out.append("#");
         }
         out.append(s_idle_contest_call);
-        out.append("#"); // trailing
+        out.append("#");
         out.append(QString("%1").arg(s_idle_candidate_seconds));
+        out.append("#");
+        out.append(QString("%1").arg(f_idle_cat[IDLE_CAT_OTHER] ? 1 : 0));
         out.append("#"); // trailing
         return out;
     }

@@ -31,6 +31,7 @@ static const int IDLE_W_CONTEST_MATCH  = 1000; // cqTag == s_idle_contest_call (
 static const int IDLE_W_CAT_CQ         =  200; // any CQ (tagged or plain, matched or not)
 static const int IDLE_W_CAT_RR73       =  100; // RR73 or RRR (treated equally)
 static const int IDLE_W_CAT_73         =    0; // 73
+static const int IDLE_W_CAT_OTHER      = -100; // all other messages — last resort
 static const int IDLE_W_TRIED_FRESH    =  400; // never tried / cooldown fully elapsed
 static const int IDLE_W_RECENCY_MAX    =  100; // heard right now (scales to 0 at window edge)
 static const int IDLE_W_SNR_MAX        =   24; // maps [-24..+24 dB] to [0..24] pts
@@ -895,6 +896,8 @@ void MultiAnswerModW::SetSettings(QString s)
         // Backward compatibility with older settings that had no candidate-seconds field.
         s_idle_candidate_seconds = 90;
     }
+    if (ls.count() > idleBase + 8)
+        f_idle_cat[IDLE_CAT_OTHER] = (ls.at(idleBase + 8) == "1");
 }
 void MultiAnswerModW::LQueueCountChange(int n)
 {
@@ -3569,7 +3572,7 @@ IdleCandCategory MultiAnswerModW::ClassifyIdleCandidate(QString text_msg)
         if (words.at(i) == "73") return IDLE_CAT_73;
     }
 
-    return IDLE_CAT_COUNT; // not a category we track
+    return IDLE_CAT_OTHER; // unrecognized but valid — last-resort bucket
 }
 int MultiAnswerModW::CountActiveCandidates() const
 {
@@ -3701,9 +3704,10 @@ int MultiAnswerModW::ScoreIdleCandidate(const IdleCandidate &cand,
     switch (cand.cat)
     {
     case IDLE_CAT_CQ_CONTEST:
-    case IDLE_CAT_OTHER_CQ:   score += IDLE_W_CAT_CQ;   break;
+    case IDLE_CAT_OTHER_CQ:   score += IDLE_W_CAT_CQ;    break;
     case IDLE_CAT_RR73:       score += IDLE_W_CAT_RR73;  break;
     case IDLE_CAT_73:         score += IDLE_W_CAT_73;    break;
+    case IDLE_CAT_OTHER:      score += IDLE_W_CAT_OTHER; break;
     default: break;
     }
 

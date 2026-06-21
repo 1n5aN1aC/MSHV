@@ -10,7 +10,7 @@
 #include <QDateTime>
 
 static const char * const CAT_NAMES[IDLE_CAT_COUNT] = {
-    "CQ Tag", "CQ", "RR73", "73"
+    "CQ Tag", "CQ", "RR73", "73", "Other"
 };
 
 IdleArStatusDialog::IdleArStatusDialog(QWidget *parent)
