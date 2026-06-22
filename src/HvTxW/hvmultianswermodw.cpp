@@ -2587,6 +2587,9 @@ void MultiAnswerModW::SetTxMsgEnd()
     {
         s_idle_revert_to_cq = false;
     }
+    // Refresh displayed candidate count every TX->RX cycle so stale candidates
+    // (aged out of the active window) are reflected without waiting for a new decode.
+    emit EmitIdleCandidateCount(CountActiveCandidates());
 }
 void MultiAnswerModW::RefreshLists(int c_plus)
 {
