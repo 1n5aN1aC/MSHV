@@ -546,7 +546,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     H_idle_win->setContentsMargins(0, 0, 0, 0);
     H_idle_win->setSpacing(4);
     sb_idle_ar_candidate_seconds = new QSpinBox();
-    sb_idle_ar_candidate_seconds->setRange(1, 3600);
+    sb_idle_ar_candidate_seconds->setRange(1, 600);
     sb_idle_ar_candidate_seconds->setValue(5);
     sb_idle_ar_candidate_seconds->setPrefix(tr("Candidates")+": ");
     sb_idle_ar_candidate_seconds->setSuffix(" "+tr("Seconds"));

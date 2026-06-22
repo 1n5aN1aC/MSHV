@@ -888,7 +888,7 @@ void MultiAnswerModW::SetSettings(QString s)
     {
         int sec = ls.at(idleBase + 7).toInt();
         if (sec < 1) sec = 1;
-        if (sec > 3600) sec = 3600;
+        if (sec > 600) sec = 600;
         s_idle_candidate_seconds = sec;
     }
     else
@@ -3488,7 +3488,7 @@ void MultiAnswerModW::SetIdleAutoRespondTimeout(int cycles)
 void MultiAnswerModW::SetIdleCandidateSeconds(int seconds)
 {
     if (seconds < 1) seconds = 1;
-    if (seconds > 3600) seconds = 3600;
+    if (seconds > 600) seconds = 600;
     s_idle_candidate_seconds = seconds;
 }
 void MultiAnswerModW::SetIdleCategoryEnabled(int cat, bool f)
