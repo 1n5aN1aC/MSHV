@@ -879,7 +879,8 @@ void MultiAnswerModW::SetSettings(QString s)
         if (tcy > 30) tcy = 30;
         s_idle_ar_timeout_cycles = tcy;
     }
-    for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic)
+    // positions 0..3 only — IDLE_CAT_OTHER is stored separately and read at idleBase+8 below
+    for (int ic = 0; ic < 4; ++ic)
     {
         if (ls.count() > idleBase + 2 + ic) f_idle_cat[ic] = (ls.at(idleBase + 2 + ic) == "1");
     }
