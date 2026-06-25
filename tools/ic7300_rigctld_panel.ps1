@@ -201,7 +201,7 @@ function Load-Settings {
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text            = "IC-7300 Panel (rigctld)"
-$form.ClientSize      = New-Object System.Drawing.Size(280, 400)
+$form.ClientSize      = New-Object System.Drawing.Size(280, 352)
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $form.MaximizeBox     = $false
 $form.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
@@ -291,13 +291,13 @@ $chkSwrProtect.Add_CheckedChanged({ $script:shared.swrProtect = $chkSwrProtect.C
 # -- Meter panels (stacked) ---------------------------------------------------
 $pnlSwr = New-Object System.Windows.Forms.Panel
 $pnlSwr.Location  = [System.Drawing.Point]::new(5, 106)
-$pnlSwr.Size      = [System.Drawing.Size]::new(270, 88)
+$pnlSwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlSwr.BackColor = $panelBg
 $form.Controls.Add($pnlSwr)
 
 $pnlPwr = New-Object System.Windows.Forms.Panel
-$pnlPwr.Location  = [System.Drawing.Point]::new(5, 200)
-$pnlPwr.Size      = [System.Drawing.Size]::new(270, 88)
+$pnlPwr.Location  = [System.Drawing.Point]::new(5, 176)
+$pnlPwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlPwr.BackColor = $panelBg
 $form.Controls.Add($pnlPwr)
 
@@ -348,7 +348,7 @@ $pnlPwr.Add_Paint({
 
 # -- Button grid (2 rows x 4) -------------------------------------------------
 $flow = New-Object System.Windows.Forms.FlowLayoutPanel
-$flow.Location      = [System.Drawing.Point]::new(5, 294)
+$flow.Location      = [System.Drawing.Point]::new(5, 246)
 $flow.Size          = [System.Drawing.Size]::new(270, 100)
 $flow.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
 $flow.WrapContents  = $true
