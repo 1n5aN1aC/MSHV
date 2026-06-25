@@ -17,6 +17,7 @@ $script:brushOrange = New-Object System.Drawing.SolidBrush([System.Drawing.Color
 $script:shared = [hashtable]::Synchronized(@{
     pwrFrac          = -1.0   # 0.0-1.0, or -1.0 = no reading
     swrVal           = -1.0   # actual SWR ratio (>= 1.0), or -1.0 = no reading
+    pttState         = -1     # -1=unknown, 0=RX, 1=TX
     stop             = $false
     swrProtect       = $false
     consecutiveFails = 0
@@ -148,8 +149,17 @@ $bgScript = {
         return -1.0
     }
 
+    # Query PTT state via 't' (get_ptt). Returns 0=RX, 1=TX, or -1 on error.
+    function Get-RigPtt {
+        $line = RigSendGet "t"
+        if ($null -eq $line -or $line -eq '') { return -1 }
+        $val = 0
+        if ([int]::TryParse($line.Trim(), [ref]$val)) { return $val }
+        return -1
+    }
+
     while (-not $shared.stop) {
-        $p = -1.0; $s = -1.0
+        $p = -1.0; $s = -1.0; $t = -1
         if (-not $shared.tcpLock.Wait(1000)) { continue }
         try {
             $p = Get-RigLevel 'RFPOWER_METER'
@@ -161,10 +171,13 @@ $bgScript = {
                     RigSendSet "T 0" | Out-Null
                 }
             }
+            [System.Threading.Thread]::Sleep(10)
+            $t = Get-RigPtt
         } catch { } finally { [void]$shared.tcpLock.Release() }
 
-        if ($p -ge 0.0) { $shared.pwrFrac = $p }
-        if ($s -ge 1.0) { $shared.swrVal  = $s }
+        if ($p -ge 0.0) { $shared.pwrFrac  = $p }
+        if ($s -ge 1.0) { $shared.swrVal   = $s }
+        if ($t -ge 0)   { $shared.pttState = $t }
 
         if ($p -ge 0.0 -or $s -ge 1.0) {
             $shared.consecutiveFails = 0
@@ -201,15 +214,16 @@ function Load-Settings {
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text            = "IC-7300 Panel (rigctld)"
-$form.ClientSize      = New-Object System.Drawing.Size(280, 352)
+$form.ClientSize      = New-Object System.Drawing.Size(280, 392)
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $form.MaximizeBox     = $false
 $form.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
 $form.BackColor       = [System.Drawing.Color]::FromArgb(30, 30, 30)
 $form.ForeColor       = [System.Drawing.Color]::White
 
-$fontSmall = New-Object System.Drawing.Font("Segoe UI", 9)
-$fontBold  = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$fontSmall  = New-Object System.Drawing.Font("Segoe UI", 9)
+$fontBold   = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
+$fontPtt    = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
 $silver    = [System.Drawing.Color]::Silver
 $darkBg    = [System.Drawing.Color]::FromArgb(30, 30, 30)
 $panelBg   = [System.Drawing.Color]::FromArgb(18, 18, 18)
@@ -288,15 +302,26 @@ $form.Controls.Add($chkSwrProtect)
 
 $chkSwrProtect.Add_CheckedChanged({ $script:shared.swrProtect = $chkSwrProtect.Checked; Save-Settings })
 
+# -- PTT status label ---------------------------------------------------------
+$lblPtt = New-Object System.Windows.Forms.Label
+$lblPtt.Location  = [System.Drawing.Point]::new(5, 106)
+$lblPtt.Size      = [System.Drawing.Size]::new(270, 34)
+$lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
+$lblPtt.ForeColor = [System.Drawing.Color]::White
+$lblPtt.Text      = "---"
+$lblPtt.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
+$lblPtt.Font      = $fontPtt
+$form.Controls.Add($lblPtt)
+
 # -- Meter panels (stacked) ---------------------------------------------------
 $pnlSwr = New-Object System.Windows.Forms.Panel
-$pnlSwr.Location  = [System.Drawing.Point]::new(5, 106)
+$pnlSwr.Location  = [System.Drawing.Point]::new(5, 146)
 $pnlSwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlSwr.BackColor = $panelBg
 $form.Controls.Add($pnlSwr)
 
 $pnlPwr = New-Object System.Windows.Forms.Panel
-$pnlPwr.Location  = [System.Drawing.Point]::new(5, 176)
+$pnlPwr.Location  = [System.Drawing.Point]::new(5, 216)
 $pnlPwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlPwr.BackColor = $panelBg
 $form.Controls.Add($pnlPwr)
@@ -348,7 +373,7 @@ $pnlPwr.Add_Paint({
 
 # -- Button grid (2 rows x 4) -------------------------------------------------
 $flow = New-Object System.Windows.Forms.FlowLayoutPanel
-$flow.Location      = [System.Drawing.Point]::new(5, 246)
+$flow.Location      = [System.Drawing.Point]::new(5, 286)
 $flow.Size          = [System.Drawing.Size]::new(270, 100)
 $flow.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
 $flow.WrapContents  = $true
@@ -392,6 +417,18 @@ $timer.Add_Tick({
     $pnlPwr.Invalidate()
     $pnlSwr.Invalidate()
 
+    $ptt = $script:shared.pttState
+    if ($ptt -eq 1) {
+        $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(180, 0, 0)
+        $lblPtt.Text      = "Transmitting..."
+    } elseif ($ptt -eq 0) {
+        $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(0, 120, 0)
+        $lblPtt.Text      = "Receiving"
+    } else {
+        $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
+        $lblPtt.Text      = "---"
+    }
+
     if (-not $script:bgPs) { return }
 
     $fails = $script:shared.consecutiveFails
@@ -432,8 +469,9 @@ function Invoke-Disconnect {
     $script:bgPs     = $null
     $script:bgHandle = $null
 
-    $script:shared.pwrFrac = -1.0; $script:shared.swrVal = -1.0
+    $script:shared.pwrFrac = -1.0; $script:shared.swrVal = -1.0; $script:shared.pttState = -1
     $pnlPwr.Invalidate(); $pnlSwr.Invalidate()
+    $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50); $lblPtt.Text = "---"
 
     $lblStatus.Text      = 'Not connected'
     $lblStatus.ForeColor = $silver
@@ -476,6 +514,7 @@ $btnConnect.Add_Click({
         $script:shared.consecutiveFails = 0
         $script:shared.pwrFrac          = -1.0
         $script:shared.swrVal           = -1.0
+        $script:shared.pttState         = -1
         $script:shared.swrProtect       = $chkSwrProtect.Checked
 
         $rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
@@ -512,7 +551,7 @@ $btnDisconnect.Add_Click({ Invoke-Disconnect })
 # -- Cleanup ------------------------------------------------------------------
 $form.Add_FormClosing({
     Invoke-Disconnect
-    $script:fontMeter.Dispose(); $fontSmall.Dispose(); $fontBold.Dispose()
+    $script:fontMeter.Dispose(); $fontSmall.Dispose(); $fontBold.Dispose(); $fontPtt.Dispose()
     $script:brushGreen.Dispose(); $script:brushYellow.Dispose(); $script:brushOrange.Dispose()
     $script:shared.tcpLock.Dispose()
     $timer.Dispose()
