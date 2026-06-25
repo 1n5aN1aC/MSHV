@@ -23,9 +23,26 @@ $script:shared = [hashtable]::Synchronized(@{
     swrProtect       = $false
     consecutiveFails = 0
     tcpLock          = [System.Threading.SemaphoreSlim]::new(1, 1)
+    # Per-sensor poll intervals (ms); populated from the editable vars at connect.
+    intervalPttMs    = 200
+    intervalPwrMs    = 250
+    intervalSwrMs    = 250
+    intervalAlcMs    = 250
+    # Per-sensor "new data" flags; set by the bg thread, cleared by the UI timer.
+    pttDirty         = $false
+    pwrDirty         = $false
+    swrDirty         = $false
+    alcDirty         = $false
 })
 $script:bgPs     = $null
 $script:bgHandle = $null
+
+# -- Per-sensor poll intervals (ms) -- edit freely ----------------------------
+# How often each sensor queries rigctld. Takes effect on the next Connect.
+$script:pollIntervalPttMs = 200   # PTT: fast so TX/RX flips show quickly
+$script:pollIntervalPwrMs = 250   # Power meter (TX only)
+$script:pollIntervalSwrMs = 250   # SWR meter (TX only)
+$script:pollIntervalAlcMs = 250   # ALC meter (TX only)
 
 # -- rigctld helpers (UI thread) ----------------------------------------------
 # tcpLock must be held by the caller before invoking these helpers.
@@ -168,42 +185,96 @@ $bgScript = {
         return -1
     }
 
-    $pttPollMs = 50
-    while (-not $shared.stop) {
-        $t = -1
-        if (-not $shared.tcpLock.Wait(1000)) { continue }
-        try {
-            $t = Get-RigPtt
-            if ($t -ge 0) { $shared.pttState = $t }   # update immediately, before meter queries
-            if ($t -eq 1) {
-                [System.Threading.Thread]::Sleep(10)
-                $p = Get-RigLevel 'RFPOWER_METER_WATTS'
-                [System.Threading.Thread]::Sleep(10)
-                $raw = Get-RigLevel 'SWR'
-                [System.Threading.Thread]::Sleep(10)
-                $a = Get-RigLevel 'ALC'
-                $s = if ($raw -ge 0.0) { if ($raw -lt 1.0) { 1.0 } else { $raw } } else { -1.0 }
-                if ($s -ge 1.0 -and $shared.swrProtect -and $s -gt 2.0) {
-                    RigSendSet "T 0" | Out-Null
-                }
-                if ($p -ge 0.0) { $shared.pwrWatts = $p }
-                if ($s -ge 1.0) { $shared.swrVal  = $s }
-                if ($a -ge 0.0) { $shared.alcFrac = $a }
-            } elseif ($t -eq 0) {
-                # RX: clear meters; future receive-only queries go here
-                $shared.pwrWatts = -1.0
-                $shared.swrVal  = -1.0
-                $shared.alcFrac = -1.0
-            }
-        } catch { } finally { [void]$shared.tcpLock.Release() }
+    # Each sensor is a "virtual timer": it owns an interval and a next-due
+    # timestamp, all checked inside this one loop. Sensors lock/query
+    # independently so a slow meter read can't delay PTT. The bg thread only
+    # writes $shared (never WinForms); it sets a per-sensor *Dirty flag so the
+    # UI timer knows which panel produced new data.
+    $sw      = [System.Diagnostics.Stopwatch]::StartNew()
+    $nextPtt = 0L
+    $nextPwr = 0L
+    $nextSwr = 0L
+    $nextAlc = 0L
 
-        if ($t -ge 0) {
-            $shared.consecutiveFails = 0
-        } else {
-            $shared.consecutiveFails++
+    while (-not $shared.stop) {
+        $now = $sw.ElapsedMilliseconds
+
+        # -- PTT sensor -------------------------------------------------------
+        if ($now -ge $nextPtt) {
+            $nextPtt = $now + $shared.intervalPttMs
+            $t = -1
+            if ($shared.tcpLock.Wait(1000)) {
+                try { $t = Get-RigPtt } catch { } finally { [void]$shared.tcpLock.Release() }
+            }
+            if ($t -ge 0) {
+                if ($shared.pttState -ne $t) {
+                    $shared.pttState = $t; $shared.pttDirty = $true
+                    # On RX->TX transition, fire all meter sensors immediately.
+                    if ($t -eq 1) { $nextPwr = 0L; $nextSwr = 0L; $nextAlc = 0L }
+                }
+                $shared.consecutiveFails = 0
+            } else {
+                $shared.consecutiveFails++
+            }
         }
 
-        if (-not $shared.stop) { [System.Threading.Thread]::Sleep($pttPollMs) }
+        $tx = ($shared.pttState -eq 1)
+
+        # -- Power sensor (TX only) -------------------------------------------
+        if ($now -ge $nextPwr) {
+            $nextPwr = $now + $shared.intervalPwrMs
+            if ($tx) {
+                $p = -1.0
+                if ($shared.tcpLock.Wait(1000)) {
+                    try { $p = Get-RigLevel 'RFPOWER_METER_WATTS' } catch { } finally { [void]$shared.tcpLock.Release() }
+                }
+                if ($p -ge 0.0) { $shared.pwrWatts = $p; $shared.pwrDirty = $true }
+            } elseif ($shared.pwrWatts -ne -1.0) {
+                $shared.pwrWatts = -1.0; $shared.pwrDirty = $true
+            }
+        }
+
+        # -- SWR sensor (TX only) ---------------------------------------------
+        if ($now -ge $nextSwr) {
+            $nextSwr = $now + $shared.intervalSwrMs
+            if ($tx) {
+                $s = -1.0
+                if ($shared.tcpLock.Wait(1000)) {
+                    try {
+                        $raw = Get-RigLevel 'SWR'
+                        $s = if ($raw -ge 0.0) { if ($raw -lt 1.0) { 1.0 } else { $raw } } else { -1.0 }
+                        if ($s -ge 1.0 -and $shared.swrProtect -and $s -gt 2.0) {
+                            RigSendSet "T 0" | Out-Null
+                        }
+                    } catch { } finally { [void]$shared.tcpLock.Release() }
+                }
+                if ($s -ge 1.0) { $shared.swrVal = $s; $shared.swrDirty = $true }
+            } elseif ($shared.swrVal -ne -1.0) {
+                $shared.swrVal = -1.0; $shared.swrDirty = $true
+            }
+        }
+
+        # -- ALC sensor (TX only) ---------------------------------------------
+        if ($now -ge $nextAlc) {
+            $nextAlc = $now + $shared.intervalAlcMs
+            if ($tx) {
+                $a = -1.0
+                if ($shared.tcpLock.Wait(1000)) {
+                    try { $a = Get-RigLevel 'ALC' } catch { } finally { [void]$shared.tcpLock.Release() }
+                }
+                if ($a -ge 0.0) { $shared.alcFrac = $a; $shared.alcDirty = $true }
+            } elseif ($shared.alcFrac -ne -1.0) {
+                $shared.alcFrac = -1.0; $shared.alcDirty = $true
+            }
+        }
+
+        # Sleep until the soonest next-due, capped so $shared.stop stays responsive.
+        $now     = $sw.ElapsedMilliseconds
+        $soonest = [Math]::Min([Math]::Min($nextPtt, $nextPwr), [Math]::Min($nextSwr, $nextAlc))
+        $sleepMs = $soonest - $now
+        if ($sleepMs -lt 1)   { $sleepMs = 1 }
+        if ($sleepMs -gt 250) { $sleepMs = 250 }
+        if (-not $shared.stop) { [System.Threading.Thread]::Sleep([int]$sleepMs) }
     }
 }
 
@@ -459,25 +530,30 @@ foreach ($entry in @(
     $flow.Controls.Add($btn)
 }
 
-# -- UI refresh timer (display only -- no network I/O on the UI thread) -------
+# -- UI render dispatcher (display only -- no network I/O on the UI thread) ---
+# Repaints only the sensors that produced new data (the *Dirty flags the bg
+# thread set after each query), then handles status / auto-disconnect.
 $timer = New-Object System.Windows.Forms.Timer
-$timer.Interval = 50
+$timer.Interval = 40
 
 $timer.Add_Tick({
-    $pnlPwr.Invalidate()
-    $pnlSwr.Invalidate()
-    $pnlAlc.Invalidate()
+    if ($script:shared.pwrDirty) { $script:shared.pwrDirty = $false; $pnlPwr.Invalidate() }
+    if ($script:shared.swrDirty) { $script:shared.swrDirty = $false; $pnlSwr.Invalidate() }
+    if ($script:shared.alcDirty) { $script:shared.alcDirty = $false; $pnlAlc.Invalidate() }
 
-    $ptt = $script:shared.pttState
-    if ($ptt -eq 1) {
-        $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(180, 0, 0)
-        $lblPtt.Text      = "Transmitting..."
-    } elseif ($ptt -eq 0) {
-        $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(0, 120, 0)
-        $lblPtt.Text      = "Receiving"
-    } else {
-        $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
-        $lblPtt.Text      = "---"
+    if ($script:shared.pttDirty) {
+        $script:shared.pttDirty = $false
+        $ptt = $script:shared.pttState
+        if ($ptt -eq 1) {
+            $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(180, 0, 0)
+            $lblPtt.Text      = "Transmitting..."
+        } elseif ($ptt -eq 0) {
+            $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(0, 120, 0)
+            $lblPtt.Text      = "Receiving"
+        } else {
+            $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
+            $lblPtt.Text      = "---"
+        }
     }
 
     if (-not $script:bgPs) { return }
@@ -521,6 +597,7 @@ function Invoke-Disconnect {
     $script:bgHandle = $null
 
     $script:shared.pwrWatts = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1
+    $script:shared.pttDirty = $false; $script:shared.pwrDirty = $false; $script:shared.swrDirty = $false; $script:shared.alcDirty = $false
     $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate()
     $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50); $lblPtt.Text = "---"
 
@@ -565,8 +642,19 @@ $btnConnect.Add_Click({
         $script:shared.consecutiveFails = 0
         $script:shared.pwrWatts         = -1.0
         $script:shared.swrVal           = -1.0
+        $script:shared.alcFrac          = -1.0
         $script:shared.pttState         = -1
         $script:shared.swrProtect       = $chkSwrProtect.Checked
+
+        # Apply the editable poll intervals and clear stale render flags.
+        $script:shared.intervalPttMs = $script:pollIntervalPttMs
+        $script:shared.intervalPwrMs = $script:pollIntervalPwrMs
+        $script:shared.intervalSwrMs = $script:pollIntervalSwrMs
+        $script:shared.intervalAlcMs = $script:pollIntervalAlcMs
+        $script:shared.pttDirty = $false
+        $script:shared.pwrDirty = $false
+        $script:shared.swrDirty = $false
+        $script:shared.alcDirty = $false
 
         $rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
         $rs.Open()
