@@ -167,34 +167,38 @@ $bgScript = {
         return -1
     }
 
+    $pttPollMs = 100
     while (-not $shared.stop) {
-        $p = -1.0; $s = -1.0; $t = -1
+        $t = -1
         if (-not $shared.tcpLock.Wait(1000)) { continue }
         try {
-            $p = Get-RigLevel 'RFPOWER_METER'
-            [System.Threading.Thread]::Sleep(10)
-            $raw = Get-RigLevel 'SWR'
-            if ($raw -ge 0.0) {
-                $s = if ($raw -lt 1.0) { 1.0 } else { $raw }
-                if ($shared.swrProtect -and $s -gt 2.0) {
+            $t = Get-RigPtt
+            if ($t -eq 1) {
+                [System.Threading.Thread]::Sleep(10)
+                $p = Get-RigLevel 'RFPOWER_METER'
+                [System.Threading.Thread]::Sleep(10)
+                $raw = Get-RigLevel 'SWR'
+                $s = if ($raw -ge 0.0) { if ($raw -lt 1.0) { 1.0 } else { $raw } } else { -1.0 }
+                if ($s -ge 1.0 -and $shared.swrProtect -and $s -gt 2.0) {
                     RigSendSet "T 0" | Out-Null
                 }
+                if ($p -ge 0.0) { $shared.pwrFrac = $p }
+                if ($s -ge 1.0) { $shared.swrVal  = $s }
+            } elseif ($t -eq 0) {
+                # RX: clear meters; future receive-only queries go here
+                $shared.pwrFrac = -1.0
+                $shared.swrVal  = -1.0
             }
-            [System.Threading.Thread]::Sleep(10)
-            $t = Get-RigPtt
         } catch { } finally { [void]$shared.tcpLock.Release() }
 
-        if ($p -ge 0.0) { $shared.pwrFrac  = $p }
-        if ($s -ge 1.0) { $shared.swrVal   = $s }
-        if ($t -ge 0)   { $shared.pttState = $t }
-
-        if ($p -ge 0.0 -or $s -ge 1.0) {
+        if ($t -ge 0) {
+            $shared.pttState         = $t
             $shared.consecutiveFails = 0
         } else {
             $shared.consecutiveFails++
         }
 
-        if (-not $shared.stop) { [System.Threading.Thread]::Sleep(250) }
+        if (-not $shared.stop) { [System.Threading.Thread]::Sleep($pttPollMs) }
     }
 }
 
@@ -425,7 +429,7 @@ foreach ($entry in @(
 
 # -- UI refresh timer (display only -- no network I/O on the UI thread) -------
 $timer = New-Object System.Windows.Forms.Timer
-$timer.Interval = 250
+$timer.Interval = 50
 
 $timer.Add_Tick({
     $pnlPwr.Invalidate()
@@ -449,10 +453,10 @@ $timer.Add_Tick({
     if ($fails -eq 0) {
         $lblStatus.Text      = 'Polling OK'
         $lblStatus.ForeColor = [System.Drawing.Color]::LimeGreen
-    } elseif ($fails -lt 8) {
+    } elseif ($fails -lt 20) {
         $lblStatus.Text      = "Polling warn ($fails)"
         $lblStatus.ForeColor = [System.Drawing.Color]::Yellow
-    } elseif ($fails -lt 20) {
+    } elseif ($fails -lt 50) {
         $lblStatus.Text      = "Polling FAIL ($fails)"
         $lblStatus.ForeColor = [System.Drawing.Color]::OrangeRed
     } else {
