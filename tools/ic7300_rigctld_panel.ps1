@@ -17,6 +17,7 @@ $script:brushOrange = New-Object System.Drawing.SolidBrush([System.Drawing.Color
 $script:shared = [hashtable]::Synchronized(@{
     pwrFrac          = -1.0   # 0.0-1.0, or -1.0 = no reading
     swrVal           = -1.0   # actual SWR ratio (>= 1.0), or -1.0 = no reading
+    alcFrac          = -1.0   # 0.0-1.0, or -1.0 = no reading
     pttState         = -1     # -1=unknown, 0=RX, 1=TX
     stop             = $false
     swrProtect       = $false
@@ -167,32 +168,36 @@ $bgScript = {
         return -1
     }
 
-    $pttPollMs = 100
+    $pttPollMs = 50
     while (-not $shared.stop) {
         $t = -1
         if (-not $shared.tcpLock.Wait(1000)) { continue }
         try {
             $t = Get-RigPtt
+            if ($t -ge 0) { $shared.pttState = $t }   # update immediately, before meter queries
             if ($t -eq 1) {
                 [System.Threading.Thread]::Sleep(10)
                 $p = Get-RigLevel 'RFPOWER_METER'
                 [System.Threading.Thread]::Sleep(10)
                 $raw = Get-RigLevel 'SWR'
+                [System.Threading.Thread]::Sleep(10)
+                $a = Get-RigLevel 'ALC'
                 $s = if ($raw -ge 0.0) { if ($raw -lt 1.0) { 1.0 } else { $raw } } else { -1.0 }
                 if ($s -ge 1.0 -and $shared.swrProtect -and $s -gt 2.0) {
                     RigSendSet "T 0" | Out-Null
                 }
                 if ($p -ge 0.0) { $shared.pwrFrac = $p }
                 if ($s -ge 1.0) { $shared.swrVal  = $s }
+                if ($a -ge 0.0) { $shared.alcFrac = $a }
             } elseif ($t -eq 0) {
                 # RX: clear meters; future receive-only queries go here
                 $shared.pwrFrac = -1.0
                 $shared.swrVal  = -1.0
+                $shared.alcFrac = -1.0
             }
         } catch { } finally { [void]$shared.tcpLock.Release() }
 
         if ($t -ge 0) {
-            $shared.pttState         = $t
             $shared.consecutiveFails = 0
         } else {
             $shared.consecutiveFails++
@@ -227,7 +232,7 @@ function Load-Settings {
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text            = "IC-7300 Panel (rigctld)"
-$form.ClientSize      = New-Object System.Drawing.Size(280, 392)
+$form.ClientSize      = New-Object System.Drawing.Size(280, 462)
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $form.MaximizeBox     = $false
 $form.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
@@ -344,11 +349,18 @@ $pnlPwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlPwr.BackColor = $panelBg
 $form.Controls.Add($pnlPwr)
 
+$pnlAlc = New-Object System.Windows.Forms.Panel
+$pnlAlc.Location  = [System.Drawing.Point]::new(5, 286)
+$pnlAlc.Size      = [System.Drawing.Size]::new(270, 64)
+$pnlAlc.BackColor = $panelBg
+$form.Controls.Add($pnlAlc)
+
 # Enable double-buffering to eliminate repaint flicker.
 $dbl = [System.Windows.Forms.Control].GetProperty('DoubleBuffered',
     [System.Reflection.BindingFlags]'NonPublic,Instance')
 $dbl.SetValue($pnlSwr, $true, $null)
 $dbl.SetValue($pnlPwr, $true, $null)
+$dbl.SetValue($pnlAlc, $true, $null)
 
 $pnlSwr.Add_Paint({
     param($sender, $e)
@@ -389,10 +401,31 @@ $pnlPwr.Add_Paint({
     $g.DrawString($pwrText, $script:fontMeter, [System.Drawing.Brushes]::White, 4, 6)
 })
 
+$pnlAlc.Add_Paint({
+    param($sender, $e)
+    $g = $e.Graphics; $pw = $sender.Width; $ph = $sender.Height
+    $frac = $script:shared.alcFrac
+    $g.FillRectangle([System.Drawing.Brushes]::Black, 0, 0, $pw, $ph)
+    $pct = if ($frac -ge 0.0) { [Math]::Min(1.0, $frac) } else { 0.0 }
+    if ($frac -ge 0.0) {
+        $barW = [int]($pct * ($pw - 4))
+        if ($barW -gt 0) {
+            $br = if ($pct -lt 0.5)      { $script:brushGreen }
+                  elseif ($pct -lt 0.8)  { $script:brushYellow }
+                  else                   { $script:brushOrange }
+            $g.FillRectangle($br, 2, $ph - 24, $barW, 20)
+        }
+    }
+    $alcText = if ($frac -lt 0.0)   { "ALC  ---" }
+               elseif ($pct -eq 0)  { "ALC    0%" }
+               else                 { "ALC  {0,3}%" -f ([int]($pct * 100)) }
+    $g.DrawString($alcText, $script:fontMeter, [System.Drawing.Brushes]::White, 4, 6)
+})
+
 # -- Button grid (2 rows x 4) -------------------------------------------------
 $flow = New-Object System.Windows.Forms.FlowLayoutPanel
-$flow.Location      = [System.Drawing.Point]::new(5, 286)
-$flow.Size          = [System.Drawing.Size]::new(270, 100)
+$flow.Location      = [System.Drawing.Point]::new(5, 356)
+$flow.Size          = [System.Drawing.Size]::new(270, 68)
 $flow.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
 $flow.WrapContents  = $true
 $flow.BackColor     = $darkBg
@@ -410,7 +443,7 @@ foreach ($entry in @(
 )) {
     $btn = New-Object System.Windows.Forms.Button
     $btn.Text      = $entry.Label
-    $btn.Size      = New-Object System.Drawing.Size(62, 46)
+    $btn.Size      = New-Object System.Drawing.Size(62, 30)
     $btn.Margin    = New-Object System.Windows.Forms.Padding(2)
     $btn.Font      = $fontBold
     $btn.ForeColor = [System.Drawing.Color]::White
@@ -434,6 +467,7 @@ $timer.Interval = 50
 $timer.Add_Tick({
     $pnlPwr.Invalidate()
     $pnlSwr.Invalidate()
+    $pnlAlc.Invalidate()
 
     $ptt = $script:shared.pttState
     if ($ptt -eq 1) {
@@ -487,8 +521,8 @@ function Invoke-Disconnect {
     $script:bgPs     = $null
     $script:bgHandle = $null
 
-    $script:shared.pwrFrac = -1.0; $script:shared.swrVal = -1.0; $script:shared.pttState = -1
-    $pnlPwr.Invalidate(); $pnlSwr.Invalidate()
+    $script:shared.pwrFrac = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1
+    $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate()
     $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50); $lblPtt.Text = "---"
 
     $lblStatus.Text      = 'Not connected'
