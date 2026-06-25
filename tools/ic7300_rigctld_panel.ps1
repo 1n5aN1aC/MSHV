@@ -67,6 +67,15 @@ function Set-PowerLevel {
     } catch { } finally { [void]$script:shared.tcpLock.Release() }
 }
 
+# Toggle PTT. $State: 0=RX, 1=TX.
+function Set-Ptt {
+    param([int]$State)
+    if (-not $script:tcpClient -or -not $script:tcpClient.Connected) { return }
+    if (-not $script:shared.tcpLock.Wait(400)) { return }
+    try { Send-RigctlSetCmd "T $State" | Out-Null }
+    catch { } finally { [void]$script:shared.tcpLock.Release() }
+}
+
 # Trigger the ATU tune cycle.
 function Start-Tune {
     if (-not $script:tcpClient -or -not $script:tcpClient.Connected) { return }
@@ -311,6 +320,11 @@ $lblPtt.ForeColor = [System.Drawing.Color]::White
 $lblPtt.Text      = "---"
 $lblPtt.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 $lblPtt.Font      = $fontPtt
+$lblPtt.Cursor    = [System.Windows.Forms.Cursors]::Hand
+$lblPtt.Add_Click({
+    $next = if ($script:shared.pttState -eq 1) { 0 } else { 1 }
+    Set-Ptt -State $next
+})
 $form.Controls.Add($lblPtt)
 
 # -- Meter panels (stacked) ---------------------------------------------------
