@@ -15,7 +15,7 @@ $script:brushOrange = New-Object System.Drawing.SolidBrush([System.Drawing.Color
 # Shared between UI thread and background poll runspace.
 # [hashtable]::Synchronized() makes individual key reads/writes atomic.
 $script:shared = [hashtable]::Synchronized(@{
-    pwrFrac          = -1.0   # 0.0-1.0, or -1.0 = no reading
+    pwrWatts         = -1.0   # actual watts, or -1.0 = no reading
     swrVal           = -1.0   # actual SWR ratio (>= 1.0), or -1.0 = no reading
     alcFrac          = -1.0   # 0.0-1.0, or -1.0 = no reading
     pttState         = -1     # -1=unknown, 0=RX, 1=TX
@@ -177,7 +177,7 @@ $bgScript = {
             if ($t -ge 0) { $shared.pttState = $t }   # update immediately, before meter queries
             if ($t -eq 1) {
                 [System.Threading.Thread]::Sleep(10)
-                $p = Get-RigLevel 'RFPOWER_METER'
+                $p = Get-RigLevel 'RFPOWER_METER_WATTS'
                 [System.Threading.Thread]::Sleep(10)
                 $raw = Get-RigLevel 'SWR'
                 [System.Threading.Thread]::Sleep(10)
@@ -186,12 +186,12 @@ $bgScript = {
                 if ($s -ge 1.0 -and $shared.swrProtect -and $s -gt 2.0) {
                     RigSendSet "T 0" | Out-Null
                 }
-                if ($p -ge 0.0) { $shared.pwrFrac = $p }
+                if ($p -ge 0.0) { $shared.pwrWatts = $p }
                 if ($s -ge 1.0) { $shared.swrVal  = $s }
                 if ($a -ge 0.0) { $shared.alcFrac = $a }
             } elseif ($t -eq 0) {
                 # RX: clear meters; future receive-only queries go here
-                $shared.pwrFrac = -1.0
+                $shared.pwrWatts = -1.0
                 $shared.swrVal  = -1.0
                 $shared.alcFrac = -1.0
             }
@@ -387,17 +387,16 @@ $pnlSwr.Add_Paint({
 $pnlPwr.Add_Paint({
     param($sender, $e)
     $g = $e.Graphics; $pw = $sender.Width; $ph = $sender.Height
-    $frac = $script:shared.pwrFrac
+    $watts = $script:shared.pwrWatts
     $g.FillRectangle([System.Drawing.Brushes]::Black, 0, 0, $pw, $ph)
-    $pct = if ($frac -ge 0.0) { [Math]::Min(1.0, $frac) } else { 0.0 }
-    if ($frac -ge 0.0) {
+    $pct = if ($watts -ge 0.0) { [Math]::Min(1.0, $watts / 100.0) } else { 0.0 }
+    if ($watts -ge 0.0) {
         $barW = [int]($pct * ($pw - 4))
         if ($barW -gt 0) { $g.FillRectangle($script:brushGreen, 2, $ph - 24, $barW, 20) }
     }
-    $watts = [int]($pct * 100)
-    $pwrText = if ($frac -lt 0.0)   { "PWR  --- W" }
-               elseif ($pct -eq 0)  { "PWR    0 W" }
-               else                 { "PWR  {0,3} W" -f $watts }
+    $pwrText = if ($watts -lt 0.0)   { "PWR  --- W" }
+               elseif ($watts -eq 0) { "PWR    0 W" }
+               else                  { "PWR  {0,3} W" -f [int]$watts }
     $g.DrawString($pwrText, $script:fontMeter, [System.Drawing.Brushes]::White, 4, 6)
 })
 
@@ -521,7 +520,7 @@ function Invoke-Disconnect {
     $script:bgPs     = $null
     $script:bgHandle = $null
 
-    $script:shared.pwrFrac = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1
+    $script:shared.pwrWatts = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1
     $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate()
     $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50); $lblPtt.Text = "---"
 
@@ -564,7 +563,7 @@ $btnConnect.Add_Click({
 
         $script:shared.stop             = $false
         $script:shared.consecutiveFails = 0
-        $script:shared.pwrFrac          = -1.0
+        $script:shared.pwrWatts         = -1.0
         $script:shared.swrVal           = -1.0
         $script:shared.pttState         = -1
         $script:shared.swrProtect       = $chkSwrProtect.Checked
