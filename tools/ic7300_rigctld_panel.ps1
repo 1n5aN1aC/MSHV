@@ -12,6 +12,7 @@ $script:brushGreen  = New-Object System.Drawing.SolidBrush([System.Drawing.Color
 $script:brushYellow = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::Yellow)
 $script:brushOrange = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::OrangeRed)
 $script:voltScale   = 1.0    # VD_METER is already volts on the IC-7300; calibrate here if needed
+$script:ampScale    = 1.0    # ID_METER is already amps on the IC-7300; calibrate here if needed
 
 # Shared between UI thread and background poll runspace.
 # [hashtable]::Synchronized() makes individual key reads/writes atomic.
@@ -30,6 +31,7 @@ $script:shared = [hashtable]::Synchronized(@{
     intervalSwrMs    = 250
     intervalAlcMs    = 250
     intervalVoltMs   = 5000
+    intervalAmpMs    = 5000
     # Per-sensor "new data" flags; set by the bg thread, cleared by the UI timer.
     pttDirty         = $false
     pwrDirty         = $false
@@ -37,6 +39,8 @@ $script:shared = [hashtable]::Synchronized(@{
     alcDirty         = $false
     voltDirty        = $false
     voltVal          = -1.0   # supply voltage, or -1.0 = no reading
+    ampDirty         = $false
+    ampVal           = -1.0   # drain current (amps), or -1.0 = no reading
 })
 $script:bgPs     = $null
 $script:bgHandle = $null
@@ -48,6 +52,7 @@ $script:pollIntervalPwrMs = 250   # Power meter (TX only)
 $script:pollIntervalSwrMs = 250   # SWR meter (TX only)
 $script:pollIntervalAlcMs = 250   # ALC meter (TX only)
 $script:pollIntervalVoltMs = 5000 # Supply voltage (RX + TX)
+$script:pollIntervalAmpMs = 5000  # Drain current (RX + TX)
 
 # -- rigctld helpers (UI thread) ----------------------------------------------
 # tcpLock must be held by the caller before invoking these helpers.
@@ -201,6 +206,7 @@ $bgScript = {
     $nextSwr  = 0L
     $nextAlc  = 0L
     $nextVolt = 0L
+    $nextAmp  = 0L
 
     while (-not $shared.stop) {
         $now = $sw.ElapsedMilliseconds
@@ -284,9 +290,19 @@ $bgScript = {
             if ($v -ge 0.0) { $shared.voltVal = $v; $shared.voltDirty = $true }
         }
 
+        # -- Current sensor (RX + TX) -----------------------------------------
+        if ($now -ge $nextAmp) {
+            $nextAmp = $now + $shared.intervalAmpMs
+            $a = -1.0
+            if ($shared.tcpLock.Wait(1000)) {
+                try { $a = Get-RigLevel 'ID_METER' } catch { } finally { [void]$shared.tcpLock.Release() }
+            }
+            if ($a -ge 0.0) { $shared.ampVal = $a; $shared.ampDirty = $true }
+        }
+
         # Sleep until the soonest next-due, capped so $shared.stop stays responsive.
         $now     = $sw.ElapsedMilliseconds
-        $soonest = [Math]::Min([Math]::Min($nextPtt, $nextPwr), [Math]::Min([Math]::Min($nextSwr, $nextAlc), $nextVolt))
+        $soonest = [Math]::Min([Math]::Min([Math]::Min($nextPtt, $nextPwr), [Math]::Min($nextSwr, $nextAlc)), [Math]::Min($nextVolt, $nextAmp))
         $sleepMs = $soonest - $now
         if ($sleepMs -lt 1)   { $sleepMs = 1 }
         if ($sleepMs -gt 250) { $sleepMs = 250 }
@@ -460,6 +476,7 @@ $form.Controls.Add($pnlAlc)
 $dbl = [System.Windows.Forms.Control].GetProperty('DoubleBuffered',
     [System.Reflection.BindingFlags]'NonPublic,Instance')
 $dbl.SetValue($pnlVolt, $true, $null)
+$dbl.SetValue($pnlAux, $true, $null)
 $dbl.SetValue($pnlSwr, $true, $null)
 $dbl.SetValue($pnlPwr, $true, $null)
 $dbl.SetValue($pnlAlc, $true, $null)
@@ -477,6 +494,19 @@ $pnlVolt.Add_Paint({
               elseif ($v -gt 12.0) { $script:brushYellow }
               else                 { $script:brushOrange }
         $g.DrawString(("{0:F1} V" -f $v), $script:fontVolt, $br, 8, 4)
+    }
+})
+
+$pnlAux.Add_Paint({
+    param($sender, $e)
+    $g = $e.Graphics; $pw = $sender.Width; $ph = $sender.Height
+    $amps = $script:shared.ampVal
+    $g.FillRectangle([System.Drawing.Brushes]::Black, 0, 0, $pw, $ph)
+    if ($amps -lt 0.0) {
+        $g.DrawString("--- A", $script:fontVolt, [System.Drawing.Brushes]::White, 8, 4)
+    } else {
+        $a = $amps * $script:ampScale
+        $g.DrawString(("{0:F1} A" -f $a), $script:fontVolt, [System.Drawing.Brushes]::White, 8, 4)
     }
 })
 
@@ -588,6 +618,7 @@ $timer.Add_Tick({
     if ($script:shared.swrDirty)  { $script:shared.swrDirty  = $false; $pnlSwr.Invalidate()  }
     if ($script:shared.alcDirty)  { $script:shared.alcDirty  = $false; $pnlAlc.Invalidate()  }
     if ($script:shared.voltDirty) { $script:shared.voltDirty = $false; $pnlVolt.Invalidate() }
+    if ($script:shared.ampDirty)  { $script:shared.ampDirty  = $false; $pnlAux.Invalidate()  }
 
     if ($script:shared.pttDirty) {
         $script:shared.pttDirty = $false
@@ -644,9 +675,9 @@ function Invoke-Disconnect {
     $script:bgPs     = $null
     $script:bgHandle = $null
 
-    $script:shared.pwrWatts = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1; $script:shared.voltVal = -1.0
-    $script:shared.pttDirty = $false; $script:shared.pwrDirty = $false; $script:shared.swrDirty = $false; $script:shared.alcDirty = $false; $script:shared.voltDirty = $false
-    $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate(); $pnlVolt.Invalidate()
+    $script:shared.pwrWatts = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1; $script:shared.voltVal = -1.0; $script:shared.ampVal = -1.0
+    $script:shared.pttDirty = $false; $script:shared.pwrDirty = $false; $script:shared.swrDirty = $false; $script:shared.alcDirty = $false; $script:shared.voltDirty = $false; $script:shared.ampDirty = $false
+    $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate(); $pnlVolt.Invalidate(); $pnlAux.Invalidate()
     $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50); $lblPtt.Text = "---"
 
     $lblStatus.Text      = 'Not connected'
@@ -693,6 +724,7 @@ $btnConnect.Add_Click({
         $script:shared.alcFrac          = -1.0
         $script:shared.pttState         = -1
         $script:shared.voltVal          = -1.0
+        $script:shared.ampVal           = -1.0
         $script:shared.swrProtect       = $chkSwrProtect.Checked
 
         # Apply the editable poll intervals and clear stale render flags.
@@ -701,11 +733,13 @@ $btnConnect.Add_Click({
         $script:shared.intervalSwrMs  = $script:pollIntervalSwrMs
         $script:shared.intervalAlcMs  = $script:pollIntervalAlcMs
         $script:shared.intervalVoltMs = $script:pollIntervalVoltMs
+        $script:shared.intervalAmpMs  = $script:pollIntervalAmpMs
         $script:shared.pttDirty  = $false
         $script:shared.pwrDirty  = $false
         $script:shared.swrDirty  = $false
         $script:shared.alcDirty  = $false
         $script:shared.voltDirty = $false
+        $script:shared.ampDirty  = $false
 
         $rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
         $rs.Open()
