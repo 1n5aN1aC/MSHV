@@ -11,6 +11,7 @@ $script:regPath     = "HKCU:\Software\IC7300RigctldPanel"
 $script:brushGreen  = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::LimeGreen)
 $script:brushYellow = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::Yellow)
 $script:brushOrange = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::OrangeRed)
+$script:voltScale   = 1.0    # VD_METER is already volts on the IC-7300; calibrate here if needed
 
 # Shared between UI thread and background poll runspace.
 # [hashtable]::Synchronized() makes individual key reads/writes atomic.
@@ -28,11 +29,14 @@ $script:shared = [hashtable]::Synchronized(@{
     intervalPwrMs    = 250
     intervalSwrMs    = 250
     intervalAlcMs    = 250
+    intervalVoltMs   = 5000
     # Per-sensor "new data" flags; set by the bg thread, cleared by the UI timer.
     pttDirty         = $false
     pwrDirty         = $false
     swrDirty         = $false
     alcDirty         = $false
+    voltDirty        = $false
+    voltVal          = -1.0   # supply voltage, or -1.0 = no reading
 })
 $script:bgPs     = $null
 $script:bgHandle = $null
@@ -43,6 +47,7 @@ $script:pollIntervalPttMs = 200   # PTT: fast so TX/RX flips show quickly
 $script:pollIntervalPwrMs = 250   # Power meter (TX only)
 $script:pollIntervalSwrMs = 250   # SWR meter (TX only)
 $script:pollIntervalAlcMs = 250   # ALC meter (TX only)
+$script:pollIntervalVoltMs = 5000 # Supply voltage (RX + TX)
 
 # -- rigctld helpers (UI thread) ----------------------------------------------
 # tcpLock must be held by the caller before invoking these helpers.
@@ -191,10 +196,11 @@ $bgScript = {
     # writes $shared (never WinForms); it sets a per-sensor *Dirty flag so the
     # UI timer knows which panel produced new data.
     $sw      = [System.Diagnostics.Stopwatch]::StartNew()
-    $nextPtt = 0L
-    $nextPwr = 0L
-    $nextSwr = 0L
-    $nextAlc = 0L
+    $nextPtt  = 0L
+    $nextPwr  = 0L
+    $nextSwr  = 0L
+    $nextAlc  = 0L
+    $nextVolt = 0L
 
     while (-not $shared.stop) {
         $now = $sw.ElapsedMilliseconds
@@ -268,9 +274,19 @@ $bgScript = {
             }
         }
 
+        # -- Voltage sensor (RX + TX) -----------------------------------------
+        if ($now -ge $nextVolt) {
+            $nextVolt = $now + $shared.intervalVoltMs
+            $v = -1.0
+            if ($shared.tcpLock.Wait(1000)) {
+                try { $v = Get-RigLevel 'VD_METER' } catch { } finally { [void]$shared.tcpLock.Release() }
+            }
+            if ($v -ge 0.0) { $shared.voltVal = $v; $shared.voltDirty = $true }
+        }
+
         # Sleep until the soonest next-due, capped so $shared.stop stays responsive.
         $now     = $sw.ElapsedMilliseconds
-        $soonest = [Math]::Min([Math]::Min($nextPtt, $nextPwr), [Math]::Min($nextSwr, $nextAlc))
+        $soonest = [Math]::Min([Math]::Min($nextPtt, $nextPwr), [Math]::Min([Math]::Min($nextSwr, $nextAlc), $nextVolt))
         $sleepMs = $soonest - $now
         if ($sleepMs -lt 1)   { $sleepMs = 1 }
         if ($sleepMs -gt 250) { $sleepMs = 250 }
@@ -303,7 +319,7 @@ function Load-Settings {
 
 $form = New-Object System.Windows.Forms.Form
 $form.Text            = "IC-7300 Panel (rigctld)"
-$form.ClientSize      = New-Object System.Drawing.Size(280, 462)
+$form.ClientSize      = New-Object System.Drawing.Size(280, 502)
 $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 $form.MaximizeBox     = $false
 $form.StartPosition   = [System.Windows.Forms.FormStartPosition]::CenterScreen
@@ -313,6 +329,7 @@ $form.ForeColor       = [System.Drawing.Color]::White
 $fontSmall  = New-Object System.Drawing.Font("Segoe UI", 9)
 $fontBold   = New-Object System.Drawing.Font("Segoe UI", 9, [System.Drawing.FontStyle]::Bold)
 $fontPtt    = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Bold)
+$script:fontVolt    = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Bold)
 $silver    = [System.Drawing.Color]::Silver
 $darkBg    = [System.Drawing.Color]::FromArgb(30, 30, 30)
 $panelBg   = [System.Drawing.Color]::FromArgb(18, 18, 18)
@@ -407,21 +424,34 @@ $lblPtt.Add_Click({
 })
 $form.Controls.Add($lblPtt)
 
+# -- Voltage row (left = voltage, right = reserved placeholder) ----------------
+$pnlVolt = New-Object System.Windows.Forms.Panel
+$pnlVolt.Location  = [System.Drawing.Point]::new(5, 146)
+$pnlVolt.Size      = [System.Drawing.Size]::new(132, 34)
+$pnlVolt.BackColor = $panelBg
+$form.Controls.Add($pnlVolt)
+
+$pnlAux = New-Object System.Windows.Forms.Panel
+$pnlAux.Location  = [System.Drawing.Point]::new(143, 146)
+$pnlAux.Size      = [System.Drawing.Size]::new(132, 34)
+$pnlAux.BackColor = [System.Drawing.Color]::Black
+$form.Controls.Add($pnlAux)
+
 # -- Meter panels (stacked) ---------------------------------------------------
 $pnlSwr = New-Object System.Windows.Forms.Panel
-$pnlSwr.Location  = [System.Drawing.Point]::new(5, 146)
+$pnlSwr.Location  = [System.Drawing.Point]::new(5, 186)
 $pnlSwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlSwr.BackColor = $panelBg
 $form.Controls.Add($pnlSwr)
 
 $pnlPwr = New-Object System.Windows.Forms.Panel
-$pnlPwr.Location  = [System.Drawing.Point]::new(5, 216)
+$pnlPwr.Location  = [System.Drawing.Point]::new(5, 256)
 $pnlPwr.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlPwr.BackColor = $panelBg
 $form.Controls.Add($pnlPwr)
 
 $pnlAlc = New-Object System.Windows.Forms.Panel
-$pnlAlc.Location  = [System.Drawing.Point]::new(5, 286)
+$pnlAlc.Location  = [System.Drawing.Point]::new(5, 326)
 $pnlAlc.Size      = [System.Drawing.Size]::new(270, 64)
 $pnlAlc.BackColor = $panelBg
 $form.Controls.Add($pnlAlc)
@@ -429,9 +459,26 @@ $form.Controls.Add($pnlAlc)
 # Enable double-buffering to eliminate repaint flicker.
 $dbl = [System.Windows.Forms.Control].GetProperty('DoubleBuffered',
     [System.Reflection.BindingFlags]'NonPublic,Instance')
+$dbl.SetValue($pnlVolt, $true, $null)
 $dbl.SetValue($pnlSwr, $true, $null)
 $dbl.SetValue($pnlPwr, $true, $null)
 $dbl.SetValue($pnlAlc, $true, $null)
+
+$pnlVolt.Add_Paint({
+    param($sender, $e)
+    $g = $e.Graphics; $pw = $sender.Width; $ph = $sender.Height
+    $volts = $script:shared.voltVal
+    $g.FillRectangle([System.Drawing.Brushes]::Black, 0, 0, $pw, $ph)
+    if ($volts -lt 0.0) {
+        $g.DrawString("--- V", $script:fontVolt, [System.Drawing.Brushes]::White, 8, 4)
+    } else {
+        $v = $volts * $script:voltScale
+        $br = if ($v -gt 13.0)     { $script:brushGreen }
+              elseif ($v -gt 12.0) { $script:brushYellow }
+              else                 { $script:brushOrange }
+        $g.DrawString(("{0:F1} V" -f $v), $script:fontVolt, $br, 8, 4)
+    }
+})
 
 $pnlSwr.Add_Paint({
     param($sender, $e)
@@ -494,7 +541,7 @@ $pnlAlc.Add_Paint({
 
 # -- Button grid (2 rows x 4) -------------------------------------------------
 $flow = New-Object System.Windows.Forms.FlowLayoutPanel
-$flow.Location      = [System.Drawing.Point]::new(5, 356)
+$flow.Location      = [System.Drawing.Point]::new(5, 396)
 $flow.Size          = [System.Drawing.Size]::new(270, 68)
 $flow.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
 $flow.WrapContents  = $true
@@ -537,9 +584,10 @@ $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 40
 
 $timer.Add_Tick({
-    if ($script:shared.pwrDirty) { $script:shared.pwrDirty = $false; $pnlPwr.Invalidate() }
-    if ($script:shared.swrDirty) { $script:shared.swrDirty = $false; $pnlSwr.Invalidate() }
-    if ($script:shared.alcDirty) { $script:shared.alcDirty = $false; $pnlAlc.Invalidate() }
+    if ($script:shared.pwrDirty)  { $script:shared.pwrDirty  = $false; $pnlPwr.Invalidate()  }
+    if ($script:shared.swrDirty)  { $script:shared.swrDirty  = $false; $pnlSwr.Invalidate()  }
+    if ($script:shared.alcDirty)  { $script:shared.alcDirty  = $false; $pnlAlc.Invalidate()  }
+    if ($script:shared.voltDirty) { $script:shared.voltDirty = $false; $pnlVolt.Invalidate() }
 
     if ($script:shared.pttDirty) {
         $script:shared.pttDirty = $false
@@ -596,9 +644,9 @@ function Invoke-Disconnect {
     $script:bgPs     = $null
     $script:bgHandle = $null
 
-    $script:shared.pwrWatts = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1
-    $script:shared.pttDirty = $false; $script:shared.pwrDirty = $false; $script:shared.swrDirty = $false; $script:shared.alcDirty = $false
-    $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate()
+    $script:shared.pwrWatts = -1.0; $script:shared.swrVal = -1.0; $script:shared.alcFrac = -1.0; $script:shared.pttState = -1; $script:shared.voltVal = -1.0
+    $script:shared.pttDirty = $false; $script:shared.pwrDirty = $false; $script:shared.swrDirty = $false; $script:shared.alcDirty = $false; $script:shared.voltDirty = $false
+    $pnlPwr.Invalidate(); $pnlSwr.Invalidate(); $pnlAlc.Invalidate(); $pnlVolt.Invalidate()
     $lblPtt.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50); $lblPtt.Text = "---"
 
     $lblStatus.Text      = 'Not connected'
@@ -644,17 +692,20 @@ $btnConnect.Add_Click({
         $script:shared.swrVal           = -1.0
         $script:shared.alcFrac          = -1.0
         $script:shared.pttState         = -1
+        $script:shared.voltVal          = -1.0
         $script:shared.swrProtect       = $chkSwrProtect.Checked
 
         # Apply the editable poll intervals and clear stale render flags.
-        $script:shared.intervalPttMs = $script:pollIntervalPttMs
-        $script:shared.intervalPwrMs = $script:pollIntervalPwrMs
-        $script:shared.intervalSwrMs = $script:pollIntervalSwrMs
-        $script:shared.intervalAlcMs = $script:pollIntervalAlcMs
-        $script:shared.pttDirty = $false
-        $script:shared.pwrDirty = $false
-        $script:shared.swrDirty = $false
-        $script:shared.alcDirty = $false
+        $script:shared.intervalPttMs  = $script:pollIntervalPttMs
+        $script:shared.intervalPwrMs  = $script:pollIntervalPwrMs
+        $script:shared.intervalSwrMs  = $script:pollIntervalSwrMs
+        $script:shared.intervalAlcMs  = $script:pollIntervalAlcMs
+        $script:shared.intervalVoltMs = $script:pollIntervalVoltMs
+        $script:shared.pttDirty  = $false
+        $script:shared.pwrDirty  = $false
+        $script:shared.swrDirty  = $false
+        $script:shared.alcDirty  = $false
+        $script:shared.voltDirty = $false
 
         $rs = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace()
         $rs.Open()
@@ -691,6 +742,7 @@ $btnDisconnect.Add_Click({ Invoke-Disconnect })
 $form.Add_FormClosing({
     Invoke-Disconnect
     $script:fontMeter.Dispose(); $fontSmall.Dispose(); $fontBold.Dispose(); $fontPtt.Dispose()
+    $script:fontVolt.Dispose()
     $script:brushGreen.Dispose(); $script:brushYellow.Dispose(); $script:brushOrange.Dispose()
     $script:shared.tcpLock.Dispose()
     $timer.Dispose()
