@@ -2761,6 +2761,11 @@ void RadioAndNetW::SetDefaultFreqsActType(int id)
         {
             "3.576.000","7.080.000","14.080.000","21.080.000","28.080.000"
         };
+    const QString fd_mods_frq[2][7] = //"ARRL Field Day"
+        {   //         160m        80m         40m         20m         15m         10m         6m
+            {"1.836.000","3.580.000","7.080.000","14.080.000","21.080.000","28.080.000","50.330.000"},//FT4
+            {"1.840.000","3.590.000","7.090.000","14.090.000","21.090.000","28.090.000","50.340.000"},//FT8
+        };
 
     QStringList list;
     QString sfrq;
@@ -2771,6 +2776,7 @@ void RadioAndNetW::SetDefaultFreqsActType(int id)
     int col = 4;//start from 3.5
     if (id == 6 || id == 5) col = 3;//start from 1.8
     if (id == 11) col = 6;//start from 7.0
+    if (id == 4)  col = 3;//start from 1.8 (160m)
 
 	//"MSK","FSK","FT2","FT4","FT8", "J65","Q65" <-- real pos in RadList
     int modp = pos_mod_sav_frq[2];//3 start from ft4
@@ -2781,6 +2787,7 @@ void RadioAndNetW::SetDefaultFreqsActType(int id)
     if (id == 6)  coar = 6;//"WW Digi DX Contest"
     if (id == 10) coar = 2;//"Bucuresti Digital Contest"
     if (id == 11) coar = 2;//"FT4 SPRINT Fast Training"
+    if (id == 4)  coar = 7;//"ARRL Field Day" (160/80/40/20/15/10/6m)
 
     //qDebug()<<s_cont_name[id]<<"band="<<col<<"modp="<<modp<<"coar="<<coar;
     for (int i  = 0; i < coar; ++i)
@@ -2838,6 +2845,13 @@ void RadioAndNetW::SetDefaultFreqsActType(int id)
             lf.replace(modp,  ft4pdc_mods_frq[i]);
             ft4_s.append(ft4pdc_mods_frq[i]+", ");
         }
+        else if (id == 4) //"ARRL Field Day"
+        {
+            lf.replace(modp,  fd_mods_frq[0][i]);
+            lf.replace(modp+1,fd_mods_frq[1][i]);
+            ft4_s.append(fd_mods_frq[0][i]+", ");
+            ft8_s.append(fd_mods_frq[1][i]+", ");
+        }
 
         sfrq.clear();
         for (int j  = 0; j < COUNT_FREQ_MODES; j++)
@@ -2870,6 +2884,15 @@ void RadioAndNetW::SetDefaultFreqsActType(int id)
         {
             if   	(i==0) col=8;
             //else if (i==1) col=9;
+        }
+        else if (id == 4) //"ARRL Field Day"
+        {
+            if   	(i==0) col=4; //160m -> 80m
+            else if (i==1) col=6; //80m  -> 40m
+            else if (i==2) col=8; //40m  -> 20m
+            else if (i==3) col=10;//20m  -> 15m
+            else if (i==4) col=13;//15m  -> 10m
+            else if (i==5) col=15;//10m  -> 6m
         }
         else //All others
         {
@@ -3128,7 +3151,7 @@ void RadioAndNetW::SetLocalStation(QString myCall,QString myLoc,QString band,int
     }
     //psk_Reporter->setLocalStation(myCall,myLoc,myAnt,QString{"MSHV v" + QString(VER_MS)}.simplified ());   
     psk_Reporter->setLocalStation(myCall,myLoc,myAnt,s_rigInfo);
-    if ((s_cont_id > 4 && s_cont_id < 13) || s_cont_id == 17)//=COUNT_CONTEST protection  13 = CQ WW VHF Contest no default freq
+    if ((s_cont_id >= 4 && s_cont_id < 13) || s_cont_id == 17)//=COUNT_CONTEST protection  13 = CQ WW VHF Contest no default freq
     {
         b_reset_default_freqs_cont->setEnabled(true);
         b_reset_default_freqs_cont->setText(tr("Default FREQs For")+" "+s_cont_name[s_cont_id]);
