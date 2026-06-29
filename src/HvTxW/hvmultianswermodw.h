@@ -261,6 +261,7 @@ public:
 	void SetIdleAutoRespondTimeout(int cycles);
     void SetIdleCandidateSeconds(int seconds);
 	void SetIdleCategoryEnabled(int cat, bool f);
+    void EmitCurrentCandidateCount();
     void SetIdleContestCall(QString c);
 	bool GetIdleAutoRespondEnabled();
 	int  GetIdleAutoRespondTimeout();

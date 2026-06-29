@@ -3576,10 +3576,16 @@ int MultiAnswerModW::CountActiveCandidates() const
     int count = 0;
     for (int i = 0; i < s_idle_candidates.count(); ++i)
     {
-        if ((now_t - s_idle_candidates[i].rx_time) <= windowSec)
-            ++count;
+        const IdleCandidate &c = s_idle_candidates[i];
+        if ((now_t - c.rx_time) > windowSec) continue;
+        if (!f_idle_cat[c.cat]) continue;
+        ++count;
     }
     return count;
+}
+void MultiAnswerModW::EmitCurrentCandidateCount()
+{
+    emit EmitIdleCandidateCount(CountActiveCandidates());
 }
 void MultiAnswerModW::CollectIdleCandidate(QString text_msg, QString freq, QString snr)
 {

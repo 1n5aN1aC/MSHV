@@ -3923,6 +3923,7 @@ void HvTxW::IdleArCatChanged(bool)
 {
     for (int i = 0; i < IDLE_CAT_COUNT; ++i)
         MultiAnswerMod->SetIdleCategoryEnabled(i, cb_idle_cat[i]->isChecked());
+    MultiAnswerMod->EmitCurrentCandidateCount();
     RefreshIdleArPane();
 }
 void HvTxW::IdleArContestCallChanged(QString s)
