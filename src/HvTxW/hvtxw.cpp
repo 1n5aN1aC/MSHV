@@ -9,6 +9,7 @@
 #include "config_rpt_all.h"
 #include <QDateTime>
 #include <QEvent>
+#include <QRegExpValidator>
 //#include <QtGui>
 
 HvLabAutoSeq::HvLabAutoSeq(bool f,QWidget * parent )
@@ -586,6 +587,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     cb_idle_cat[0]->setChecked(false);
     le_idle_contest_call = new QLineEdit();
     le_idle_contest_call->setMaxLength(4);// FT8/FT4 structured CQ tags are <=4 chars; longer values can never match
+    le_idle_contest_call->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9]{0,4}"), this));// CQ tags are alphanumeric; also keeps '#' out of the settings serialization
     le_idle_contest_call->setPlaceholderText(tr("Text"));
     le_idle_contest_call->setFixedWidth(80);
     H_idle_contest->addWidget(cb_idle_cat[0]);

@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QRadioButton>
+#include <QRegExpValidator>
 #include <QVBoxLayout>
 
 HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
@@ -39,6 +40,7 @@ HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
     le_respond_cq_keywords = new QLineEdit();
     le_respond_cq_keywords->setPlaceholderText(tr("Example: POTA,SOTA,WWFF"));
     le_respond_cq_keywords->setToolTip(tr("Comma-separated CQ keywords to match."));
+    le_respond_cq_keywords->setValidator(new QRegExpValidator(QRegExp("[^#]*"), this));// '#' is the settings field delimiter
     le_respond_cq_keywords->setEnabled(false);
 
     cb_respond_cq_grid = new QCheckBox(tr("Respond to CQs containing specific grid squares"));
@@ -48,6 +50,7 @@ HvPounceSettings::HvPounceSettings(bool dsty, QWidget *parent)
     le_respond_cq_grids = new QLineEdit();
     le_respond_cq_grids->setPlaceholderText(tr("Example: CN84,EM12,JO22"));
     le_respond_cq_grids->setToolTip(tr("Comma-separated grid squares to match."));
+    le_respond_cq_grids->setValidator(new QRegExpValidator(QRegExp("[^#]*"), this));// '#' is the settings field delimiter
     le_respond_cq_grids->setEnabled(false);
 
     QGroupBox *gb_response_mode = new QGroupBox(tr("Response mode"));
@@ -129,7 +132,9 @@ void HvPounceSettings::SetRespondCqKeywordEnabled(bool enabled)
 
 QString HvPounceSettings::RespondCqKeywords() const
 {
-    return le_respond_cq_keywords->text().trimmed();
+    QString s = le_respond_cq_keywords->text();
+    s.remove('#');// '#' is the field delimiter in the saved settings line
+    return s.trimmed();
 }
 
 void HvPounceSettings::SetRespondCqKeywords(const QString &keywords)
@@ -149,7 +154,9 @@ void HvPounceSettings::SetRespondCqGridEnabled(bool enabled)
 
 QString HvPounceSettings::RespondCqGrids() const
 {
-    return le_respond_cq_grids->text().trimmed();
+    QString s = le_respond_cq_grids->text();
+    s.remove('#');// '#' is the field delimiter in the saved settings line
+    return s.trimmed();
 }
 
 void HvPounceSettings::SetRespondCqGrids(const QString &grids)

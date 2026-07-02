@@ -3503,6 +3503,7 @@ void MultiAnswerModW::SetIdleCategoryEnabled(int cat, bool f)
 }
 void MultiAnswerModW::SetIdleContestCall(QString c)
 {
+    c.remove('#');// '#' is the field delimiter in GetSettings() serialization
     s_idle_contest_call = c.trimmed().toUpper();
 }
 bool MultiAnswerModW::GetIdleAutoRespondEnabled()
