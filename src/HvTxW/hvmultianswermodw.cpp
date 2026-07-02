@@ -490,6 +490,7 @@ MultiAnswerModW::MultiAnswerModW(bool f,QWidget * parent )
     backup_db_pos_write = 0;
     current_msg = "";
     s_man_adding = false;
+    f_pounce_directed = true;
     f_pounce_cq_keyword = false;
     f_pounce_cq_grid = false;
     s_pounce_cq_keywords.clear();
@@ -3309,6 +3310,10 @@ void MultiAnswerModW::SetTextForAutoSeq(QStringList list_in)
     else uuu=0;
 #endif
 }
+void MultiAnswerModW::SetPounceRespondDirected(bool f)
+{
+    f_pounce_directed = f;
+}
 void MultiAnswerModW::SetPounceRespondCqKeyword(bool f)
 {
     f_pounce_cq_keyword = f;
@@ -3399,7 +3404,7 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
         return;
     }
 
-    bool directed_match = (!hisCall_inmsg.isEmpty() && !myCall_inmsg.isEmpty());
+    bool directed_match = (f_pounce_directed && !hisCall_inmsg.isEmpty() && !myCall_inmsg.isEmpty());
     if (!directed_match)
     {
         // Keyword/grid CQ triggers should only queue when queue is empty.

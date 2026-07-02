@@ -167,6 +167,7 @@ public:
     void SetDistUnit(bool f_);
     void SetTextForAutoSeq(QStringList list_in);
     void SetTextForAutoSeqWAP(QStringList list_in);
+    void SetPounceRespondDirected(bool f);
     void SetPounceRespondCqKeyword(bool f);
     void SetPounceRespondCqKeywords(QString s);
     void SetPounceRespondCqGrid(bool f);
@@ -397,6 +398,7 @@ private:
     int s_dist_points;//2.66
     bool s_man_adding;
     void SetSFMATxAll();//2.76
+    bool f_pounce_directed;
     bool f_pounce_cq_keyword;
     bool f_pounce_cq_grid;
     QStringList s_pounce_cq_keywords;

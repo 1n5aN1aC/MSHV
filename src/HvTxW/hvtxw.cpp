@@ -5417,6 +5417,7 @@ void HvTxW::SetWaitAndPounce(bool f)
 void HvTxW::SetPounceRespondDirected(bool f)
 {
     f_pounce_respond_directed = f;
+    MultiAnswerMod->SetPounceRespondDirected(f);
 }
 void HvTxW::SetPounceRespondCqKeyword(bool f)
 {
