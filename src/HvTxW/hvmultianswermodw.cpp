@@ -3439,16 +3439,11 @@ void MultiAnswerModW::SetTextForAutoSeqWAP(QStringList list_in)
 
     QString hcap;
     QString hloc;
-    if (directed_match)
-    {
-        DecListTextAll(tx_rpt,text_msg,freq,false,hcap,hloc);
-        emit EmitWAPDirectedQueued(freq,pounce_time);
-        return;
-    }
-
-    // For CQ keyword/grid pounce, use the same insertion path as user-triggered respond-now.
-    // Then start AUTO only if the decoded call is actually present in Queue/Now.
-    DecListTextAll(tx_rpt,text_msg,freq,true,hcap,hloc);
+    // Directed pounce uses the non-double-click path; CQ keyword/grid uses the
+    // same insertion path as user-triggered respond-now. Either way start AUTO
+    // only if the decoded call is actually present in Queue/Now, since
+    // DecListTextAll can silently reject (dupe, non-std call, queue full, ...).
+    DecListTextAll(tx_rpt,text_msg,freq,!directed_match,hcap,hloc);
 
     QString his_base_call = FindBaseFullCallRemAllSlash(hisCall_inmsg);
     if (!his_base_call.isEmpty())
