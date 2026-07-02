@@ -508,6 +508,7 @@ HvTxW::HvTxW(QString inst,QString path,int lid,bool f,int x,int y,QWidget * pare
     connect(MultiAnswerMod,SIGNAL(EmitSFMATxAll(QString)),this,SIGNAL(EmitSFMATxAll(QString)));//2.76sf
     connect(MultiAnswerMod,SIGNAL(EmitWAPDirectedQueued(QString,QString)),this,SLOT(StartPounceAuto(QString,QString)));
     connect(MultiAnswerMod,SIGNAL(EmitCNSChanged(bool)),this,SIGNAL(EmitPounceCNSChanged(bool)));
+    connect(MultiAnswerMod,SIGNAL(EmitCNSChanged(bool)),this,SLOT(IdleArCNSChanged(bool)));
     connect(MultiAnswerMod,SIGNAL(EmitIdleCandidateCount(int)),this,SLOT(IdleCandCountChanged(int)));
     connect(MultiAnswerMod,SIGNAL(EmitIdleArFired(QString)),this,SLOT(IdleArFired(QString)));
 
@@ -3836,6 +3837,8 @@ void HvTxW::ReadSettings()
     for (int ic = 0; ic < IDLE_CAT_COUNT; ++ic) cb_idle_cat[ic]->blockSignals(false);
 
     // One-shot backend sync after UI restore.
+    // Idle AR requires CNS (see IdleArEnableChanged); repair stale settings files.
+    if (cb_idle_ar_enable->isChecked() && !MultiAnswerMod->GetCNS()) MultiAnswerMod->SetCNS(true);
     MultiAnswerMod->SetIdleAutoRespondEnabled(cb_idle_ar_enable->isChecked());
     MultiAnswerMod->SetIdleAutoRespondTimeout(sb_idle_ar_timeout->value());
     MultiAnswerMod->SetIdleCandidateSeconds(sb_idle_ar_candidate_seconds->value());
@@ -3908,8 +3911,15 @@ void HvTxW::RefreshIdleArPane()
 }
 void HvTxW::IdleArEnableChanged(bool f)
 {
+    // Idle AR needs CNS: without it gen_msg's CQ path stops AUTO and wipes the
+    // candidate list, so an idle attempt could fire at most once.
+    if (f && !MultiAnswerMod->GetCNS()) MultiAnswerMod->SetCNS(true);
     MultiAnswerMod->SetIdleAutoRespondEnabled(f);
     RefreshIdleArPane();
+}
+void HvTxW::IdleArCNSChanged(bool f)
+{
+    if (!f && cb_idle_ar_enable->isChecked()) cb_idle_ar_enable->setChecked(false);
 }
 void HvTxW::IdleArTimeoutChanged(int val)
 {

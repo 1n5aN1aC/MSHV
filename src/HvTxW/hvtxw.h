@@ -474,6 +474,7 @@ private slots:
     void IdleArCandidateSecondsChanged(int);
     void IdleArCatChanged(bool);
     void IdleArContestCallChanged(QString);
+    void IdleArCNSChanged(bool);
     void IdleCandCountChanged(int);
     void IdleArFired(QString);
     bool eventFilter(QObject *obj, QEvent *ev);
